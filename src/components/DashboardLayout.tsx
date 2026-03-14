@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Truck, Users, Route, ClipboardList,
-  Settings, LogOut, Menu, X, ChevronDown, Building2
+  Settings, LogOut, Menu, X, ChevronDown, Building2, Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,10 @@ const navItems = [
   { label: "Asignaciones", icon: ClipboardList, href: "/dashboard/asignaciones" },
   { label: "Viajes", icon: Route, href: "/dashboard/viajes" },
   { label: "Configuración", icon: Settings, href: "/dashboard/config" },
+];
+
+const superAdminItems = [
+  { label: "Empresas", icon: Building2, href: "/admin" },
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -75,6 +79,36 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+
+          {role === "SUPER_ADMIN" && (
+            <>
+              <div className="my-3 border-t border-sidebar-border" />
+              <div className="px-3 mb-2">
+                <span className="text-xs font-semibold text-sidebar-foreground/40 uppercase tracking-wider flex items-center gap-1.5">
+                  <Shield className="w-3 h-3" /> Admin
+                </span>
+              </div>
+              {superAdminItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* User section */}

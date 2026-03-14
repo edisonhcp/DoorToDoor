@@ -940,7 +940,7 @@ export type Database = {
         | "EGRESOS_EDITADOS"
         | "CONDUCTOR_VEHICULO_DISPONIBLE"
         | "CONDUCTOR_VEHICULO_NO_DISPONIBLE"
-      app_role: "GERENCIA" | "CONDUCTOR" | "PROPIETARIO"
+      app_role: "GERENCIA" | "CONDUCTOR" | "PROPIETARIO" | "SUPER_ADMIN"
       estado: "HABILITADO" | "INHABILITADO"
       estado_asignacion: "ACTIVA" | "CERRADA"
       estado_disponibilidad: "DISPONIBLE" | "EN_RUTA"
@@ -1092,7 +1092,7 @@ export const Constants = {
         "CONDUCTOR_VEHICULO_DISPONIBLE",
         "CONDUCTOR_VEHICULO_NO_DISPONIBLE",
       ],
-      app_role: ["GERENCIA", "CONDUCTOR", "PROPIETARIO"],
+      app_role: ["GERENCIA", "CONDUCTOR", "PROPIETARIO", "SUPER_ADMIN"],
       estado: ["HABILITADO", "INHABILITADO"],
       estado_asignacion: ["ACTIVA", "CERRADA"],
       estado_disponibilidad: ["DISPONIBLE", "EN_RUTA"],
