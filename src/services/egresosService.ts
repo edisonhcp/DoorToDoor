@@ -43,7 +43,6 @@ export async function upsertEgresos(params: {
   varios_foto_url?: string | null;
   varios_texto?: string | null;
 }) {
-  // Check if exists
   const { data: existing } = await supabase
     .from("egresos_viaje")
     .select("id")
@@ -99,6 +98,7 @@ export async function uploadRecibo(file: File, folder: string): Promise<string |
 }
 
 // Fetch all viajes with ingresos and egresos for a given empresa (FINALIZADO)
+// Now also fetches propietario name from vehiculos -> propietarios
 export async function fetchViajesConDetalle(empresaId: string) {
   const { data, error } = await supabase
     .from("viajes")
@@ -108,7 +108,7 @@ export async function fetchViajesConDetalle(empresaId: string) {
       ingresos_viaje(pasajeros_monto, encomiendas_monto, total_ingreso),
       egresos_viaje(peaje, hotel, pago_conductor, combustible, varios, total_egreso, desayuno, almuerzo, merienda, combustible_foto_url, varios_foto_url, varios_texto),
       asignaciones(
-        vehiculos(placa, marca, modelo),
+        vehiculos(placa, marca, modelo, propietarios(nombres, apellidos)),
         conductores(nombres, apellidos)
       )
     `)
@@ -121,6 +121,9 @@ export async function fetchViajesConDetalle(empresaId: string) {
       ...v,
       vehiculo: v.asignaciones?.vehiculos,
       conductor: v.asignaciones?.conductores,
+      propietario_nombre: v.asignaciones?.vehiculos?.propietarios
+        ? `${v.asignaciones.vehiculos.propietarios.nombres} ${v.asignaciones.vehiculos.propietarios.apellidos}`
+        : "—",
       ingresos: v.ingresos_viaje,
       egresos: v.egresos_viaje,
     })),
@@ -138,7 +141,6 @@ export async function fetchViajesPropietario(userId: string) {
 
   if (!profile?.propietario_id) return { data: [], error: null };
 
-  // Get vehicles owned by this propietario
   const { data: vehiculos } = await supabase
     .from("vehiculos")
     .select("id")
@@ -148,7 +150,6 @@ export async function fetchViajesPropietario(userId: string) {
 
   const vehiculoIds = vehiculos.map((v: any) => v.id);
 
-  // Get assignments for these vehicles
   const { data: asignaciones } = await supabase
     .from("asignaciones")
     .select("id, vehiculo_id, vehiculos(placa, marca, modelo), conductores(nombres, apellidos)")
@@ -230,7 +231,6 @@ export async function fetchPropietarioAsignaciones(userId: string) {
     asignaciones.map((a: any) => [a.vehiculo_id, a])
   );
 
-  // For each vehicle, find latest viaje
   const viajeByVehiculo: Record<string, any> = {};
   for (const viaje of viajes || []) {
     const asig = asignaciones.find((a: any) => a.id === viaje.asignacion_id);

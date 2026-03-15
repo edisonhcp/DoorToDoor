@@ -37,6 +37,7 @@ const superAdminNavItems = [
   { label: "Vehículos", icon: Truck, href: "/admin/vehiculos" },
   { label: "Conductores", icon: Users, href: "/admin/conductores" },
   { label: "Propietarios", icon: ClipboardList, href: "/admin/propietarios" },
+  { label: "Consolidado Viajes", icon: Route, href: "/admin/consolidado-viajes" },
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
