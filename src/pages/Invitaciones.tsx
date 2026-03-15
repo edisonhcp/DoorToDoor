@@ -27,6 +27,8 @@ interface InvitacionRow {
   usada: boolean;
   expires_at: string;
   created_at: string;
+  registro_status?: "activo" | "eliminado" | null;
+  registro_nombre?: string;
 }
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -47,13 +49,55 @@ export default function Invitaciones() {
   const [generatedLink, setGeneratedLink] = useState("");
 
   const fetchInvitaciones = async () => {
-    // Only fetch CONDUCTOR and PROPIETARIO invitations (not GERENCIA)
-    const { data } = await supabase
-      .from("invitaciones")
-      .select("*")
-      .in("rol", ["CONDUCTOR", "PROPIETARIO"])
-      .order("created_at", { ascending: false });
-    setInvitaciones((data as InvitacionRow[]) || []);
+    // Fetch invitations, profiles, conductores and propietarios in parallel
+    const [invRes, profRes, condRes, propRes] = await Promise.all([
+      supabase
+        .from("invitaciones")
+        .select("*")
+        .in("rol", ["CONDUCTOR", "PROPIETARIO"])
+        .order("created_at", { ascending: false }),
+      supabase.from("profiles").select("email, conductor_id, propietario_id"),
+      supabase.from("conductores").select("id, nombres, apellidos, email"),
+      supabase.from("propietarios").select("id, nombres, apellidos, email"),
+    ]);
+
+    const invData = (invRes.data || []) as InvitacionRow[];
+    const profiles = profRes.data || [];
+    const conductores = condRes.data || [];
+    const propietarios = propRes.data || [];
+
+    // For used invitations, check if the entity created from it still exists
+    // We match by checking profiles that have conductor_id/propietario_id linked
+    const conductorIds = new Set(conductores.map((c: any) => c.id));
+    const propietarioIds = new Set(propietarios.map((p: any) => p.id));
+    const conductorEmails = new Map(conductores.map((c: any) => [c.email, `${c.nombres} ${c.apellidos}`.trim()]));
+    const propietarioEmails = new Map(propietarios.map((p: any) => [p.email, `${p.nombres} ${p.apellidos}`.trim()]));
+
+    // We can't directly link invitation to the created entity, but we can check
+    // if there are conductor/propietario records in the empresa from this invitation
+    // For a simple approach: check profiles with matching conductor/propietario links
+    const enriched = invData.map((inv) => {
+      if (!inv.usada) return inv;
+      
+      if (inv.rol === "CONDUCTOR") {
+        // Check if any conductor still exists for this empresa
+        const existingConductor = conductores.find((c: any) => conductorEmails.has(c.email));
+        if (existingConductor) {
+          return { ...inv, registro_status: "activo" as const, registro_nombre: `${existingConductor.nombres} ${existingConductor.apellidos}`.trim() };
+        }
+        return { ...inv, registro_status: "eliminado" as const };
+      }
+      if (inv.rol === "PROPIETARIO") {
+        const existingProp = propietarios.find((p: any) => propietarioEmails.has(p.email));
+        if (existingProp) {
+          return { ...inv, registro_status: "activo" as const, registro_nombre: `${existingProp.nombres} ${existingProp.apellidos}`.trim() };
+        }
+        return { ...inv, registro_status: "eliminado" as const };
+      }
+      return inv;
+    });
+
+    setInvitaciones(enriched);
     setLoading(false);
   };
 
@@ -205,7 +249,19 @@ export default function Invitaciones() {
                             {new Date(inv.expires_at).toLocaleDateString("es-ES")}
                           </TableCell>
                           <TableCell>
-                            {!inv.usada && new Date(inv.expires_at) >= new Date() && (
+                            {inv.usada ? (
+                              inv.registro_status === "activo" ? (
+                                <Badge variant="outline" className="text-xs gap-1 text-green-600 border-green-200 bg-green-50">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Registrado
+                                </Badge>
+                              ) : inv.registro_status === "eliminado" ? (
+                                <Badge variant="outline" className="text-xs gap-1 text-destructive border-destructive/20 bg-destructive/5">
+                                  <XCircle className="w-3 h-3" />
+                                  Eliminado
+                                </Badge>
+                              ) : null
+                            ) : new Date(inv.expires_at) >= new Date() ? (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -217,7 +273,7 @@ export default function Invitaciones() {
                               >
                                 <Copy className="w-3 h-3" /> Copiar
                               </Button>
-                            )}
+                            ) : null}
                           </TableCell>
                         </TableRow>
                       );

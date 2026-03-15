@@ -20,6 +20,8 @@ Deno.serve(async (req) => {
     const { token, email, password, datos_extra } = body;
     const username = body.username || email.split('@')[0];
 
+    console.log('Registration attempt:', { token, email, rol: 'pending' });
+
     if (!token || !email || !password) {
       return new Response(JSON.stringify({ error: 'Faltan campos requeridos' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -35,6 +37,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (invError || !invitacion) {
+      console.error('Invitation validation failed:', invError?.message);
       return new Response(JSON.stringify({ error: 'Invitación inválida o ya utilizada' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -48,6 +51,8 @@ Deno.serve(async (req) => {
 
     const rol = invitacion.rol;
     const empresaId = invitacion.empresa_id;
+
+    console.log('Invitation valid:', { rol, empresaId });
 
     // If GERENCIA registration, update the placeholder empresa with real data
     if (rol === 'GERENCIA' && datos_extra) {
@@ -82,10 +87,17 @@ Deno.serve(async (req) => {
     });
 
     if (userError) {
-      return new Response(JSON.stringify({ error: userError.message }), {
+      console.error('User creation error:', userError.message);
+      // Provide clearer error message for duplicate email
+      const errorMsg = userError.message.includes('already been registered') || userError.message.includes('already exists')
+        ? 'Este correo electrónico ya está registrado. Usa otro correo o contacta al administrador.'
+        : userError.message;
+      return new Response(JSON.stringify({ error: errorMsg }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    console.log('User created:', userData.user.id);
 
     // If CONDUCTOR, create conductor record
     if (rol === 'CONDUCTOR') {
@@ -114,6 +126,7 @@ Deno.serve(async (req) => {
         console.error('Error creating conductor:', conductorError);
       }
       if (conductorData) {
+        console.log('Conductor created:', conductorData.id);
         await adminClient
           .from('profiles')
           .update({ conductor_id: conductorData.id })
@@ -146,6 +159,7 @@ Deno.serve(async (req) => {
         console.error('Error creating propietario:', propError);
       }
       if (propData) {
+        console.log('Propietario created:', propData.id);
         await adminClient
           .from('profiles')
           .update({ propietario_id: propData.id })
@@ -159,6 +173,8 @@ Deno.serve(async (req) => {
       .update({ usada: true })
       .eq('id', invitacion.id);
 
+    console.log('Registration complete for:', email);
+
     return new Response(JSON.stringify({
       success: true,
       user: { id: userData.user.id, email: userData.user.email },
@@ -167,6 +183,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
+    console.error('Unexpected error:', err.message);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
