@@ -853,6 +853,7 @@ export type Database = {
       viajes: {
         Row: {
           asignacion_id: string | null
+          cantidad_pasajeros: number | null
           created_at: string
           destino: string
           dia_operacion_id: string | null
@@ -860,12 +861,14 @@ export type Database = {
           estado: Database["public"]["Enums"]["estado_viaje"]
           fecha_llegada: string | null
           fecha_salida: string
+          hora_salida: string | null
           id: string
           origen: string
           semana_id: string | null
         }
         Insert: {
           asignacion_id?: string | null
+          cantidad_pasajeros?: number | null
           created_at?: string
           destino: string
           dia_operacion_id?: string | null
@@ -873,12 +876,14 @@ export type Database = {
           estado?: Database["public"]["Enums"]["estado_viaje"]
           fecha_llegada?: string | null
           fecha_salida: string
+          hora_salida?: string | null
           id?: string
           origen: string
           semana_id?: string | null
         }
         Update: {
           asignacion_id?: string | null
+          cantidad_pasajeros?: number | null
           created_at?: string
           destino?: string
           dia_operacion_id?: string | null
@@ -886,6 +891,7 @@ export type Database = {
           estado?: Database["public"]["Enums"]["estado_viaje"]
           fecha_llegada?: string | null
           fecha_salida?: string
+          hora_salida?: string | null
           id?: string
           origen?: string
           semana_id?: string | null
@@ -957,7 +963,12 @@ export type Database = {
       estado_asignacion: "ACTIVA" | "CERRADA"
       estado_disponibilidad: "DISPONIBLE" | "EN_RUTA"
       estado_semana: "ABIERTA" | "CERRADA"
-      estado_viaje: "BORRADOR" | "CERRADO"
+      estado_viaje:
+        | "BORRADOR"
+        | "CERRADO"
+        | "ASIGNADO"
+        | "EN_RUTA"
+        | "FINALIZADO"
       invitacion_rol: "CONDUCTOR" | "PROPIETARIO" | "GERENCIA"
       tipo_comision_empresa: "PORCENTAJE" | "FIJO" | "MIXTO"
     }
@@ -1109,7 +1120,13 @@ export const Constants = {
       estado_asignacion: ["ACTIVA", "CERRADA"],
       estado_disponibilidad: ["DISPONIBLE", "EN_RUTA"],
       estado_semana: ["ABIERTA", "CERRADA"],
-      estado_viaje: ["BORRADOR", "CERRADO"],
+      estado_viaje: [
+        "BORRADOR",
+        "CERRADO",
+        "ASIGNADO",
+        "EN_RUTA",
+        "FINALIZADO",
+      ],
       invitacion_rol: ["CONDUCTOR", "PROPIETARIO", "GERENCIA"],
       tipo_comision_empresa: ["PORCENTAJE", "FIJO", "MIXTO"],
     },
