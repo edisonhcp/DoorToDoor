@@ -229,7 +229,8 @@ function PropietarioDashboard({ profile, suspended }: { profile: any; suspended:
     if (!userId) return;
     const { data: prof } = await supabase.from("profiles").select("propietario_id").eq("user_id", userId).single();
     if (prof?.propietario_id) {
-      // Delete vehicles first (cascade might handle, but be explicit)
+      // Unlink profile before deleting
+      await supabase.from("profiles").update({ propietario_id: null }).eq("user_id", userId);
       await supabase.from("vehiculos").delete().eq("propietario_id", prof.propietario_id);
       await supabase.from("propietarios").delete().eq("id", prof.propietario_id);
     }
