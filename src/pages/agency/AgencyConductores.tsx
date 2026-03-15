@@ -67,8 +67,11 @@ export default function AgencyConductores() {
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
+    // Close active assignments
     await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
       .eq("conductor_id", deleteAlert.id).eq("estado", "ACTIVA");
+    // Unlink profile first to avoid FK constraint
+    await supabase.from("profiles").update({ conductor_id: null }).eq("conductor_id", deleteAlert.id);
     const { error } = await supabase.from("conductores").delete().eq("id", deleteAlert.id);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Conductor eliminado" }); fetchData(); }
