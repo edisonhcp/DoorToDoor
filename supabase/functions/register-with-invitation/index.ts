@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     const { token, email, password, datos_extra } = body;
     const username = body.username || email.split('@')[0];
 
-    console.log('Registration attempt:', { token, email, rol: 'pending' });
+    console.log('Registration attempt:', { token, email });
 
     if (!token || !email || !password) {
       return new Response(JSON.stringify({ error: 'Faltan campos requeridos' }), {
@@ -71,11 +71,11 @@ Deno.serve(async (req) => {
         .eq('id', empresaId);
     }
 
-    // Map rol to app_role
     const appRole = rol === 'GERENCIA' ? 'GERENCIA' : rol === 'CONDUCTOR' ? 'CONDUCTOR' : 'PROPIETARIO';
 
-    // Create user
-    const { data: userData, error: userError } = await adminClient.auth.admin.createUser({
+    // Try to create user
+    let userData;
+    const { data: createData, error: userError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -87,14 +87,72 @@ Deno.serve(async (req) => {
     });
 
     if (userError) {
-      console.error('User creation error:', userError.message);
-      // Provide clearer error message for duplicate email
-      const errorMsg = userError.message.includes('already been registered') || userError.message.includes('already exists')
-        ? 'Este correo electrónico ya está registrado. Usa otro correo o contacta al administrador.'
-        : userError.message;
-      return new Response(JSON.stringify({ error: errorMsg }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // If email already exists, check if it's an orphaned account (conductor/propietario was deleted)
+      if (userError.message.includes('already been registered') || userError.message.includes('already exists')) {
+        console.log('Email already exists, checking if orphaned...');
+        
+        // Find the existing auth user
+        const { data: { users } } = await adminClient.auth.admin.listUsers();
+        const existingUser = users?.find(u => u.email === email);
+        
+        if (existingUser) {
+          // Check if this user has an active conductor or propietario
+          const { data: profile } = await adminClient
+            .from('profiles')
+            .select('conductor_id, propietario_id')
+            .eq('user_id', existingUser.id)
+            .single();
+
+          const isOrphaned = !profile || 
+            (profile.conductor_id === null && profile.propietario_id === null) ||
+            (rol === 'CONDUCTOR' && profile.conductor_id === null) ||
+            (rol === 'PROPIETARIO' && profile.propietario_id === null);
+
+          if (isOrphaned) {
+            console.log('Orphaned account found, deleting old user:', existingUser.id);
+            // Delete old profile, roles, and auth user
+            await adminClient.from('profiles').delete().eq('user_id', existingUser.id);
+            await adminClient.from('user_roles').delete().eq('user_id', existingUser.id);
+            await adminClient.auth.admin.deleteUser(existingUser.id);
+
+            // Retry creating the user
+            const { data: retryData, error: retryError } = await adminClient.auth.admin.createUser({
+              email,
+              password,
+              email_confirm: true,
+              user_metadata: {
+                username,
+                empresa_id: empresaId,
+                role: appRole,
+              },
+            });
+
+            if (retryError) {
+              console.error('Retry user creation failed:', retryError.message);
+              return new Response(JSON.stringify({ error: retryError.message }), {
+                status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+            userData = retryData;
+          } else {
+            console.error('Email is actively in use');
+            return new Response(JSON.stringify({ error: 'Este correo electrónico ya está registrado y en uso. Usa otro correo.' }), {
+              status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        } else {
+          return new Response(JSON.stringify({ error: 'Este correo electrónico ya está registrado. Usa otro correo.' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        console.error('User creation error:', userError.message);
+        return new Response(JSON.stringify({ error: userError.message }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      userData = createData;
     }
 
     console.log('User created:', userData.user.id);
