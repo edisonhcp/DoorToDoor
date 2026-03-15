@@ -62,15 +62,16 @@ Deno.serve(async (req) => {
       }
       // If no empresa_id, create a placeholder empresa for the new registration
       if (!empresa_id) {
+        const uniqueId = crypto.randomUUID().slice(0, 8);
         const { data: newEmpresa, error: empresaError } = await adminClient
           .from('empresas')
           .insert({
             nombre: 'Pendiente de registro',
-            ruc: '0000000000000',
+            ruc: `PEND-${uniqueId}`,
             ciudad: 'Pendiente',
             direccion: 'Pendiente',
             celular: '0000000000',
-            email: 'pendiente@pendiente.com',
+            email: `pendiente-${uniqueId}@pendiente.com`,
             propietario_nombre: 'Pendiente',
             activo: false,
           })
