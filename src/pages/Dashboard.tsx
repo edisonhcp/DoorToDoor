@@ -134,7 +134,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                   </div>
                   <div className="flex-1">
                     <h2 className="text-2xl font-display font-bold text-foreground">
-                      {conductorInfo?.conductor?.nombres || profile?.username || "Conductor"}
+                      {conductorInfo?.conductor ? `${conductorInfo.conductor.nombres} ${conductorInfo.conductor.apellidos}` : profile?.username || "Conductor"}
                     </h2>
                     <p className="text-muted-foreground mt-1">
                       {conductorInfo?.conductor?.tipo_licencia && `Licencia: ${conductorInfo.conductor.tipo_licencia}`}
