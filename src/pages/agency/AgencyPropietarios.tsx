@@ -108,7 +108,8 @@ export default function AgencyPropietarios() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
+                      <TableHead>Nombres</TableHead>
+                      <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
                       <TableHead>Marca</TableHead>
@@ -123,6 +124,7 @@ export default function AgencyPropietarios() {
                     {rows.map((row, idx) => (
                       <TableRow key={`${row.id}-${row.vehiculo?.id || idx}`}>
                         <TableCell className="font-medium">{row.nombres}</TableCell>
+                        <TableCell>{row.apellidos}</TableCell>
                         <TableCell>{row.identificacion}</TableCell>
                         <TableCell>{row.celular}</TableCell>
                         <TableCell>{row.vehiculo?.marca || "—"}</TableCell>

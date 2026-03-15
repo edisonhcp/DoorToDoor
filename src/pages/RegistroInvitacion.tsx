@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface DatosExtra {
   nombres: string;
+  apellidos: string;
   identificacion: string;
   celular: string;
   domicilio: string;
@@ -34,7 +35,7 @@ interface DatosEmpresa {
 }
 
 const emptyDatos: DatosExtra = {
-  nombres: "", identificacion: "", celular: "", domicilio: "",
+  nombres: "", apellidos: "", identificacion: "", celular: "", domicilio: "",
   tipo_licencia: "", estado_civil: "", nacionalidad: "Ecuatoriana",
   fecha_nacimiento: "", fecha_caducidad_licencia: "", direccion: "", codigo: "",
 };
@@ -85,7 +86,6 @@ export default function RegistroInvitacion() {
     if (!token) return;
     setSubmitting(true);
 
-    // Use email as username
     const username = email.split("@")[0];
 
     try {
@@ -184,7 +184,7 @@ export default function RegistroInvitacion() {
           <Card className="border-0 shadow-xl shadow-primary/5">
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Account fields - no username, just email + password */}
+                {/* Account fields */}
                 <div className="space-y-2">
                   <Label>Correo electrónico</Label>
                   <div className="relative">
@@ -227,7 +227,8 @@ export default function RegistroInvitacion() {
                   <div className="border-t border-border pt-4 space-y-3">
                     <p className="text-sm font-semibold text-foreground">Datos del Conductor</p>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="col-span-2"><Label>Nombres completos</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
+                      <div><Label>Nombres</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
+                      <div><Label>Apellidos</Label><Input value={datos.apellidos} onChange={e => setDatos({ ...datos, apellidos: e.target.value })} required /></div>
                       <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value })} required /></div>
                       <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
                       <div className="col-span-2"><Label>Domicilio</Label><Input value={datos.domicilio} onChange={e => setDatos({ ...datos, domicilio: e.target.value })} /></div>
@@ -256,7 +257,8 @@ export default function RegistroInvitacion() {
                   <div className="border-t border-border pt-4 space-y-3">
                     <p className="text-sm font-semibold text-foreground">Datos del Propietario</p>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="col-span-2"><Label>Nombres completos</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
+                      <div><Label>Nombres</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
+                      <div><Label>Apellidos</Label><Input value={datos.apellidos} onChange={e => setDatos({ ...datos, apellidos: e.target.value })} required /></div>
                       <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value })} required /></div>
                       <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
                       <div className="col-span-2"><Label>Dirección</Label><Input value={datos.direccion} onChange={e => setDatos({ ...datos, direccion: e.target.value })} /></div>

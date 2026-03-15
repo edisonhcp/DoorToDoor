@@ -95,6 +95,7 @@ Deno.serve(async (req) => {
         .insert({
           empresa_id: empresaId,
           nombres: extra.nombres || username,
+          apellidos: extra.apellidos || '',
           identificacion: extra.identificacion || `ID-${Date.now()}`,
           codigo: extra.codigo || `C-${Date.now()}`,
           celular: extra.celular || 'PENDIENTE',
@@ -128,6 +129,7 @@ Deno.serve(async (req) => {
         .insert({
           empresa_id: empresaId,
           nombres: extra.nombres || username,
+          apellidos: extra.apellidos || '',
           identificacion: extra.identificacion || `ID-${Date.now()}`,
           codigo: extra.codigo || `P-${Date.now()}`,
           celular: extra.celular || 'PENDIENTE',

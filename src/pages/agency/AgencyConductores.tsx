@@ -118,7 +118,8 @@ export default function AgencyConductores() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
+                      <TableHead>Nombres</TableHead>
+                      <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
                       <TableHead>Licencia</TableHead>
@@ -131,6 +132,7 @@ export default function AgencyConductores() {
                     {filtered.map(c => (
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">{c.nombres}</TableCell>
+                        <TableCell>{c.apellidos}</TableCell>
                         <TableCell>{c.identificacion}</TableCell>
                         <TableCell>{c.celular}</TableCell>
                         <TableCell>{c.tipo_licencia}</TableCell>
