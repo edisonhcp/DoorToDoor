@@ -484,6 +484,9 @@ export default function Dashboard() {
                       <p className="text-3xl font-display font-bold text-foreground mt-1">
                         {loading ? "—" : stat.value}
                       </p>
+                      {stat.sub && (
+                        <p className={`text-xs mt-0.5 ${stat.subColor}`}>{stat.sub}</p>
+                      )}
                     </div>
                     <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
                       <stat.icon className={`w-6 h-6 ${stat.color}`} />
