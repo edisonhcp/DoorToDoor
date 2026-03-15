@@ -180,6 +180,57 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
           )}
         </motion.div>
 
+        {/* Rutas asignadas */}
+        {rutasAsignadas.length > 0 && (
+          <motion.div variants={item}>
+            <h2 className="text-xl font-display font-semibold text-foreground mb-4">Rutas Asignadas</h2>
+            <div className="space-y-3">
+              {rutasAsignadas.map((ruta) => (
+                <Card key={ruta.id} className={`border-0 shadow-sm ${ruta.estado === "EN_RUTA" ? "border-l-4 border-l-primary" : "border-l-4 border-l-muted"}`}>
+                  <CardContent className="p-5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <Route className="w-5 h-5 text-primary" />
+                          <span className="font-display font-semibold text-foreground">
+                            {ruta.origen} → {ruta.destino}
+                          </span>
+                          <Badge variant={ruta.estado === "EN_RUTA" ? "default" : "secondary"}>
+                            {ruta.estado === "EN_RUTA" ? "Ruta Iniciada" : "Asignado"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                          {ruta.hora_salida && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{ruta.hora_salida}</span>}
+                          <span className="flex items-center gap-1"><Users className="w-3 h-3" />{ruta.cantidad_pasajeros} pasajeros</span>
+                          {ruta.vehiculo && <span><Truck className="w-3 h-3 inline mr-1" />{ruta.vehiculo.placa}</span>}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                          <span>Valor pasajeros: ${ruta.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}</span>
+                          <span>Encomienda: ${ruta.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {ruta.estado === "ASIGNADO" && (
+                          <Button onClick={() => handleIniciarRuta(ruta.id)} className="gap-2">
+                            <Route className="w-4 h-4" />
+                            Iniciar Ruta
+                          </Button>
+                        )}
+                        {ruta.estado === "EN_RUTA" && (
+                          <Button onClick={() => handleFinalizarRuta(ruta.id)} variant="outline" className="gap-2">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Ruta Finalizada
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         <motion.div variants={item}>
           <Button variant="destructive" size="sm" className="gap-2" onClick={() => setDeleteAccountAlert(true)}>
             <Trash2 className="w-4 h-4" />
