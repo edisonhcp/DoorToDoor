@@ -7,6 +7,94 @@ import { Navigate } from "react-router-dom";
 import { fetchViajesConDetalle } from "@/services/egresosService";
 import { ViajesTable } from "@/components/ViajesTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+const ALIMENTACION_COSTO = 3.00;
+
+function getNextSunday(dateStr: string): string {
+  const d = new Date(dateStr);
+  const day = d.getDay();
+  const diff = day === 0 ? 0 : 7 - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split("T")[0];
+}
+
+function calcAlim(eg: any): number {
+  if (!eg) return 0;
+  let c = 0;
+  if (eg.desayuno) c++;
+  if (eg.almuerzo) c++;
+  if (eg.merienda) c++;
+  return c * ALIMENTACION_COSTO;
+}
+
+function ConsolidadoTable({ vehicleMap, vehicleKeys }: { vehicleMap: Record<string, any>; vehicleKeys: string[] }) {
+  // Find the most recent Sunday cutoff from all trips
+  let latestSunday = "";
+  vehicleKeys.forEach((key) => {
+    vehicleMap[key].viajes.forEach((v: any) => {
+      const sun = getNextSunday(v.fecha_salida);
+      if (sun > latestSunday) latestSunday = sun;
+    });
+  });
+
+  const rows = vehicleKeys.map((key, idx) => {
+    const veh = vehicleMap[key];
+    const totalIngreso = veh.viajes.reduce((s: number, v: any) => s + Number(v.ingresos?.total_ingreso || 0), 0);
+    const totalEgreso = veh.viajes.reduce((s: number, v: any) => {
+      const eg = v.egresos;
+      if (!eg) return s;
+      const alim = calcAlim(eg);
+      return s + Number(eg.peaje || 0) + Number(eg.hotel || 0) + Number(eg.combustible || 0) + Number(eg.varios || 0) + Number(eg.pago_conductor || 0) + alim;
+    }, 0);
+    const totalCompania = veh.viajes.reduce((s: number, v: any) => s + Number(v.ingresos?.comision_gerencia || 0), 0);
+
+    return { idx: idx + 1, placa: veh.placa, propietario: veh.propietario, totalIngreso, totalEgreso, totalCompania };
+  });
+
+  const grandIngreso = rows.reduce((s, r) => s + r.totalIngreso, 0);
+  const grandEgreso = rows.reduce((s, r) => s + r.totalEgreso, 0);
+  const grandCompania = rows.reduce((s, r) => s + r.totalCompania, 0);
+
+  return (
+    <div className="overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">#</TableHead>
+            <TableHead>Vehículo</TableHead>
+            <TableHead>Propietario</TableHead>
+            <TableHead className="text-center">Fecha de Corte</TableHead>
+            <TableHead className="text-right">Total Ingreso</TableHead>
+            <TableHead className="text-right">Total Egreso</TableHead>
+            <TableHead className="text-right">Total Compañía</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((r) => (
+            <TableRow key={r.placa}>
+              <TableCell>{r.idx}</TableCell>
+              <TableCell className="font-medium">{r.placa}</TableCell>
+              <TableCell>{r.propietario}</TableCell>
+              <TableCell className="text-center">{latestSunday}</TableCell>
+              <TableCell className="text-right">${r.totalIngreso.toFixed(2)}</TableCell>
+              <TableCell className="text-right">${r.totalEgreso.toFixed(2)}</TableCell>
+              <TableCell className="text-right">${r.totalCompania.toFixed(2)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={4} className="font-bold">TOTAL GENERAL</TableCell>
+            <TableCell className="text-right font-bold">${grandIngreso.toFixed(2)}</TableCell>
+            <TableCell className="text-right font-bold">${grandEgreso.toFixed(2)}</TableCell>
+            <TableCell className="text-right font-bold">${grandCompania.toFixed(2)}</TableCell>
+          </TableRow>
+        </TableFooter>
+      </Table>
+    </div>
+  );
+}
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
