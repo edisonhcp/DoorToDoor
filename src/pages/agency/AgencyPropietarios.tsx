@@ -35,7 +35,7 @@ export default function AgencyPropietarios() {
   const fetchData = async () => {
     const { data } = await supabase
       .from("propietarios")
-      .select("*, vehiculos(placa, marca, modelo, tipo)")
+      .select("*, vehiculos(id, placa, marca, modelo, tipo, anio)")
       .order("created_at", { ascending: false });
     setPropietarios(data || []);
     setLoading(false);
@@ -64,6 +64,18 @@ export default function AgencyPropietarios() {
     p.nombres.toLowerCase().includes(search.toLowerCase()) ||
     p.identificacion.includes(search)
   );
+
+  // Flatten: one row per vehicle per propietario
+  const rows: any[] = [];
+  filtered.forEach(p => {
+    if (p.vehiculos && p.vehiculos.length > 0) {
+      p.vehiculos.forEach((v: any) => {
+        rows.push({ ...p, vehiculo: v, isFirstOfGroup: rows.length === 0 || rows[rows.length - 1]?.id !== p.id });
+      });
+    } else {
+      rows.push({ ...p, vehiculo: null, isFirstOfGroup: true });
+    }
+  });
 
   return (
     <DashboardLayout>
@@ -95,44 +107,45 @@ export default function AgencyPropietarios() {
                       <TableHead>Nombre</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
-                      <TableHead>Vehículo(s)</TableHead>
+                      <TableHead>Marca</TableHead>
+                      <TableHead>Modelo</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Placa</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map(p => (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.nombres}</TableCell>
-                        <TableCell>{p.identificacion}</TableCell>
-                        <TableCell>{p.celular}</TableCell>
+                    {rows.map((row, idx) => (
+                      <TableRow key={`${row.id}-${row.vehiculo?.id || idx}`}>
+                        <TableCell className="font-medium">{row.isFirstOfGroup ? row.nombres : ""}</TableCell>
+                        <TableCell>{row.isFirstOfGroup ? row.identificacion : ""}</TableCell>
+                        <TableCell>{row.isFirstOfGroup ? row.celular : ""}</TableCell>
+                        <TableCell>{row.vehiculo?.marca || "—"}</TableCell>
+                        <TableCell>{row.vehiculo?.modelo || "—"}</TableCell>
+                        <TableCell>{row.vehiculo?.tipo || "—"}</TableCell>
+                        <TableCell>{row.vehiculo?.placa || "—"}</TableCell>
                         <TableCell>
-                          {p.vehiculos && p.vehiculos.length > 0
-                            ? p.vehiculos.map((v: any, i: number) => (
-                                <Badge key={i} variant="outline" className="text-xs mr-1 mb-1">
-                                  {v.marca} {v.modelo} · {v.tipo} · {v.placa}
-                                </Badge>
-                              ))
-                            : <span className="text-muted-foreground text-xs">Sin vehículos</span>
-                          }
+                          {row.isFirstOfGroup && (
+                            <Badge variant={row.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{row.estado}</Badge>
+                          )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{p.estado}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleToggleEstado(p)}>
-                                {p.estado === "HABILITADO" ? <><Ban className="w-4 h-4 mr-2" /> Suspender</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Habilitar</>}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteAlert(p)}>
-                                <Trash2 className="w-4 h-4 mr-2" /> Eliminar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {row.isFirstOfGroup && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleToggleEstado(row)}>
+                                  {row.estado === "HABILITADO" ? <><Ban className="w-4 h-4 mr-2" /> Suspender</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Habilitar</>}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteAlert(row)}>
+                                  <Trash2 className="w-4 h-4 mr-2" /> Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

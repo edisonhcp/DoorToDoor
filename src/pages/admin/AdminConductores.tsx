@@ -15,39 +15,40 @@ import {
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
-interface ConductorWithEmpresa {
-  id: string;
-  nombres: string;
-  identificacion: string;
-  celular: string;
-  email: string;
-  tipo_licencia: string;
-  estado: string;
-  created_at: string;
-  empresas: { nombre: string } | null;
-}
-
 export default function AdminConductores() {
   const { role } = useAuth();
-  const [conductores, setConductores] = useState<ConductorWithEmpresa[]>([]);
+  const [conductores, setConductores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("conductores")
-        .select("*, empresas(nombre)")
-        .order("created_at", { ascending: false });
-      setConductores((data as any) || []);
+    const fetchData = async () => {
+      const [condRes, asigRes] = await Promise.all([
+        supabase.from("conductores").select("*, empresas(nombre)").order("created_at", { ascending: false }),
+        supabase.from("asignaciones").select("conductor_id, vehiculos(placa, marca, modelo, anio, propietarios(nombres))").eq("estado", "ACTIVA"),
+      ]);
+
+      const asignaciones = asigRes.data || [];
+      const enriched = (condRes.data || []).map((c: any) => {
+        const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
+        return {
+          ...c,
+          vehiculo_marca: asig?.vehiculos?.marca || null,
+          vehiculo_modelo: asig?.vehiculos?.modelo || null,
+          vehiculo_anio: asig?.vehiculos?.anio || null,
+          vehiculo_placa: asig?.vehiculos?.placa || null,
+          propietario_nombre: asig?.vehiculos?.propietarios?.nombres || null,
+        };
+      });
+      setConductores(enriched);
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, []);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
-  const filtered = conductores.filter(c =>
+  const filtered = conductores.filter((c: any) =>
     c.nombres.toLowerCase().includes(search.toLowerCase()) ||
     c.identificacion.includes(search) ||
     (c.empresas?.nombre || "").toLowerCase().includes(search.toLowerCase())
@@ -89,11 +90,13 @@ export default function AdminConductores() {
                       <TableHead>Celular</TableHead>
                       <TableHead>Licencia</TableHead>
                       <TableHead>Compañía</TableHead>
+                      <TableHead>Vehículo</TableHead>
+                      <TableHead>Propietario</TableHead>
                       <TableHead>Estado</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map(c => (
+                    {filtered.map((c: any) => (
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">{c.nombres}</TableCell>
                         <TableCell>{c.identificacion}</TableCell>
@@ -102,6 +105,14 @@ export default function AdminConductores() {
                         <TableCell>
                           <Badge variant="outline" className="text-xs">{c.empresas?.nombre || "—"}</Badge>
                         </TableCell>
+                        <TableCell>
+                          {c.vehiculo_placa ? (
+                            <span className="text-xs">{c.vehiculo_marca} {c.vehiculo_modelo} {c.vehiculo_anio || ""} · {c.vehiculo_placa}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Sin asignar</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{c.propietario_nombre || "—"}</TableCell>
                         <TableCell>
                           <Badge variant={c.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">
                             {c.estado}

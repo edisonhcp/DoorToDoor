@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Search, Ban, CheckCircle2, Trash2, MoreVertical } from "lucide-react";
+import { Users, Search, Ban, CheckCircle2, Trash2, MoreVertical, Unlink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +43,7 @@ export default function AgencyConductores() {
 
     const enriched = conductoresData.map((c: any) => {
       const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
-      return { ...c, vehiculo: asig?.vehiculos || null, asignacion_id: asig ? (asig as any).id : null };
+      return { ...c, vehiculo: asig?.vehiculos || null };
     });
 
     setConductores(enriched);
@@ -56,7 +56,6 @@ export default function AgencyConductores() {
 
   const handleToggleEstado = async (c: any) => {
     const newEstado = c.estado === "HABILITADO" ? "INHABILITADO" : "HABILITADO";
-    // If suspending, break the assignment
     if (newEstado === "INHABILITADO" && c.vehiculo) {
       await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
         .eq("conductor_id", c.id).eq("estado", "ACTIVA");
@@ -68,13 +67,20 @@ export default function AgencyConductores() {
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
-    // Break assignment first
     await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
       .eq("conductor_id", deleteAlert.id).eq("estado", "ACTIVA");
     const { error } = await supabase.from("conductores").delete().eq("id", deleteAlert.id);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Conductor eliminado" }); fetchData(); }
     setDeleteAlert(null);
+  };
+
+  const handleUnassign = async (c: any) => {
+    const { error } = await supabase.from("asignaciones")
+      .update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
+      .eq("conductor_id", c.id).eq("estado", "ACTIVA");
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Asignación de vehículo eliminada" }); fetchData(); }
   };
 
   const filtered = conductores.filter(c =>
@@ -141,6 +147,11 @@ export default function AgencyConductores() {
                               <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              {c.vehiculo && (
+                                <DropdownMenuItem onClick={() => handleUnassign(c)}>
+                                  <Unlink className="w-4 h-4 mr-2" /> Quitar vehículo
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem onClick={() => handleToggleEstado(c)}>
                                 {c.estado === "HABILITADO" ? <><Ban className="w-4 h-4 mr-2" /> Suspender</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Habilitar</>}
                               </DropdownMenuItem>

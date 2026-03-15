@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Truck, Users, Route, CheckCircle2, Clock, Plus, LinkIcon, AlertTriangle
+  Truck, Users, Route, CheckCircle2, Clock, Plus, LinkIcon, AlertTriangle,
+  Trash2, MessageCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 interface Stats {
   vehiculos: number;
@@ -34,14 +39,35 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+// ─── Suspension Banner ───
+function SuspensionBanner({ message }: { message: string }) {
+  return (
+    <motion.div variants={item}>
+      <Card className="border-0 shadow-sm border-l-4 border-l-destructive bg-destructive/5">
+        <CardContent className="p-4 flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+          <p className="text-sm text-foreground flex-1">{message}</p>
+          <Button variant="outline" size="sm" className="gap-1 shrink-0" asChild>
+            <a href="https://wa.me/" target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="w-3 h-3" />
+              WhatsApp
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
 // ─── Conductor Dashboard ───
-function ConductorDashboard({ profile }: { profile: any }) {
+function ConductorDashboard({ profile, suspended }: { profile: any; suspended: any }) {
+  const { toast } = useToast();
   const [conductorInfo, setConductorInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [deleteAccountAlert, setDeleteAccountAlert] = useState(false);
 
   useEffect(() => {
     const fetchConductorData = async () => {
-      // Get conductor profile link
       const { data: profileData } = await supabase
         .from("profiles")
         .select("conductor_id")
@@ -67,9 +93,27 @@ function ConductorDashboard({ profile }: { profile: any }) {
     fetchConductorData();
   }, []);
 
+  const handleDeleteAccount = async () => {
+    // Delete conductor record, close assignments, then sign out
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return;
+    const { data: prof } = await supabase.from("profiles").select("conductor_id").eq("user_id", userId).single();
+    if (prof?.conductor_id) {
+      await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
+        .eq("conductor_id", prof.conductor_id).eq("estado", "ACTIVA");
+      await supabase.from("conductores").delete().eq("id", prof.conductor_id);
+    }
+    toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
+    await supabase.auth.signOut();
+  };
+
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
+        {suspended && suspended.type === "empresa" && (
+          <SuspensionBanner message={suspended.message} />
+        )}
+
         <motion.div variants={item}>
           <h1 className="text-3xl font-display font-bold text-foreground">
             Hola, {profile?.username || "Conductor"} 👋
@@ -127,32 +171,92 @@ function ConductorDashboard({ profile }: { profile: any }) {
             </Card>
           )}
         </motion.div>
+
+        <motion.div variants={item}>
+          <Button variant="destructive" size="sm" className="gap-2" onClick={() => setDeleteAccountAlert(true)}>
+            <Trash2 className="w-4 h-4" />
+            Eliminar mi cuenta
+          </Button>
+        </motion.div>
       </motion.div>
+
+      <AlertDialog open={deleteAccountAlert} onOpenChange={setDeleteAccountAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar tu cuenta?</AlertDialogTitle>
+            <AlertDialogDescription>Esta acción eliminará tu perfil de conductor. Podrás registrarte en otra compañía con un nuevo link de invitación.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar cuenta</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
 
 // ─── Propietario Dashboard ───
-function PropietarioDashboard({ profile }: { profile: any }) {
+function PropietarioDashboard({ profile, suspended }: { profile: any; suspended: any }) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [misVehiculos, setMisVehiculos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteAccountAlert, setDeleteAccountAlert] = useState(false);
+  const [deleteVehiculoAlert, setDeleteVehiculoAlert] = useState<any>(null);
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase
-        .from("vehiculos")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setMisVehiculos(data || []);
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (!userId) return;
+      const { data: prof } = await supabase.from("profiles").select("propietario_id").eq("user_id", userId).single();
+      if (prof?.propietario_id) {
+        const { data } = await supabase
+          .from("vehiculos")
+          .select("*")
+          .eq("propietario_id", prof.propietario_id)
+          .order("created_at", { ascending: false });
+        setMisVehiculos(data || []);
+      }
       setLoading(false);
     };
     fetch();
   }, []);
 
+  const handleDeleteAccount = async () => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return;
+    const { data: prof } = await supabase.from("profiles").select("propietario_id").eq("user_id", userId).single();
+    if (prof?.propietario_id) {
+      // Delete vehicles first (cascade might handle, but be explicit)
+      await supabase.from("vehiculos").delete().eq("propietario_id", prof.propietario_id);
+      await supabase.from("propietarios").delete().eq("id", prof.propietario_id);
+    }
+    toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
+    await supabase.auth.signOut();
+  };
+
+  const handleDeleteVehiculo = async () => {
+    if (!deleteVehiculoAlert) return;
+    // Close any assignments for this vehicle
+    await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
+      .eq("vehiculo_id", deleteVehiculoAlert.id).eq("estado", "ACTIVA");
+    const { error } = await supabase.from("vehiculos").delete().eq("id", deleteVehiculoAlert.id);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else {
+      toast({ title: "Vehículo eliminado" });
+      setMisVehiculos(prev => prev.filter(v => v.id !== deleteVehiculoAlert.id));
+    }
+    setDeleteVehiculoAlert(null);
+  };
+
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
+        {suspended && suspended.type === "empresa" && (
+          <SuspensionBanner message={suspended.message} />
+        )}
+
         <motion.div variants={item}>
           <h1 className="text-3xl font-display font-bold text-foreground">
             Hola, {profile?.username || "Propietario"} 👋
@@ -198,20 +302,56 @@ function PropietarioDashboard({ profile }: { profile: any }) {
                     <h3 className="font-display font-semibold text-foreground">{v.placa}</h3>
                     <p className="text-sm text-muted-foreground">{v.marca} {v.modelo} {v.anio || ""}</p>
                     <p className="text-xs text-muted-foreground mt-1">{v.color} · {v.tipo} · Cap: {v.capacidad}</p>
+                    <Button variant="ghost" size="sm" className="mt-2 text-destructive gap-1" onClick={() => setDeleteVehiculoAlert(v)}>
+                      <Trash2 className="w-3 h-3" /> Eliminar
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
           )}
         </motion.div>
+
+        <motion.div variants={item}>
+          <Button variant="destructive" size="sm" className="gap-2" onClick={() => setDeleteAccountAlert(true)}>
+            <Trash2 className="w-4 h-4" />
+            Eliminar mi cuenta
+          </Button>
+        </motion.div>
       </motion.div>
+
+      <AlertDialog open={deleteAccountAlert} onOpenChange={setDeleteAccountAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar tu cuenta?</AlertDialogTitle>
+            <AlertDialogDescription>Esta acción eliminará tu perfil de propietario y todos tus vehículos. Podrás registrarte en otra compañía con un nuevo link.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar cuenta</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deleteVehiculoAlert} onOpenChange={() => setDeleteVehiculoAlert(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar vehículo?</AlertDialogTitle>
+            <AlertDialogDescription>Se eliminará el vehículo <strong>{deleteVehiculoAlert?.placa}</strong> permanentemente.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteVehiculo} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
 
 // ─── Gerencia Dashboard ───
 export default function Dashboard() {
-  const { profile, role, empresaId } = useAuth();
+  const { profile, role, empresaId, suspended } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [stats, setStats] = useState<Stats>({
@@ -269,8 +409,8 @@ export default function Dashboard() {
     if (role) fetchStats();
   }, [role]);
 
-  if (role === "PROPIETARIO") return <PropietarioDashboard profile={profile} />;
-  if (role === "CONDUCTOR") return <ConductorDashboard profile={profile} />;
+  if (role === "PROPIETARIO") return <PropietarioDashboard profile={profile} suspended={suspended} />;
+  if (role === "CONDUCTOR") return <ConductorDashboard profile={profile} suspended={suspended} />;
 
   const handleAssign = async () => {
     if (!selectedConductor || !selectedVehiculo || !empresaId) return;
@@ -286,7 +426,6 @@ export default function Dashboard() {
       toast({ title: "Conductor asignado al vehículo exitosamente" });
       setSelectedConductor("");
       setSelectedVehiculo("");
-      // Refresh
       const [asigRes, allCond, allVeh] = await Promise.all([
         supabase.from("asignaciones").select("conductor_id, vehiculo_id").eq("estado", "ACTIVA"),
         supabase.from("conductores").select("id, nombres").eq("estado", "HABILITADO"),

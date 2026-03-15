@@ -44,10 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       setEmpresaId(profileRes.data.empresa_id);
 
-      // Check suspension
       const userRole = roleRes.data?.role as AppRole;
 
-      // Check empresa suspension for GERENCIA/CONDUCTOR/PROPIETARIO
+      // Check empresa suspension for ALL non-SUPER_ADMIN roles
       if (userRole && userRole !== "SUPER_ADMIN") {
         const { data: empresa } = await supabase
           .from("empresas")
@@ -56,11 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single();
 
         if (empresa && !empresa.activo) {
+          // For GERENCIA: full block (no access at all)
+          // For CONDUCTOR/PROPIETARIO: show message but allow access
           setSuspended({
             type: "empresa",
             message: `Compañía ${empresa.nombre} se encuentra suspendida, por favor contáctese con soporte mediante WhatsApp.`,
           });
-          return;
+          // Only block GERENCIA completely - CONDUCTOR/PROPIETARIO can still enter
+          if (userRole === "GERENCIA") return;
+          // For CONDUCTOR/PROPIETARIO, we set suspended but don't return - they can still use the app
         }
       }
 
@@ -79,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      setSuspended(null);
     }
   };
 
@@ -88,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        setSuspended(null); // Reset before fetching
         setTimeout(() => fetchUserData(session.user.id), 0);
       } else {
         setRole(null);

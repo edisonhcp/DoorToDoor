@@ -105,8 +105,8 @@ export default function SuperAdminPanel() {
     const [vRes, cRes, pRes, aRes] = await Promise.all([
       supabase.from("vehiculos").select("*, propietarios(nombres)").eq("empresa_id", empresa.id),
       supabase.from("conductores").select("*").eq("empresa_id", empresa.id),
-      supabase.from("propietarios").select("*, vehiculos(placa, marca, modelo)").eq("empresa_id", empresa.id),
-      supabase.from("asignaciones").select("conductor_id, vehiculo_id, conductores(nombres), vehiculos(placa, marca, modelo, propietarios(nombres))").eq("empresa_id", empresa.id).eq("estado", "ACTIVA"),
+      supabase.from("propietarios").select("*, vehiculos(placa, marca, modelo, anio)").eq("empresa_id", empresa.id),
+      supabase.from("asignaciones").select("conductor_id, vehiculo_id, conductores(nombres), vehiculos(placa, marca, modelo, anio, propietarios(nombres))").eq("empresa_id", empresa.id).eq("estado", "ACTIVA"),
     ]);
     const asignaciones = aRes.data || [];
     // Enrich vehiculos with conductor name
@@ -121,6 +121,8 @@ export default function SuperAdminPanel() {
         ...c,
         vehiculo_placa: asig?.vehiculos?.placa || null,
         vehiculo_marca: asig?.vehiculos?.marca || null,
+        vehiculo_modelo: asig?.vehiculos?.modelo || null,
+        vehiculo_anio: asig?.vehiculos?.anio || null,
         propietario_nombre: asig?.vehiculos?.propietarios?.nombres || null,
       };
     });
@@ -281,8 +283,10 @@ export default function SuperAdminPanel() {
                           <TableRow>
                             <TableHead>Nombres</TableHead>
                             <TableHead>Identificación</TableHead>
-                            <TableHead>Celular</TableHead>
-                            <TableHead>Vehículo</TableHead>
+                            <TableHead>Marca</TableHead>
+                            <TableHead>Modelo</TableHead>
+                            <TableHead>Año</TableHead>
+                            <TableHead>Placa</TableHead>
                             <TableHead>Propietario</TableHead>
                             <TableHead>Estado</TableHead>
                           </TableRow>
@@ -292,8 +296,10 @@ export default function SuperAdminPanel() {
                             <TableRow key={c.id}>
                               <TableCell className="font-medium">{c.nombres}</TableCell>
                               <TableCell>{c.identificacion}</TableCell>
-                              <TableCell>{c.celular}</TableCell>
-                              <TableCell>{c.vehiculo_placa ? <Badge variant="outline" className="text-xs">{c.vehiculo_placa} — {c.vehiculo_marca}</Badge> : <span className="text-muted-foreground text-xs">Sin asignar</span>}</TableCell>
+                              <TableCell>{c.vehiculo_marca || "—"}</TableCell>
+                              <TableCell>{c.vehiculo_modelo || "—"}</TableCell>
+                              <TableCell>{c.vehiculo_anio || "—"}</TableCell>
+                              <TableCell>{c.vehiculo_placa || <span className="text-muted-foreground text-xs">Sin asignar</span>}</TableCell>
                               <TableCell>{c.propietario_nombre || "—"}</TableCell>
                               <TableCell><Badge variant={c.estado === "HABILITADO" ? "default" : "destructive"}>{c.estado}</Badge></TableCell>
                             </TableRow>
@@ -318,28 +324,38 @@ export default function SuperAdminPanel() {
                           <TableRow>
                             <TableHead>Nombres</TableHead>
                             <TableHead>Identificación</TableHead>
-                            <TableHead>Celular</TableHead>
-                            <TableHead>Vehículo(s)</TableHead>
+                            <TableHead>Marca</TableHead>
+                            <TableHead>Modelo</TableHead>
+                            <TableHead>Año</TableHead>
+                            <TableHead>Placa</TableHead>
                             <TableHead>Estado</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {detailPropietarios.map((p: any) => (
-                            <TableRow key={p.id}>
-                              <TableCell className="font-medium">{p.nombres}</TableCell>
-                              <TableCell>{p.identificacion}</TableCell>
-                              <TableCell>{p.celular}</TableCell>
-                              <TableCell>
-                                {p.vehiculos && p.vehiculos.length > 0
-                                  ? p.vehiculos.map((v: any, i: number) => (
-                                      <Badge key={i} variant="outline" className="text-xs mr-1">{v.placa} — {v.marca} {v.modelo}</Badge>
-                                    ))
-                                  : <span className="text-muted-foreground text-xs">Sin vehículos</span>
-                                }
-                              </TableCell>
-                              <TableCell><Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge></TableCell>
-                            </TableRow>
-                          ))}
+                          {detailPropietarios.flatMap((p: any) => {
+                            const vehs = p.vehiculos || [];
+                            if (vehs.length === 0) {
+                              return [(
+                                <TableRow key={p.id}>
+                                  <TableCell className="font-medium">{p.nombres}</TableCell>
+                                  <TableCell>{p.identificacion}</TableCell>
+                                  <TableCell colSpan={4}><span className="text-muted-foreground text-xs">Sin vehículos</span></TableCell>
+                                  <TableCell><Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge></TableCell>
+                                </TableRow>
+                              )];
+                            }
+                            return vehs.map((v: any, i: number) => (
+                              <TableRow key={`${p.id}-${i}`}>
+                                <TableCell className="font-medium">{i === 0 ? p.nombres : ""}</TableCell>
+                                <TableCell>{i === 0 ? p.identificacion : ""}</TableCell>
+                                <TableCell>{v.marca}</TableCell>
+                                <TableCell>{v.modelo}</TableCell>
+                                <TableCell>{v.anio || "—"}</TableCell>
+                                <TableCell>{v.placa}</TableCell>
+                                <TableCell>{i === 0 && <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge>}</TableCell>
+                              </TableRow>
+                            ));
+                          })}
                         </TableBody>
                       </Table>
                     )}

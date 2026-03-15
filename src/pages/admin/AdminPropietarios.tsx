@@ -15,20 +15,9 @@ import {
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
-interface PropietarioWithEmpresa {
-  id: string;
-  nombres: string;
-  identificacion: string;
-  celular: string;
-  email: string;
-  estado: string;
-  created_at: string;
-  empresas: { nombre: string } | null;
-}
-
 export default function AdminPropietarios() {
   const { role } = useAuth();
-  const [propietarios, setPropietarios] = useState<PropietarioWithEmpresa[]>([]);
+  const [propietarios, setPropietarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -36,9 +25,9 @@ export default function AdminPropietarios() {
     const fetch = async () => {
       const { data } = await supabase
         .from("propietarios")
-        .select("*, empresas(nombre)")
+        .select("*, empresas(nombre), vehiculos(placa, marca, modelo, anio)")
         .order("created_at", { ascending: false });
-      setPropietarios((data as any) || []);
+      setPropietarios(data || []);
       setLoading(false);
     };
     fetch();
@@ -46,7 +35,7 @@ export default function AdminPropietarios() {
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
-  const filtered = propietarios.filter(p =>
+  const filtered = propietarios.filter((p: any) =>
     p.nombres.toLowerCase().includes(search.toLowerCase()) ||
     p.identificacion.includes(search) ||
     (p.empresas?.nombre || "").toLowerCase().includes(search.toLowerCase())
@@ -86,20 +75,29 @@ export default function AdminPropietarios() {
                       <TableHead>Nombre</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
-                      <TableHead>Email</TableHead>
                       <TableHead>Compañía</TableHead>
+                      <TableHead>Vehículos</TableHead>
                       <TableHead>Estado</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map(p => (
+                    {filtered.map((p: any) => (
                       <TableRow key={p.id}>
                         <TableCell className="font-medium">{p.nombres}</TableCell>
                         <TableCell>{p.identificacion}</TableCell>
                         <TableCell>{p.celular}</TableCell>
-                        <TableCell>{p.email}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">{p.empresas?.nombre || "—"}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {p.vehiculos && p.vehiculos.length > 0
+                            ? p.vehiculos.map((v: any, i: number) => (
+                                <div key={i} className="text-xs text-muted-foreground">
+                                  {v.marca} {v.modelo} {v.anio || ""} · {v.placa}
+                                </div>
+                              ))
+                            : <span className="text-xs text-muted-foreground">Sin vehículos</span>
+                          }
                         </TableCell>
                         <TableCell>
                           <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">
