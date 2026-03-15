@@ -94,6 +94,7 @@ export default function AdminVehiculos() {
                       <TableHead>Tipo</TableHead>
                       <TableHead>Color</TableHead>
                       <TableHead>Año</TableHead>
+                      <TableHead>Propietario</TableHead>
                       <TableHead>Compañía</TableHead>
                       <TableHead>Estado</TableHead>
                     </TableRow>
