@@ -32,6 +32,7 @@ interface DatosEmpresa {
   direccion: string;
   celular_empresa: string;
   propietario_nombre: string;
+  propietario_apellidos: string;
 }
 
 const emptyDatos: DatosExtra = {
