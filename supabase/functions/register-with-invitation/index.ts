@@ -48,6 +48,23 @@ Deno.serve(async (req) => {
     const rol = invitacion.rol;
     const empresaId = invitacion.empresa_id;
 
+    // If GERENCIA registration, update the placeholder empresa with real data
+    if (rol === 'GERENCIA' && datos_extra) {
+      await adminClient
+        .from('empresas')
+        .update({
+          nombre: datos_extra.nombre_empresa || 'Sin nombre',
+          ruc: datos_extra.ruc || '0000000000000',
+          ciudad: datos_extra.ciudad || '',
+          direccion: datos_extra.direccion || '',
+          celular: datos_extra.celular_empresa || '',
+          email: datos_extra.email_empresa || email,
+          propietario_nombre: datos_extra.propietario_nombre || username,
+          activo: true,
+        })
+        .eq('id', empresaId);
+    }
+
     // Map rol to app_role
     const appRole = rol === 'GERENCIA' ? 'GERENCIA' : rol === 'CONDUCTOR' ? 'CONDUCTOR' : 'PROPIETARIO';
 

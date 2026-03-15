@@ -52,33 +52,52 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { rol, empresa_id } = body;
 
+    let targetEmpresaId: string | null = null;
     // Validate permissions
     if (rol === 'GERENCIA') {
-      // Only SUPER_ADMIN can generate GERENCIA invitations
       if (roleData?.role !== 'SUPER_ADMIN') {
         return new Response(JSON.stringify({ error: 'Solo SUPER_ADMIN puede generar links de agencia' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      // If no empresa_id, create a placeholder empresa for the new registration
       if (!empresa_id) {
-        return new Response(JSON.stringify({ error: 'empresa_id requerido' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        const { data: newEmpresa, error: empresaError } = await adminClient
+          .from('empresas')
+          .insert({
+            nombre: 'Pendiente de registro',
+            ruc: '0000000000000',
+            ciudad: 'Pendiente',
+            direccion: 'Pendiente',
+            celular: '0000000000',
+            email: 'pendiente@pendiente.com',
+            propietario_nombre: 'Pendiente',
+            activo: false,
+          })
+          .select('id')
+          .single();
+        if (empresaError) {
+          return new Response(JSON.stringify({ error: empresaError.message }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        targetEmpresaId = newEmpresa.id;
+      } else {
+        targetEmpresaId = empresa_id;
       }
     } else if (rol === 'CONDUCTOR' || rol === 'PROPIETARIO') {
-      // Only GERENCIA can generate these
       if (roleData?.role !== 'GERENCIA') {
         return new Response(JSON.stringify({ error: 'Solo GERENCIA puede generar links de conductor/propietario' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      targetEmpresaId = profileData?.empresa_id;
     } else {
       return new Response(JSON.stringify({ error: 'Rol inválido' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const targetEmpresaId = rol === 'GERENCIA' ? empresa_id : profileData?.empresa_id;
     if (!targetEmpresaId) {
       return new Response(JSON.stringify({ error: 'No se pudo determinar la empresa' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
