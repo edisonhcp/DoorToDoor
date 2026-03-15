@@ -90,7 +90,7 @@ export default function Asignaciones() {
     setCantidadPasajeros(String(a.cantidad_pasajeros || 0));
     setValorPasajeros(String(a.ingresos?.pasajeros_monto || 0));
     setValorEncomienda(String(a.ingresos?.encomiendas_monto || 0));
-    setSelectedVehiculo("");
+    setSelectedVehiculo(a.asignacion_id || "");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
