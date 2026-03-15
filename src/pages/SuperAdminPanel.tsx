@@ -255,9 +255,6 @@ export default function SuperAdminPanel() {
                             <DropdownMenuItem onClick={() => { setEditingEmpresa(empresa); setEditDialogOpen(true); }}>
                               <Pencil className="w-4 h-4 mr-2" /> Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleGenerateLink(empresa.id)}>
-                              <Link2 className="w-4 h-4 mr-2" /> Generar Link
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleToggleSuspend(empresa)}>
                               {empresa.activo ? (
                                 <><Ban className="w-4 h-4 mr-2" /> Suspender</>
