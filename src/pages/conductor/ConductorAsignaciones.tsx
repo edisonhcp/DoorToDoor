@@ -43,8 +43,6 @@ export default function ConductorAsignaciones() {
   const [variosFile, setVariosFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
-  if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
-
   const loadData = async () => {
     if (!user?.id) return;
     const { data, empresaId: eid } = await fetchConductorViajes(user.id, ["ASIGNADO", "EN_RUTA", "FINALIZADO"]);
