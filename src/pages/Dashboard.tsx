@@ -501,24 +501,26 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {statCards.map((stat) => (
             <motion.div key={stat.title} variants={item}>
               <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-3xl font-display font-bold text-foreground mt-1">
-                        {loading ? "—" : stat.value}
-                      </p>
-                      {stat.sub && (
-                        <p className={`text-xs mt-0.5 ${stat.subColor}`}>{stat.sub}</p>
-                      )}
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
+                      <stat.icon className={`w-5 h-5 ${stat.color}`} />
                     </div>
-                    <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
-                      <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {stat.items.map((si) => (
+                      <div key={si.label} className="flex items-center justify-between">
+                        <span className={`text-xs ${si.destructive ? "text-destructive" : "text-muted-foreground"}`}>{si.label}</span>
+                        <span className={`text-sm font-display font-bold ${si.destructive ? "text-destructive" : "text-foreground"}`}>
+                          {loading ? "—" : si.value}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
