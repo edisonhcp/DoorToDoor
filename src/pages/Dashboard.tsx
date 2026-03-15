@@ -78,7 +78,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
         const [condRes, asigRes] = await Promise.all([
           supabase.from("conductores").select("*").eq("id", profileData.conductor_id).single(),
           supabase.from("asignaciones")
-            .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, propietarios(nombres))")
+            .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, propietarios(nombres, apellidos))")
             .eq("conductor_id", profileData.conductor_id)
             .eq("estado", "ACTIVA")
             .single(),
