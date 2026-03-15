@@ -199,15 +199,21 @@ export async function editarAsignacionRuta(params: {
   cantidad_pasajeros: number;
   pasajeros_monto: number;
   encomiendas_monto: number;
+  asignacion_id?: string;
 }) {
+  const updateData: any = {
+    destino: params.destino,
+    origen: params.origen,
+    hora_salida: params.hora_salida,
+    cantidad_pasajeros: params.cantidad_pasajeros,
+  };
+  if (params.asignacion_id) {
+    updateData.asignacion_id = params.asignacion_id;
+  }
+
   const { error: viajeError } = await supabase
     .from("viajes")
-    .update({
-      destino: params.destino,
-      origen: params.origen,
-      hora_salida: params.hora_salida,
-      cantidad_pasajeros: params.cantidad_pasajeros,
-    })
+    .update(updateData)
     .eq("id", params.viaje_id);
 
   if (viajeError) return { error: viajeError };
