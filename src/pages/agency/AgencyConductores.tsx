@@ -51,7 +51,7 @@ export default function AgencyConductores() {
 
   if (role !== "GERENCIA") return <Navigate to="/dashboard" replace />;
 
-  const enRutaMsg = "No se puede realizar esta acción porque el conductor está en ruta. Espere a que finalice.";
+  const enRutaMsg = "No se puede realizar esta acción porque el conductor tiene una ruta asignada o en curso. Espere a que finalice.";
 
   const handleToggleEstado = async (c: any) => {
     if (c.en_ruta) { toast({ title: "En ruta", description: enRutaMsg, variant: "destructive" }); return; }

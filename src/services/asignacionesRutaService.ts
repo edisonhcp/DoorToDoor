@@ -139,12 +139,11 @@ export async function fetchRutasConductor(userId: string) {
 
   if (!profile?.conductor_id) return { data: [], error: null };
 
-  // Get active assignments for this conductor
+  // Get ALL assignments for this conductor (including CERRADA, since viajes may reference them)
   const { data: asignaciones } = await supabase
     .from("asignaciones")
     .select("id, vehiculo_id, vehiculos(placa, marca, modelo)")
-    .eq("conductor_id", profile.conductor_id)
-    .eq("estado", "ACTIVA");
+    .eq("conductor_id", profile.conductor_id);
 
   if (!asignaciones || asignaciones.length === 0) return { data: [], error: null };
 
@@ -199,15 +198,21 @@ export async function editarAsignacionRuta(params: {
   cantidad_pasajeros: number;
   pasajeros_monto: number;
   encomiendas_monto: number;
+  asignacion_id?: string;
 }) {
+  const updateData: any = {
+    destino: params.destino,
+    origen: params.origen,
+    hora_salida: params.hora_salida,
+    cantidad_pasajeros: params.cantidad_pasajeros,
+  };
+  if (params.asignacion_id) {
+    updateData.asignacion_id = params.asignacion_id;
+  }
+
   const { error: viajeError } = await supabase
     .from("viajes")
-    .update({
-      destino: params.destino,
-      origen: params.origen,
-      hora_salida: params.hora_salida,
-      cantidad_pasajeros: params.cantidad_pasajeros,
-    })
+    .update(updateData)
     .eq("id", params.viaje_id);
 
   if (viajeError) return { error: viajeError };

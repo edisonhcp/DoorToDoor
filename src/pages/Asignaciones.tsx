@@ -90,7 +90,7 @@ export default function Asignaciones() {
     setCantidadPasajeros(String(a.cantidad_pasajeros || 0));
     setValorPasajeros(String(a.ingresos?.pasajeros_monto || 0));
     setValorEncomienda(String(a.ingresos?.encomiendas_monto || 0));
-    setSelectedVehiculo("");
+    setSelectedVehiculo(a.asignacion_id || "");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -104,6 +104,11 @@ export default function Asignaciones() {
         return;
       }
       setSubmitting(true);
+
+      // Check if vehicle was changed (selectedVehiculo will be a vehiculo_id if changed, or the original asignacion_id)
+      const vehiculoData = vehiculosDisponibles.find((v) => v.vehiculo_id === selectedVehiculo);
+      const newAsignacionId = vehiculoData ? vehiculoData.id : undefined;
+
       const { error } = await editarAsignacionRuta({
         viaje_id: editingId,
         destino,
@@ -112,6 +117,7 @@ export default function Asignaciones() {
         cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
         pasajeros_monto: parseFloat(valorPasajeros) || 0,
         encomiendas_monto: parseFloat(valorEncomienda) || 0,
+        asignacion_id: newAsignacionId,
       });
       setSubmitting(false);
 
@@ -189,24 +195,28 @@ export default function Asignaciones() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Vehículo - only show on create */}
-                {!editingId && (
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Vehículo disponible</Label>
-                    <Select value={selectedVehiculo} onValueChange={setSelectedVehiculo}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar vehículo..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {vehiculosDisponibles.map((v) => (
-                          <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
-                            {v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                {/* Vehículo - show on create and edit */}
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Vehículo disponible</Label>
+                  <Select value={selectedVehiculo} onValueChange={setSelectedVehiculo}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar vehículo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vehiculosDisponibles.map((v) => (
+                        <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
+                          {v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})
+                        </SelectItem>
+                      ))}
+                      {/* If editing, show current vehicle option too */}
+                      {editingId && !vehiculosDisponibles.find(v => v.vehiculo_id === selectedVehiculo) && selectedVehiculo && (
+                        <SelectItem value={selectedVehiculo} disabled>
+                          Vehículo actual (no cambiar)
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Origen</Label>
