@@ -110,6 +110,7 @@ export default function AgencyVehiculos() {
                       <TableHead>Marca / Modelo</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Color</TableHead>
+                      <TableHead>Email Propietario</TableHead>
                       <TableHead>Conductor</TableHead>
                       <TableHead>Propietario</TableHead>
                       <TableHead>Estado</TableHead>
