@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { rol, empresa_id } = body;
 
+    let targetEmpresaId: string | null = null;
     // Validate permissions
     if (rol === 'GERENCIA') {
       if (roleData?.role !== 'SUPER_ADMIN') {
