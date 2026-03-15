@@ -94,13 +94,14 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
   }, []);
 
   const handleDeleteAccount = async () => {
-    // Delete conductor record, close assignments, then sign out
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
     const { data: prof } = await supabase.from("profiles").select("conductor_id").eq("user_id", userId).single();
     if (prof?.conductor_id) {
       await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
         .eq("conductor_id", prof.conductor_id).eq("estado", "ACTIVA");
+      // Unlink profile before deleting conductor
+      await supabase.from("profiles").update({ conductor_id: null }).eq("user_id", userId);
       await supabase.from("conductores").delete().eq("id", prof.conductor_id);
     }
     toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
