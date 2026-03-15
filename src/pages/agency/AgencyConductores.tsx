@@ -67,8 +67,11 @@ export default function AgencyConductores() {
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
+    // Close active assignments
     await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
       .eq("conductor_id", deleteAlert.id).eq("estado", "ACTIVA");
+    // Unlink profile first to avoid FK constraint
+    await supabase.from("profiles").update({ conductor_id: null }).eq("conductor_id", deleteAlert.id);
     const { error } = await supabase.from("conductores").delete().eq("id", deleteAlert.id);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Conductor eliminado" }); fetchData(); }
@@ -84,7 +87,7 @@ export default function AgencyConductores() {
   };
 
   const filtered = conductores.filter(c =>
-    c.nombres.toLowerCase().includes(search.toLowerCase()) ||
+    `${c.nombres} ${c.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
     c.identificacion.includes(search)
   );
 
@@ -115,7 +118,8 @@ export default function AgencyConductores() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
+                      <TableHead>Nombres</TableHead>
+                      <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
                       <TableHead>Licencia</TableHead>
@@ -128,6 +132,7 @@ export default function AgencyConductores() {
                     {filtered.map(c => (
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">{c.nombres}</TableCell>
+                        <TableCell>{c.apellidos}</TableCell>
                         <TableCell>{c.identificacion}</TableCell>
                         <TableCell>{c.celular}</TableCell>
                         <TableCell>{c.tipo_licencia}</TableCell>

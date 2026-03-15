@@ -36,7 +36,7 @@ export default function AdminPropietarios() {
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
   const filtered = propietarios.filter((p: any) =>
-    p.nombres.toLowerCase().includes(search.toLowerCase()) ||
+    `${p.nombres} ${p.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
     p.identificacion.includes(search) ||
     (p.empresas?.nombre || "").toLowerCase().includes(search.toLowerCase())
   );
@@ -72,7 +72,8 @@ export default function AdminPropietarios() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
+                      <TableHead>Nombres</TableHead>
+                      <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
                       <TableHead>Compañía</TableHead>
@@ -84,6 +85,7 @@ export default function AdminPropietarios() {
                     {filtered.map((p: any) => (
                       <TableRow key={p.id}>
                         <TableCell className="font-medium">{p.nombres}</TableCell>
+                        <TableCell>{p.apellidos}</TableCell>
                         <TableCell>{p.identificacion}</TableCell>
                         <TableCell>{p.celular}</TableCell>
                         <TableCell>

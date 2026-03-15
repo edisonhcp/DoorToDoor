@@ -54,6 +54,10 @@ export default function AgencyPropietarios() {
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
+    // Unlink profile first to avoid FK constraint
+    await supabase.from("profiles").update({ propietario_id: null }).eq("propietario_id", deleteAlert.id);
+    // Delete vehicles
+    await supabase.from("vehiculos").delete().eq("propietario_id", deleteAlert.id);
     const { error } = await supabase.from("propietarios").delete().eq("id", deleteAlert.id);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Propietario eliminado" }); fetchData(); }
@@ -61,7 +65,7 @@ export default function AgencyPropietarios() {
   };
 
   const filtered = propietarios.filter(p =>
-    p.nombres.toLowerCase().includes(search.toLowerCase()) ||
+    `${p.nombres} ${p.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
     p.identificacion.includes(search)
   );
 
@@ -104,7 +108,8 @@ export default function AgencyPropietarios() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
+                      <TableHead>Nombres</TableHead>
+                      <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
                       <TableHead>Marca</TableHead>
@@ -119,6 +124,7 @@ export default function AgencyPropietarios() {
                     {rows.map((row, idx) => (
                       <TableRow key={`${row.id}-${row.vehiculo?.id || idx}`}>
                         <TableCell className="font-medium">{row.nombres}</TableCell>
+                        <TableCell>{row.apellidos}</TableCell>
                         <TableCell>{row.identificacion}</TableCell>
                         <TableCell>{row.celular}</TableCell>
                         <TableCell>{row.vehiculo?.marca || "—"}</TableCell>

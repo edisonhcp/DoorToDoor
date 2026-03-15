@@ -78,7 +78,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
         const [condRes, asigRes] = await Promise.all([
           supabase.from("conductores").select("*").eq("id", profileData.conductor_id).single(),
           supabase.from("asignaciones")
-            .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, propietarios(nombres))")
+            .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, propietarios(nombres, apellidos))")
             .eq("conductor_id", profileData.conductor_id)
             .eq("estado", "ACTIVA")
             .single(),
@@ -94,13 +94,14 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
   }, []);
 
   const handleDeleteAccount = async () => {
-    // Delete conductor record, close assignments, then sign out
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
     const { data: prof } = await supabase.from("profiles").select("conductor_id").eq("user_id", userId).single();
     if (prof?.conductor_id) {
       await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
         .eq("conductor_id", prof.conductor_id).eq("estado", "ACTIVA");
+      // Unlink profile before deleting conductor
+      await supabase.from("profiles").update({ conductor_id: null }).eq("user_id", userId);
       await supabase.from("conductores").delete().eq("id", prof.conductor_id);
     }
     toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
@@ -133,7 +134,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                   </div>
                   <div className="flex-1">
                     <h2 className="text-2xl font-display font-bold text-foreground">
-                      {conductorInfo?.conductor?.nombres || profile?.username || "Conductor"}
+                      {conductorInfo?.conductor ? `${conductorInfo.conductor.nombres} ${conductorInfo.conductor.apellidos}` : profile?.username || "Conductor"}
                     </h2>
                     <p className="text-muted-foreground mt-1">
                       {conductorInfo?.conductor?.tipo_licencia && `Licencia: ${conductorInfo.conductor.tipo_licencia}`}
@@ -151,9 +152,9 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                             <p className="text-sm text-muted-foreground">
                               Placa: {conductorInfo.vehiculo.placa} · {conductorInfo.vehiculo.color} · {conductorInfo.vehiculo.tipo}
                             </p>
-                            {conductorInfo.vehiculo.propietarios?.nombres && (
+                            {conductorInfo.vehiculo.propietarios && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                Propietario: {conductorInfo.vehiculo.propietarios.nombres}
+                                Propietario: {conductorInfo.vehiculo.propietarios.nombres} {conductorInfo.vehiculo.propietarios.apellidos}
                               </p>
                             )}
                           </div>
@@ -228,7 +229,8 @@ function PropietarioDashboard({ profile, suspended }: { profile: any; suspended:
     if (!userId) return;
     const { data: prof } = await supabase.from("profiles").select("propietario_id").eq("user_id", userId).single();
     if (prof?.propietario_id) {
-      // Delete vehicles first (cascade might handle, but be explicit)
+      // Unlink profile before deleting
+      await supabase.from("profiles").update({ propietario_id: null }).eq("user_id", userId);
       await supabase.from("vehiculos").delete().eq("propietario_id", prof.propietario_id);
       await supabase.from("propietarios").delete().eq("id", prof.propietario_id);
     }

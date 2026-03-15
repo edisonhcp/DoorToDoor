@@ -130,6 +130,7 @@ export type Database = {
       }
       conductores: {
         Row: {
+          apellidos: string
           celular: string
           codigo: string
           created_at: string
@@ -147,6 +148,7 @@ export type Database = {
           tipo_licencia: string
         }
         Insert: {
+          apellidos?: string
           celular: string
           codigo: string
           created_at?: string
@@ -164,6 +166,7 @@ export type Database = {
           tipo_licencia: string
         }
         Update: {
+          apellidos?: string
           celular?: string
           codigo?: string
           created_at?: string
@@ -504,6 +507,7 @@ export type Database = {
       }
       propietarios: {
         Row: {
+          apellidos: string
           celular: string
           codigo: string
           created_at: string
@@ -519,6 +523,7 @@ export type Database = {
           nombres: string
         }
         Insert: {
+          apellidos?: string
           celular: string
           codigo: string
           created_at?: string
@@ -534,6 +539,7 @@ export type Database = {
           nombres: string
         }
         Update: {
+          apellidos?: string
           celular?: string
           codigo?: string
           created_at?: string

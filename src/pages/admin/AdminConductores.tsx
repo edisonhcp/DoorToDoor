@@ -25,7 +25,7 @@ export default function AdminConductores() {
     const fetchData = async () => {
       const [condRes, asigRes] = await Promise.all([
         supabase.from("conductores").select("*, empresas(nombre)").order("created_at", { ascending: false }),
-        supabase.from("asignaciones").select("conductor_id, vehiculos(placa, marca, modelo, anio, propietarios(nombres))").eq("estado", "ACTIVA"),
+        supabase.from("asignaciones").select("conductor_id, vehiculos(placa, marca, modelo, anio, propietarios(nombres, apellidos))").eq("estado", "ACTIVA"),
       ]);
 
       const asignaciones = asigRes.data || [];
@@ -37,7 +37,7 @@ export default function AdminConductores() {
           vehiculo_modelo: asig?.vehiculos?.modelo || null,
           vehiculo_anio: asig?.vehiculos?.anio || null,
           vehiculo_placa: asig?.vehiculos?.placa || null,
-          propietario_nombre: asig?.vehiculos?.propietarios?.nombres || null,
+          propietario_nombre: asig?.vehiculos?.propietarios ? `${asig.vehiculos.propietarios.nombres} ${asig.vehiculos.propietarios.apellidos}` : null,
         };
       });
       setConductores(enriched);
@@ -49,7 +49,7 @@ export default function AdminConductores() {
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
   const filtered = conductores.filter((c: any) =>
-    c.nombres.toLowerCase().includes(search.toLowerCase()) ||
+    `${c.nombres} ${c.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
     c.identificacion.includes(search) ||
     (c.empresas?.nombre || "").toLowerCase().includes(search.toLowerCase())
   );
@@ -85,7 +85,8 @@ export default function AdminConductores() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
+                      <TableHead>Nombres</TableHead>
+                      <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
                       <TableHead>Licencia</TableHead>
@@ -99,6 +100,7 @@ export default function AdminConductores() {
                     {filtered.map((c: any) => (
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">{c.nombres}</TableCell>
+                        <TableCell>{c.apellidos}</TableCell>
                         <TableCell>{c.identificacion}</TableCell>
                         <TableCell>{c.celular}</TableCell>
                         <TableCell>{c.tipo_licencia}</TableCell>
