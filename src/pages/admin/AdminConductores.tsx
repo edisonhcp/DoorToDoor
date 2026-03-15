@@ -37,7 +37,7 @@ export default function AdminConductores() {
           vehiculo_modelo: asig?.vehiculos?.modelo || null,
           vehiculo_anio: asig?.vehiculos?.anio || null,
           vehiculo_placa: asig?.vehiculos?.placa || null,
-          propietario_nombre: asig?.vehiculos?.propietarios?.nombres || null,
+          propietario_nombre: asig?.vehiculos?.propietarios ? `${asig.vehiculos.propietarios.nombres} ${asig.vehiculos.propietarios.apellidos}` : null,
         };
       });
       setConductores(enriched);
