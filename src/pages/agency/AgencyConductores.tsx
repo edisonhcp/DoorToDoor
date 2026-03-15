@@ -187,7 +187,11 @@ export default function AgencyConductores() {
                         <TableCell>{c.tipo_licencia}</TableCell>
                         <TableCell>
                           {c.vehiculo ? (
-                            <Badge variant="outline" className="text-xs">{c.vehiculo.placa} — {c.vehiculo.marca} {c.vehiculo.modelo}</Badge>
+                            c.vehiculo.estado === "INHABILITADO" ? (
+                              <Badge variant="destructive" className="text-xs">INHABILITADO</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">{c.vehiculo.placa} — {c.vehiculo.marca} {c.vehiculo.modelo}</Badge>
+                            )
                           ) : (
                             <span className="text-xs text-muted-foreground">Sin asignar</span>
                           )}
