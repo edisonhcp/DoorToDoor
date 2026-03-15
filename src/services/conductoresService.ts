@@ -1,14 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function fetchConductores() {
-  const [condRes, asigRes] = await Promise.all([
+  const [condRes, asigRes, viajesRes] = await Promise.all([
     supabase.from("conductores").select("*").order("created_at", { ascending: false }),
-    supabase.from("asignaciones").select("conductor_id, vehiculo_id, vehiculos(placa, marca, modelo, estado)").eq("estado", "ACTIVA"),
+    supabase.from("asignaciones").select("id, conductor_id, vehiculo_id, vehiculos(placa, marca, modelo, estado)").eq("estado", "ACTIVA"),
+    supabase.from("viajes").select("asignacion_id, estado").in("estado", ["EN_RUTA"] as any),
   ]);
   const asignaciones = asigRes.data || [];
+  const viajesEnRuta = new Set((viajesRes.data || []).map((v: any) => v.asignacion_id));
   return (condRes.data || []).map((c: any) => {
     const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
-    return { ...c, vehiculo: asig?.vehiculos || null };
+    const enRuta = asig ? viajesEnRuta.has(asig.id) : false;
+    return { ...c, vehiculo: asig?.vehiculos || null, en_ruta: enRuta };
   });
 }
 
