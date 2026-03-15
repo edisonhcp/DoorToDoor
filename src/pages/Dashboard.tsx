@@ -379,15 +379,16 @@ export default function Dashboard() {
 
       const today = new Date().toISOString().split("T")[0];
 
-      const [vehiculosRes, conductoresRes, viajesHoyRes, borradorRes, cerradosRes, asignacionesRes, recentRes, allCond, allVeh] =
+      const [vehiculosRes, vehiculosDeshabRes, conductoresRes, conductoresDeshabRes, propietariosRes, borradorRes, cerradosRes, asignacionesRes, allCond, allVeh] =
         await Promise.all([
           supabase.from("vehiculos").select("id", { count: "exact", head: true }),
+          supabase.from("vehiculos").select("id", { count: "exact", head: true }).eq("estado", "INHABILITADO"),
           supabase.from("conductores").select("id", { count: "exact", head: true }),
-          supabase.from("viajes").select("id", { count: "exact", head: true }).gte("fecha_salida", today).lt("fecha_salida", today + "T23:59:59"),
+          supabase.from("conductores").select("id", { count: "exact", head: true }).eq("estado", "INHABILITADO"),
+          supabase.from("propietarios").select("id", { count: "exact", head: true }),
           supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "BORRADOR"),
           supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "CERRADO"),
           supabase.from("asignaciones").select("conductor_id, vehiculo_id").eq("estado", "ACTIVA"),
-          supabase.from("viajes").select("*").order("created_at", { ascending: false }).limit(5),
           supabase.from("conductores").select("id, nombres").eq("estado", "HABILITADO"),
           supabase.from("vehiculos").select("id, placa, marca, modelo").eq("estado", "HABILITADO"),
         ]);
