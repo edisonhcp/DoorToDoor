@@ -42,6 +42,22 @@ export default function Login() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) return;
+    setSendingReset(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSendingReset(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Correo enviado", description: "Revisa tu bandeja de entrada para restablecer tu contraseña." });
+      setForgotOpen(false);
+      setForgotEmail("");
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Left panel - Branding */}
