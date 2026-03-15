@@ -87,7 +87,7 @@ export default function AgencyConductores() {
   };
 
   const filtered = conductores.filter(c =>
-    c.nombres.toLowerCase().includes(search.toLowerCase()) ||
+    `${c.nombres} ${c.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
     c.identificacion.includes(search)
   );
 
