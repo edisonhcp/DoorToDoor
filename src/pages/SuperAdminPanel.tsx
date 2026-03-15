@@ -181,7 +181,7 @@ export default function SuperAdminPanel() {
             <h1 className="text-3xl font-display font-bold text-foreground">Gestión de Compañías</h1>
             <p className="text-muted-foreground mt-1">Administra las agencias de transporte registradas</p>
           </div>
-          <Button onClick={() => setSelectEmpresaDialogOpen(true)} disabled={generatingLink} className="gap-2 font-display">
+          <Button onClick={() => handleGenerateLink()} disabled={generatingLink} className="gap-2 font-display">
             <Link2 className="w-4 h-4" />
             {generatingLink ? "Generando..." : "Generar Link para Agencia"}
           </Button>
