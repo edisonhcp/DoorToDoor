@@ -462,7 +462,7 @@ export default function Dashboard() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
         <motion.div variants={item}>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            Hola, {profile?.username || "Administrador"} 👋
+            Hola, {empresaNombre || profile?.username || "Administrador"} 👋
           </h1>
           <p className="text-muted-foreground mt-1">
             Resumen de operaciones del día — {new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
