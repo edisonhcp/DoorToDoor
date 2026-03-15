@@ -145,9 +145,12 @@ export default function AgencyPropietarios() {
                         <TableCell className="text-xs">{row.email}</TableCell>
                         <TableCell>
                           {row.vehiculo ? (
-                            row.vehiculo.estado === "INHABILITADO" ? (
-                              <Badge variant="destructive" className="text-xs">INHABILITADO</Badge>
-                            ) : row.vehiculo.marca
+                            <div className="flex items-center gap-2">
+                              <span>{row.vehiculo.marca}</span>
+                              {row.vehiculo.estado === "INHABILITADO" && (
+                                <Badge variant="destructive" className="text-xs">INHABILITADO</Badge>
+                              )}
+                            </div>
                           ) : "—"}
                         </TableCell>
                         <TableCell>{row.vehiculo?.modelo || "—"}</TableCell>
