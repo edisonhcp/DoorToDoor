@@ -66,8 +66,6 @@ export default function SuperAdminPanel() {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
   const [generatingLink, setGeneratingLink] = useState(false);
-  const [generatingLink, setGeneratingLink] = useState(false);
-  const [selectEmpresaDialogOpen, setSelectEmpresaDialogOpen] = useState(false);
 
   const fetchData = async () => {
     const [empresasRes, conductoresRes, vehiculosRes, propietariosRes] = await Promise.all([
