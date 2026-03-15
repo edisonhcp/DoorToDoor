@@ -110,11 +110,26 @@ export async function fetchPropietarioVehiculos(userId: string) {
 
   if (!profileData?.propietario_id) return { propietarioId: null, vehiculos: [] };
 
-  const { data } = await supabase
-    .from("vehiculos")
-    .select("*")
-    .eq("propietario_id", profileData.propietario_id)
-    .order("created_at", { ascending: false });
+  const [vehRes, asigRes] = await Promise.all([
+    supabase
+      .from("vehiculos")
+      .select("*")
+      .eq("propietario_id", profileData.propietario_id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("asignaciones")
+      .select("vehiculo_id, conductores(nombres, apellidos, celular)")
+      .eq("estado", "ACTIVA"),
+  ]);
 
-  return { propietarioId: profileData.propietario_id, vehiculos: data || [] };
+  const asignaciones = asigRes.data || [];
+  const vehiculos = (vehRes.data || []).map((v: any) => {
+    const asig = asignaciones.find((a: any) => a.vehiculo_id === v.id);
+    return {
+      ...v,
+      conductor: asig?.conductores || null,
+    };
+  });
+
+  return { propietarioId: profileData.propietario_id, vehiculos };
 }
