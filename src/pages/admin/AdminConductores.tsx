@@ -49,7 +49,7 @@ export default function AdminConductores() {
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
   const filtered = conductores.filter((c: any) =>
-    c.nombres.toLowerCase().includes(search.toLowerCase()) ||
+    `${c.nombres} ${c.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
     c.identificacion.includes(search) ||
     (c.empresas?.nombre || "").toLowerCase().includes(search.toLowerCase())
   );
