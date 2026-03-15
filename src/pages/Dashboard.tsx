@@ -80,7 +80,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
         const [condRes, asigRes] = await Promise.all([
           supabase.from("conductores").select("*").eq("id", profileData.conductor_id).single(),
           supabase.from("asignaciones")
-            .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, propietarios(nombres, apellidos))")
+            .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, estado, propietarios(nombres, apellidos))")
             .eq("conductor_id", profileData.conductor_id)
             .eq("estado", "ACTIVA")
             .single(),
@@ -146,11 +146,16 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                     {conductorInfo?.vehiculo ? (
                       <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-border">
                         <div className="flex items-center gap-3">
-                          <Truck className="w-6 h-6 text-primary" />
+                          <Truck className={`w-6 h-6 ${conductorInfo.vehiculo.estado === "INHABILITADO" ? "text-destructive" : "text-primary"}`} />
                           <div>
-                            <p className="font-display font-semibold text-foreground">
-                              {conductorInfo.vehiculo.marca} {conductorInfo.vehiculo.modelo} {conductorInfo.vehiculo.anio || ""}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-display font-semibold text-foreground">
+                                {conductorInfo.vehiculo.marca} {conductorInfo.vehiculo.modelo} {conductorInfo.vehiculo.anio || ""}
+                              </p>
+                              {conductorInfo.vehiculo.estado === "INHABILITADO" && (
+                                <Badge variant="destructive" className="text-xs">INHABILITADO</Badge>
+                              )}
+                            </div>
                             <p className="text-sm text-muted-foreground">
                               Placa: {conductorInfo.vehiculo.placa} · {conductorInfo.vehiculo.color} · {conductorInfo.vehiculo.tipo}
                             </p>
@@ -456,14 +461,37 @@ export default function Dashboard() {
   };
 
   const vehiculosActivos = stats.vehiculos - stats.vehiculosDeshabilitados;
+  const conductoresActivos = stats.conductores - stats.conductoresDeshabilitados;
 
   const statCards = [
-    { title: "Vehículos Activos", value: vehiculosActivos, icon: Truck, color: "text-primary", bg: "bg-primary/10", sub: null, subColor: "" },
-    { title: "Vehículos Deshabilitados", value: stats.vehiculosDeshabilitados, icon: Truck, color: "text-destructive", bg: "bg-destructive/10", sub: null, subColor: "" },
-    { title: "Total Vehículos", value: stats.vehiculos, icon: Truck, color: "text-muted-foreground", bg: "bg-muted", sub: null, subColor: "" },
-    { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10", sub: stats.conductoresDeshabilitados > 0 ? `${stats.conductoresDeshabilitados} deshabilitados` : null, subColor: "text-destructive" },
-    { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-secondary", bg: "bg-secondary/10", sub: null, subColor: "" },
-    { title: "Asignaciones Activas", value: stats.asignacionesActivas, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10", sub: null, subColor: "" },
+    {
+      title: "Vehículos", icon: Truck, color: "text-primary", bg: "bg-primary/10",
+      items: [
+        { label: "Activos", value: vehiculosActivos },
+        { label: "Deshabilitados", value: stats.vehiculosDeshabilitados, destructive: true },
+        { label: "Total", value: stats.vehiculos },
+      ],
+    },
+    {
+      title: "Conductores", icon: Users, color: "text-accent", bg: "bg-accent/10",
+      items: [
+        { label: "Activos", value: conductoresActivos },
+        { label: "Deshabilitados", value: stats.conductoresDeshabilitados, destructive: true },
+        { label: "Total", value: stats.conductores },
+      ],
+    },
+    {
+      title: "Propietarios", icon: UserCheck, color: "text-secondary", bg: "bg-secondary/10",
+      items: [
+        { label: "Total", value: stats.propietarios },
+      ],
+    },
+    {
+      title: "Asignaciones Activas", icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10",
+      items: [
+        { label: "Activas", value: stats.asignacionesActivas },
+      ],
+    },
   ];
 
   return (
@@ -478,24 +506,26 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {statCards.map((stat) => (
             <motion.div key={stat.title} variants={item}>
               <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-3xl font-display font-bold text-foreground mt-1">
-                        {loading ? "—" : stat.value}
-                      </p>
-                      {stat.sub && (
-                        <p className={`text-xs mt-0.5 ${stat.subColor}`}>{stat.sub}</p>
-                      )}
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
+                      <stat.icon className={`w-5 h-5 ${stat.color}`} />
                     </div>
-                    <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
-                      <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {stat.items.map((si) => (
+                      <div key={si.label} className="flex items-center justify-between">
+                        <span className={`text-xs ${si.destructive ? "text-destructive" : "text-muted-foreground"}`}>{si.label}</span>
+                        <span className={`text-sm font-display font-bold ${si.destructive ? "text-destructive" : "text-foreground"}`}>
+                          {loading ? "—" : si.value}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

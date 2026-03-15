@@ -110,9 +110,8 @@ export default function AgencyVehiculos() {
                       <TableHead>Marca / Modelo</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Color</TableHead>
-                      <TableHead>Email Propietario</TableHead>
-                      <TableHead>Conductor</TableHead>
                       <TableHead>Propietario</TableHead>
+                      <TableHead>Conductor</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
@@ -124,7 +123,7 @@ export default function AgencyVehiculos() {
                         <TableCell>{v.marca} {v.modelo}</TableCell>
                         <TableCell>{v.tipo}</TableCell>
                         <TableCell>{v.color}</TableCell>
-                        <TableCell className="text-xs">{v.propietarios?.email || "—"}</TableCell>
+                        <TableCell>{v.propietarios?.nombres || "—"}</TableCell>
                         <TableCell>
                           {v.conductor_nombre ? (
                             <Badge variant="outline" className="text-xs">{v.conductor_nombre}</Badge>
@@ -132,7 +131,6 @@ export default function AgencyVehiculos() {
                             <span className="text-xs text-muted-foreground">Sin asignar</span>
                           )}
                         </TableCell>
-                        <TableCell>{v.propietarios?.nombres || "—"}</TableCell>
                         <TableCell>
                           <Badge variant={v.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{v.estado}</Badge>
                         </TableCell>

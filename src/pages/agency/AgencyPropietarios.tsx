@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserCheck, Search, Ban, CheckCircle2, Trash2, MoreVertical } from "lucide-react";
+import { UserCheck, Search, Trash2, MoreVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +35,7 @@ export default function AgencyPropietarios() {
   const fetchData = async () => {
     const { data } = await supabase
       .from("propietarios")
-      .select("*, vehiculos(id, placa, marca, modelo, tipo, anio)")
+      .select("*, vehiculos(id, placa, marca, modelo, tipo, anio, estado)")
       .order("created_at", { ascending: false });
     setPropietarios(data || []);
     setLoading(false);
@@ -143,7 +143,13 @@ export default function AgencyPropietarios() {
                         <TableCell>{row.identificacion}</TableCell>
                         <TableCell>{row.celular}</TableCell>
                         <TableCell className="text-xs">{row.email}</TableCell>
-                        <TableCell>{row.vehiculo?.marca || "—"}</TableCell>
+                        <TableCell>
+                          {row.vehiculo ? (
+                            row.vehiculo.estado === "INHABILITADO" ? (
+                              <Badge variant="destructive" className="text-xs">INHABILITADO</Badge>
+                            ) : row.vehiculo.marca
+                          ) : "—"}
+                        </TableCell>
                         <TableCell>{row.vehiculo?.modelo || "—"}</TableCell>
                         <TableCell>{row.vehiculo?.tipo || "—"}</TableCell>
                         <TableCell>{row.vehiculo?.placa || "—"}</TableCell>
@@ -156,9 +162,6 @@ export default function AgencyPropietarios() {
                               <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleToggleEstado(row)}>
-                                {row.estado === "HABILITADO" ? <><Ban className="w-4 h-4 mr-2" /> Suspender</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Habilitar</>}
-                              </DropdownMenuItem>
                               <DropdownMenuItem className="text-destructive" onClick={() => setDeleteAlert(row)}>
                                 <Trash2 className="w-4 h-4 mr-2" /> Eliminar
                               </DropdownMenuItem>
