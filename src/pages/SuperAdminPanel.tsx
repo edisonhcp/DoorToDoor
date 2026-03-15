@@ -355,8 +355,7 @@ export default function SuperAdminPanel() {
                                 <TableCell>{i === 0 && <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge>}</TableCell>
                               </TableRow>
                             ));
-                            </TableRow>
-                          ))}
+                          })}
                         </TableBody>
                       </Table>
                     )}
