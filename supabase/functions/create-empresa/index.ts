@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
     // Validate required fields
     if (!empresa?.nombre || !empresa?.ruc || !empresa?.ciudad || !empresa?.direccion || 
-        !empresa?.celular || !empresa?.email || !empresa?.propietario_nombre) {
+        !empresa?.celular || !empresa?.email || !empresa?.propietario_nombre || !empresa?.propietario_apellidos) {
       return new Response(JSON.stringify({ error: 'Faltan datos de la empresa' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
         celular: empresa.celular,
         email: empresa.email,
         propietario_nombre: empresa.propietario_nombre,
+        propietario_apellidos: empresa.propietario_apellidos,
         tipo_comision: empresa.tipo_comision || 'PORCENTAJE',
         comision_pct: empresa.comision_pct || 0.10,
         comision_fija: empresa.comision_fija || 0,

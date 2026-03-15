@@ -38,6 +38,7 @@ interface EmpresaRow {
   celular: string;
   direccion: string;
   propietario_nombre: string;
+  propietario_apellidos: string;
   activo: boolean;
   created_at: string;
 }
@@ -143,6 +144,7 @@ export default function SuperAdminPanel() {
       celular: editingEmpresa.celular,
       email: editingEmpresa.email,
       propietario_nombre: editingEmpresa.propietario_nombre,
+      propietario_apellidos: editingEmpresa.propietario_apellidos,
     }).eq("id", editingEmpresa.id);
     setSaving(false);
     if (error) {
@@ -476,7 +478,7 @@ export default function SuperAdminPanel() {
                     <h3 className="font-display font-semibold text-foreground mb-1 truncate">{empresa.nombre}</h3>
                     <p className="text-sm text-muted-foreground mb-3">RUC: {empresa.ruc}</p>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{empresa.propietario_nombre}</span>
+                      <span>{empresa.propietario_nombre} {empresa.propietario_apellidos}</span>
                       <span>{new Date(empresa.created_at).toLocaleDateString("es-ES")}</span>
                     </div>
                   </CardContent>
@@ -501,7 +503,8 @@ export default function SuperAdminPanel() {
               <div className="col-span-2"><Label>Dirección</Label><Input value={editingEmpresa.direccion} onChange={e => setEditingEmpresa({ ...editingEmpresa, direccion: e.target.value })} /></div>
               <div><Label>Celular</Label><Input value={editingEmpresa.celular} onChange={e => setEditingEmpresa({ ...editingEmpresa, celular: e.target.value })} /></div>
               <div><Label>Email</Label><Input value={editingEmpresa.email} onChange={e => setEditingEmpresa({ ...editingEmpresa, email: e.target.value })} /></div>
-              <div className="col-span-2"><Label>Propietario</Label><Input value={editingEmpresa.propietario_nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, propietario_nombre: e.target.value })} /></div>
+              <div><Label>Nombres Propietario</Label><Input value={editingEmpresa.propietario_nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, propietario_nombre: e.target.value })} /></div>
+              <div><Label>Apellidos Propietario</Label><Input value={(editingEmpresa as any).propietario_apellidos || ""} onChange={e => setEditingEmpresa({ ...editingEmpresa, propietario_apellidos: e.target.value } as any)} /></div>
             </div>
           )}
           <DialogFooter>

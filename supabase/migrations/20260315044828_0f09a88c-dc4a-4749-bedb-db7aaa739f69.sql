@@ -1,0 +1,1 @@
+ALTER TABLE public.empresas ADD COLUMN propietario_apellidos text NOT NULL DEFAULT '';

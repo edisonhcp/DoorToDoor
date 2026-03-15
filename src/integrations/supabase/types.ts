@@ -320,6 +320,7 @@ export type Database = {
           id: string
           logo_url: string | null
           nombre: string
+          propietario_apellidos: string
           propietario_nombre: string
           ruc: string
           tipo_comision: Database["public"]["Enums"]["tipo_comision_empresa"]
@@ -336,6 +337,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nombre: string
+          propietario_apellidos?: string
           propietario_nombre: string
           ruc: string
           tipo_comision?: Database["public"]["Enums"]["tipo_comision_empresa"]
@@ -352,6 +354,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nombre?: string
+          propietario_apellidos?: string
           propietario_nombre?: string
           ruc?: string
           tipo_comision?: Database["public"]["Enums"]["tipo_comision_empresa"]
