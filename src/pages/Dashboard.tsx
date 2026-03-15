@@ -402,13 +402,14 @@ export default function Dashboard() {
 
       setStats({
         vehiculos: vehiculosRes.count || 0,
+        vehiculosDeshabilitados: vehiculosDeshabRes.count || 0,
         conductores: conductoresRes.count || 0,
-        viajesHoy: viajesHoyRes.count || 0,
+        conductoresDeshabilitados: conductoresDeshabRes.count || 0,
+        propietarios: propietariosRes.count || 0,
         viajesBorrador: borradorRes.count || 0,
         viajesCerrados: cerradosRes.count || 0,
         asignacionesActivas: activeAsignaciones.length,
       });
-      setRecentViajes(recentRes.data || []);
 
       // Fetch empresa name
       if (empresaId) {
