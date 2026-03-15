@@ -90,7 +90,9 @@ export default function RegistroInvitacion() {
 
     try {
       const body: any = { token, email, password, username };
-      if (rol === "CONDUCTOR" || rol === "PROPIETARIO") {
+      if (rol === "GERENCIA") {
+        body.datos_extra = datosEmpresa;
+      } else if (rol === "CONDUCTOR" || rol === "PROPIETARIO") {
         body.datos_extra = datos;
       }
 
