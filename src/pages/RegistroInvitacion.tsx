@@ -1,0 +1,240 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Truck, Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface DatosExtra {
+  nombres: string;
+  identificacion: string;
+  celular: string;
+  domicilio: string;
+  tipo_licencia: string;
+  estado_civil: string;
+  nacionalidad: string;
+  fecha_nacimiento: string;
+  fecha_caducidad_licencia: string;
+  direccion: string;
+  codigo: string;
+}
+
+const emptyDatos: DatosExtra = {
+  nombres: "", identificacion: "", celular: "", domicilio: "",
+  tipo_licencia: "", estado_civil: "", nacionalidad: "Ecuatoriana",
+  fecha_nacimiento: "", fecha_caducidad_licencia: "", direccion: "", codigo: "",
+};
+
+export default function RegistroInvitacion() {
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [validating, setValidating] = useState(true);
+  const [invalid, setInvalid] = useState(false);
+  const [rol, setRol] = useState<string>("");
+  const [empresaNombre, setEmpresaNombre] = useState("");
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [datos, setDatos] = useState<DatosExtra>(emptyDatos);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const validate = async () => {
+      if (!token) { setInvalid(true); setValidating(false); return; }
+
+      // We need to check invitation validity via a public query
+      // Since invitaciones has RLS, we'll call the edge function with minimal data to validate
+      const { data, error } = await supabase.functions.invoke("validate-invitation", {
+        body: { token },
+      });
+
+      if (error || data?.error) {
+        setInvalid(true);
+      } else {
+        setRol(data.rol);
+        setEmpresaNombre(data.empresa_nombre || "");
+      }
+      setValidating(false);
+    };
+    validate();
+  }, [token]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setSubmitting(true);
+
+    try {
+      const body: any = { token, email, password, username };
+      if (rol === "CONDUCTOR" || rol === "PROPIETARIO") {
+        body.datos_extra = datos;
+      }
+
+      const { data, error } = await supabase.functions.invoke("register-with-invitation", { body });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast({ title: "¡Registro exitoso!", description: "Ya puedes iniciar sesión con tu cuenta." });
+      navigate("/login");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const rolLabels: Record<string, string> = {
+    GERENCIA: "Administrador de Agencia",
+    CONDUCTOR: "Conductor",
+    PROPIETARIO: "Propietario de Vehículo",
+  };
+
+  if (validating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (invalid) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <Card className="max-w-md w-full border-0 shadow-xl">
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+            <h2 className="text-xl font-display font-bold text-foreground mb-2">Invitación Inválida</h2>
+            <p className="text-muted-foreground mb-6">
+              Este enlace de registro es inválido o ha expirado. Contacta al administrador para obtener uno nuevo.
+            </p>
+            <Button onClick={() => navigate("/login")}>Ir al Login</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-sidebar relative overflow-hidden items-center justify-center p-12">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary blur-[100px]" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-secondary blur-[120px]" />
+        </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary mb-8">
+            <Truck className="w-10 h-10 text-primary-foreground" />
+          </div>
+          <h1 className="text-5xl font-display font-bold text-sidebar-foreground mb-4">DoorToDoor</h1>
+          <p className="text-sidebar-foreground/60 text-lg max-w-md">
+            {empresaNombre ? `Registro para ${empresaNombre}` : "Registro de usuario"}
+          </p>
+          <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sidebar-accent">
+            <User className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-sidebar-foreground">{rolLabels[rol] || rol}</span>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Right form */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full max-w-lg">
+          <div className="lg:hidden flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+              <Truck className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span className="text-2xl font-display font-bold text-foreground">DoorToDoor</span>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-2xl font-display font-bold text-foreground">Crear tu cuenta</h2>
+            <p className="text-muted-foreground mt-1">
+              {empresaNombre && <span className="font-medium text-foreground">{empresaNombre}</span>}
+              {" · "}{rolLabels[rol] || rol}
+            </p>
+          </div>
+
+          <Card className="border-0 shadow-xl shadow-primary/5">
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Account fields */}
+                <div className="space-y-2">
+                  <Label>Nombre de usuario</Label>
+                  <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="tu_usuario" required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Correo electrónico</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" className="pl-10" required />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Contraseña</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={password} onChange={e => setPassword(e.target.value)}
+                      placeholder="Min. 6 caracteres" className="pl-10 pr-10" required minLength={6}
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Extra fields for CONDUCTOR */}
+                {rol === "CONDUCTOR" && (
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <p className="text-sm font-semibold text-foreground">Datos del Conductor</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="col-span-2"><Label>Nombres completos</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
+                      <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value })} required /></div>
+                      <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
+                      <div className="col-span-2"><Label>Domicilio</Label><Input value={datos.domicilio} onChange={e => setDatos({ ...datos, domicilio: e.target.value })} /></div>
+                      <div><Label>Tipo de licencia</Label><Input value={datos.tipo_licencia} onChange={e => setDatos({ ...datos, tipo_licencia: e.target.value })} /></div>
+                      <div><Label>Estado civil</Label><Input value={datos.estado_civil} onChange={e => setDatos({ ...datos, estado_civil: e.target.value })} /></div>
+                      <div><Label>Nacionalidad</Label><Input value={datos.nacionalidad} onChange={e => setDatos({ ...datos, nacionalidad: e.target.value })} /></div>
+                      <div><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
+                      <div className="col-span-2"><Label>Fecha caducidad licencia</Label><Input type="date" value={datos.fecha_caducidad_licencia} onChange={e => setDatos({ ...datos, fecha_caducidad_licencia: e.target.value })} /></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Extra fields for PROPIETARIO */}
+                {rol === "PROPIETARIO" && (
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <p className="text-sm font-semibold text-foreground">Datos del Propietario</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="col-span-2"><Label>Nombres completos</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
+                      <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value })} required /></div>
+                      <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
+                      <div className="col-span-2"><Label>Dirección</Label><Input value={datos.direccion} onChange={e => setDatos({ ...datos, direccion: e.target.value })} /></div>
+                      <div><Label>Estado civil</Label><Input value={datos.estado_civil} onChange={e => setDatos({ ...datos, estado_civil: e.target.value })} /></div>
+                      <div><Label>Nacionalidad</Label><Input value={datos.nacionalidad} onChange={e => setDatos({ ...datos, nacionalidad: e.target.value })} /></div>
+                      <div className="col-span-2"><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
+                    </div>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full h-11 font-display font-semibold" disabled={submitting}>
+                  {submitting ? "Registrando..." : "Crear Cuenta"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

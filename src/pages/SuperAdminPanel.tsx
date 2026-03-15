@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Building2, Plus, Users, Truck, Search, Shield } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Building2, Plus, Users, Truck, Search, Shield, Link2, Pencil,
+  Trash2, Ban, CheckCircle2, Copy, ExternalLink, MoreVertical
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,8 +32,16 @@ interface EmpresaRow {
   ciudad: string;
   email: string;
   celular: string;
+  direccion: string;
   propietario_nombre: string;
+  activo: boolean;
   created_at: string;
+}
+
+interface GlobalStats {
+  empresas: number;
+  conductores: number;
+  vehiculos: number;
 }
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -34,61 +52,105 @@ export default function SuperAdminPanel() {
   const { toast } = useToast();
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState("");
+  const [stats, setStats] = useState<GlobalStats>({ empresas: 0, conductores: 0, vehiculos: 0 });
 
-  // Form state
-  const [form, setForm] = useState({
-    nombre: "", ruc: "", ciudad: "", direccion: "", celular: "",
-    email: "", propietario_nombre: "",
-    adminEmail: "", adminPassword: "", adminUsername: "",
-  });
+  // Dialog states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingEmpresa, setEditingEmpresa] = useState<EmpresaRow | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const fetchEmpresas = async () => {
-    const { data } = await supabase.from("empresas").select("*").order("created_at", { ascending: false });
-    setEmpresas((data as EmpresaRow[]) || []);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [deletingEmpresa, setDeletingEmpresa] = useState<EmpresaRow | null>(null);
+
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState("");
+  const [generatingLink, setGeneratingLink] = useState(false);
+
+  const fetchData = async () => {
+    const [empresasRes, conductoresRes, vehiculosRes] = await Promise.all([
+      supabase.from("empresas").select("*").order("created_at", { ascending: false }),
+      supabase.from("conductores").select("id", { count: "exact", head: true }),
+      supabase.from("vehiculos").select("id", { count: "exact", head: true }),
+    ]);
+    setEmpresas((empresasRes.data as EmpresaRow[]) || []);
+    setStats({
+      empresas: empresasRes.data?.length || 0,
+      conductores: conductoresRes.count || 0,
+      vehiculos: vehiculosRes.count || 0,
+    });
     setLoading(false);
   };
 
-  useEffect(() => { fetchEmpresas(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
-  const handleCreate = async () => {
-    setCreating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-empresa", {
-        body: {
-          empresa: {
-            nombre: form.nombre,
-            ruc: form.ruc,
-            ciudad: form.ciudad,
-            direccion: form.direccion,
-            celular: form.celular,
-            email: form.email,
-            propietario_nombre: form.propietario_nombre,
-          },
-          adminUser: {
-            email: form.adminEmail,
-            password: form.adminPassword,
-            username: form.adminUsername,
-          },
-        },
-      });
+  const handleEdit = async () => {
+    if (!editingEmpresa) return;
+    setSaving(true);
+    const { error } = await supabase.from("empresas").update({
+      nombre: editingEmpresa.nombre,
+      ruc: editingEmpresa.ruc,
+      ciudad: editingEmpresa.ciudad,
+      direccion: editingEmpresa.direccion,
+      celular: editingEmpresa.celular,
+      email: editingEmpresa.email,
+      propietario_nombre: editingEmpresa.propietario_nombre,
+    }).eq("id", editingEmpresa.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Empresa actualizada" });
+      setEditDialogOpen(false);
+      fetchData();
+    }
+  };
 
+  const handleDelete = async () => {
+    if (!deletingEmpresa) return;
+    const { error } = await supabase.from("empresas").delete().eq("id", deletingEmpresa.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Empresa eliminada" });
+      fetchData();
+    }
+    setDeleteAlertOpen(false);
+  };
+
+  const handleToggleSuspend = async (empresa: EmpresaRow) => {
+    const { error } = await supabase.from("empresas").update({ activo: !empresa.activo }).eq("id", empresa.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: empresa.activo ? "Empresa suspendida" : "Empresa reactivada" });
+      fetchData();
+    }
+  };
+
+  const handleGenerateLink = async (empresaId?: string) => {
+    setGeneratingLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-invitation", {
+        body: { rol: "GERENCIA", empresa_id: empresaId },
+      });
       if (error) throw error;
       if (data.error) throw new Error(data.error);
-
-      toast({ title: "Empresa creada", description: `${form.nombre} registrada exitosamente con usuario ${form.adminEmail}` });
-      setDialogOpen(false);
-      setForm({ nombre: "", ruc: "", ciudad: "", direccion: "", celular: "", email: "", propietario_nombre: "", adminEmail: "", adminPassword: "", adminUsername: "" });
-      fetchEmpresas();
+      const link = `${window.location.origin}/registro/${data.token}`;
+      setGeneratedLink(link);
+      setLinkDialogOpen(true);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
-      setCreating(false);
+      setGeneratingLink(false);
     }
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(generatedLink);
+    toast({ title: "Link copiado al portapapeles" });
   };
 
   const filtered = empresas.filter(e =>
@@ -97,9 +159,16 @@ export default function SuperAdminPanel() {
     e.ciudad.toLowerCase().includes(search.toLowerCase())
   );
 
+  const statCards = [
+    { title: "Empresas", value: stats.empresas, icon: Building2, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10" },
+    { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-secondary", bg: "bg-secondary/10" },
+  ];
+
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+        {/* Header */}
         <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -107,100 +176,34 @@ export default function SuperAdminPanel() {
               <Badge className="bg-primary/10 text-primary border-0 font-medium">Super Admin</Badge>
             </div>
             <h1 className="text-3xl font-display font-bold text-foreground">Gestión de Empresas</h1>
-            <p className="text-muted-foreground mt-1">Crea y administra las agencias de transporte registradas</p>
+            <p className="text-muted-foreground mt-1">Administra las agencias de transporte registradas</p>
           </div>
-
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 font-display">
-                <Plus className="w-4 h-4" />
-                Nueva Empresa
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="font-display text-xl">Registrar Nueva Empresa</DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-5 py-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-primary" /> Datos de la Empresa
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <Label>Nombre de la empresa</Label>
-                    <Input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} placeholder="Transportes XYZ" />
-                  </div>
-                  <div>
-                    <Label>RUC</Label>
-                    <Input value={form.ruc} onChange={e => setForm({ ...form, ruc: e.target.value })} placeholder="1234567890001" />
-                  </div>
-                  <div>
-                    <Label>Ciudad</Label>
-                    <Input value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} placeholder="Quito" />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Dirección</Label>
-                    <Input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Av. Principal S/N" />
-                  </div>
-                  <div>
-                    <Label>Celular</Label>
-                    <Input value={form.celular} onChange={e => setForm({ ...form, celular: e.target.value })} placeholder="0991234567" />
-                  </div>
-                  <div>
-                    <Label>Email empresa</Label>
-                    <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="info@empresa.com" />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Nombre del propietario</Label>
-                    <Input value={form.propietario_nombre} onChange={e => setForm({ ...form, propietario_nombre: e.target.value })} placeholder="Juan Pérez" />
-                  </div>
-                </div>
-
-                <div className="border-t border-border pt-4 space-y-1">
-                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Users className="w-4 h-4 text-accent" /> Usuario Administrador (Gerencia)
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <Label>Nombre de usuario</Label>
-                    <Input value={form.adminUsername} onChange={e => setForm({ ...form, adminUsername: e.target.value })} placeholder="admin_xyz" />
-                  </div>
-                  <div>
-                    <Label>Email del admin</Label>
-                    <Input type="email" value={form.adminEmail} onChange={e => setForm({ ...form, adminEmail: e.target.value })} placeholder="admin@empresa.com" />
-                  </div>
-                  <div>
-                    <Label>Contraseña</Label>
-                    <Input type="password" value={form.adminPassword} onChange={e => setForm({ ...form, adminPassword: e.target.value })} placeholder="Min. 6 caracteres" />
-                  </div>
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleCreate} disabled={creating} className="gap-2 font-display">
-                  {creating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                      Creando...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      Crear Empresa
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => handleGenerateLink()} disabled={generatingLink} className="gap-2 font-display">
+            <Link2 className="w-4 h-4" />
+            {generatingLink ? "Generando..." : "Generar Link para Agencia"}
+          </Button>
         </motion.div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {statCards.map((stat) => (
+            <motion.div key={stat.title} variants={item}>
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-3xl font-display font-bold text-foreground mt-1">
+                      {loading ? "—" : stat.value}
+                    </p>
+                  </div>
+                  <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
+                    <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
 
         {/* Search */}
         <motion.div variants={item} className="relative max-w-sm">
@@ -231,15 +234,45 @@ export default function SuperAdminPanel() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map(empresa => (
-                <Card key={empresa.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <Card key={empresa.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${!empresa.activo ? 'opacity-60' : ''}`}>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                         <Building2 className="w-5 h-5 text-primary" />
                       </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {empresa.ciudad}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className={`text-xs ${!empresa.activo ? 'bg-destructive/10 text-destructive' : ''}`}>
+                          {empresa.activo ? empresa.ciudad : "Suspendida"}
+                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => { setEditingEmpresa(empresa); setEditDialogOpen(true); }}>
+                              <Pencil className="w-4 h-4 mr-2" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleGenerateLink(empresa.id)}>
+                              <Link2 className="w-4 h-4 mr-2" /> Generar Link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleToggleSuspend(empresa)}>
+                              {empresa.activo ? (
+                                <><Ban className="w-4 h-4 mr-2" /> Suspender</>
+                              ) : (
+                                <><CheckCircle2 className="w-4 h-4 mr-2" /> Reactivar</>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => { setDeletingEmpresa(empresa); setDeleteAlertOpen(true); }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" /> Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                     <h3 className="font-display font-semibold text-foreground mb-1 truncate">{empresa.nombre}</h3>
                     <p className="text-sm text-muted-foreground mb-3">RUC: {empresa.ruc}</p>
@@ -254,6 +287,74 @@ export default function SuperAdminPanel() {
           )}
         </motion.div>
       </motion.div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Editar Empresa</DialogTitle>
+          </DialogHeader>
+          {editingEmpresa && (
+            <div className="grid grid-cols-2 gap-3 py-4">
+              <div className="col-span-2">
+                <Label>Nombre</Label>
+                <Input value={editingEmpresa.nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, nombre: e.target.value })} />
+              </div>
+              <div><Label>RUC</Label><Input value={editingEmpresa.ruc} onChange={e => setEditingEmpresa({ ...editingEmpresa, ruc: e.target.value })} /></div>
+              <div><Label>Ciudad</Label><Input value={editingEmpresa.ciudad} onChange={e => setEditingEmpresa({ ...editingEmpresa, ciudad: e.target.value })} /></div>
+              <div className="col-span-2"><Label>Dirección</Label><Input value={editingEmpresa.direccion} onChange={e => setEditingEmpresa({ ...editingEmpresa, direccion: e.target.value })} /></div>
+              <div><Label>Celular</Label><Input value={editingEmpresa.celular} onChange={e => setEditingEmpresa({ ...editingEmpresa, celular: e.target.value })} /></div>
+              <div><Label>Email</Label><Input value={editingEmpresa.email} onChange={e => setEditingEmpresa({ ...editingEmpresa, email: e.target.value })} /></div>
+              <div className="col-span-2"><Label>Propietario</Label><Input value={editingEmpresa.propietario_nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, propietario_nombre: e.target.value })} /></div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleEdit} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Alert */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar empresa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará permanentemente a <strong>{deletingEmpresa?.nombre}</strong> y no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Generated Link Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Link de Registro Generado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Envía este enlace al representante de la agencia para que se registre. El link expira en 7 días.
+            </p>
+            <div className="flex gap-2">
+              <Input value={generatedLink} readOnly className="text-xs" />
+              <Button variant="outline" size="icon" onClick={copyLink}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setLinkDialogOpen(false)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
