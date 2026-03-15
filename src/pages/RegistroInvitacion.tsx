@@ -23,10 +23,25 @@ interface DatosExtra {
   codigo: string;
 }
 
+interface DatosEmpresa {
+  nombre_empresa: string;
+  ruc: string;
+  ciudad: string;
+  direccion: string;
+  celular_empresa: string;
+  email_empresa: string;
+  propietario_nombre: string;
+}
+
 const emptyDatos: DatosExtra = {
   nombres: "", identificacion: "", celular: "", domicilio: "",
   tipo_licencia: "", estado_civil: "", nacionalidad: "Ecuatoriana",
   fecha_nacimiento: "", fecha_caducidad_licencia: "", direccion: "", codigo: "",
+};
+
+const emptyEmpresa: DatosEmpresa = {
+  nombre_empresa: "", ruc: "", ciudad: "", direccion: "",
+  celular_empresa: "", email_empresa: "", propietario_nombre: "",
 };
 
 export default function RegistroInvitacion() {
