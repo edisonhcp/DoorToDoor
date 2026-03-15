@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
+import RegistroInvitacion from "./pages/RegistroInvitacion";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/registro/:token" element={<RegistroInvitacion />} />
             <Route
               path="/dashboard"
               element={

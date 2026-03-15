@@ -2,22 +2,23 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Truck, Users, Route, ClipboardList,
-  Settings, LogOut, Menu, X, ChevronDown, Building2, Shield
+  Settings, LogOut, Menu, X, Building2, Shield, Link2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const gerenciaNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Vehículos", icon: Truck, href: "/dashboard/vehiculos" },
   { label: "Conductores", icon: Users, href: "/dashboard/conductores" },
   { label: "Asignaciones", icon: ClipboardList, href: "/dashboard/asignaciones" },
   { label: "Viajes", icon: Route, href: "/dashboard/viajes" },
+  { label: "Invitaciones", icon: Link2, href: "/dashboard/invitaciones" },
   { label: "Configuración", icon: Settings, href: "/dashboard/config" },
 ];
 
-const superAdminItems = [
+const superAdminNavItems = [
   { label: "Empresas", icon: Building2, href: "/admin" },
 ];
 
@@ -36,7 +37,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     GERENCIA: "Gerencia",
     CONDUCTOR: "Conductor",
     PROPIETARIO: "Propietario",
+    SUPER_ADMIN: "Super Admin",
   };
+
+  // Show different nav based on role
+  const navItems = role === "SUPER_ADMIN" ? superAdminNavItems : gerenciaNavItems;
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -60,6 +65,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Nav */}
         <nav className="flex-1 p-4 space-y-1">
+          {role === "SUPER_ADMIN" && (
+            <div className="px-3 mb-3">
+              <span className="text-xs font-semibold text-sidebar-foreground/40 uppercase tracking-wider flex items-center gap-1.5">
+                <Shield className="w-3 h-3" /> Admin
+              </span>
+            </div>
+          )}
           {navItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -79,36 +91,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-
-          {role === "SUPER_ADMIN" && (
-            <>
-              <div className="my-3 border-t border-sidebar-border" />
-              <div className="px-3 mb-2">
-                <span className="text-xs font-semibold text-sidebar-foreground/40 uppercase tracking-wider flex items-center gap-1.5">
-                  <Shield className="w-3 h-3" /> Admin
-                </span>
-              </div>
-              {superAdminItems.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                    )}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </>
-          )}
         </nav>
 
         {/* User section */}
@@ -154,7 +136,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </button>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Building2 className="w-4 h-4" />
-            <span>Panel de Gestión</span>
+            <span>{role === "SUPER_ADMIN" ? "Panel Super Admin" : "Panel de Gestión"}</span>
           </div>
         </header>
 
