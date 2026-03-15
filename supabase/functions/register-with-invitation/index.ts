@@ -66,6 +66,7 @@ Deno.serve(async (req) => {
           celular: datos_extra.celular_empresa || '',
           email: datos_extra.email_empresa || email,
           propietario_nombre: datos_extra.propietario_nombre || username,
+          propietario_apellidos: datos_extra.propietario_apellidos || '',
           activo: true,
         })
         .eq('id', empresaId);
