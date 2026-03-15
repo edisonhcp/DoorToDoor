@@ -126,26 +126,22 @@ export default function AgencyPropietarios() {
                         <TableCell>{row.vehiculo?.tipo || "—"}</TableCell>
                         <TableCell>{row.vehiculo?.placa || "—"}</TableCell>
                         <TableCell>
-                          {row.isFirstOfGroup && (
-                            <Badge variant={row.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{row.estado}</Badge>
-                          )}
+                          <Badge variant={row.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{row.estado}</Badge>
                         </TableCell>
                         <TableCell>
-                          {row.isFirstOfGroup && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleToggleEstado(row)}>
-                                  {row.estado === "HABILITADO" ? <><Ban className="w-4 h-4 mr-2" /> Suspender</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Habilitar</>}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteAlert(row)}>
-                                  <Trash2 className="w-4 h-4 mr-2" /> Eliminar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleToggleEstado(row)}>
+                                {row.estado === "HABILITADO" ? <><Ban className="w-4 h-4 mr-2" /> Suspender</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Habilitar</>}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteAlert(row)}>
+                                <Trash2 className="w-4 h-4 mr-2" /> Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
