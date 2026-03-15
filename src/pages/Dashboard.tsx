@@ -144,10 +144,10 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                     </p>
 
                     {conductorInfo?.vehiculo ? (
-                      <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-border">
+                      <div className={`mt-4 p-4 rounded-xl border ${conductorInfo.vehiculo.estado === "INHABILITADO" ? "bg-destructive/5 border-destructive/30" : "bg-muted/50 border-border"}`}>
                         <div className="flex items-center gap-3">
                           <Truck className={`w-6 h-6 ${conductorInfo.vehiculo.estado === "INHABILITADO" ? "text-destructive" : "text-primary"}`} />
-                          <div>
+                          <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="font-display font-semibold text-foreground">
                                 {conductorInfo.vehiculo.marca} {conductorInfo.vehiculo.modelo} {conductorInfo.vehiculo.anio || ""}
@@ -166,6 +166,18 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                             )}
                           </div>
                         </div>
+                        {conductorInfo.vehiculo.estado === "INHABILITADO" && (
+                          <div className="mt-3 pt-3 border-t border-destructive/20 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+                            <p className="text-sm text-destructive flex-1">Tu vehículo ha sido deshabilitado. Contacta a la gerencia para más información.</p>
+                            <Button variant="outline" size="sm" className="gap-1 shrink-0" asChild>
+                              <a href="https://wa.me/" target="_blank" rel="noopener noreferrer">
+                                <MessageCircle className="w-3 h-3" />
+                                WhatsApp
+                              </a>
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="mt-4 p-4 rounded-xl bg-muted/30 border border-dashed border-border text-center">
