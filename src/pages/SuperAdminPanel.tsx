@@ -356,32 +356,6 @@ export default function SuperAdminPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Select Company Dialog */}
-      <Dialog open={selectEmpresaDialogOpen} onOpenChange={setSelectEmpresaDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">Seleccionar Compañía</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2 py-4">
-            <p className="text-sm text-muted-foreground mb-3">Selecciona la compañía para generar el link de registro:</p>
-            {empresas.filter(e => e.activo).map(empresa => (
-              <button
-                key={empresa.id}
-                onClick={() => { setSelectEmpresaDialogOpen(false); handleGenerateLink(empresa.id); }}
-                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
-              >
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground text-sm">{empresa.nombre}</p>
-                  <p className="text-xs text-muted-foreground">{empresa.ciudad} · RUC: {empresa.ruc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   );
 }
