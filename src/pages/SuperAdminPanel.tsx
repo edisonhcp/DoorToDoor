@@ -102,13 +102,30 @@ export default function SuperAdminPanel() {
   const handleViewDetail = async (empresa: EmpresaRow) => {
     setDetailEmpresa(empresa);
     setDetailLoading(true);
-    const [vRes, cRes, pRes] = await Promise.all([
-      supabase.from("vehiculos").select("*").eq("empresa_id", empresa.id),
+    const [vRes, cRes, pRes, aRes] = await Promise.all([
+      supabase.from("vehiculos").select("*, propietarios(nombres)").eq("empresa_id", empresa.id),
       supabase.from("conductores").select("*").eq("empresa_id", empresa.id),
-      supabase.from("propietarios").select("*").eq("empresa_id", empresa.id),
+      supabase.from("propietarios").select("*, vehiculos(placa, marca, modelo)").eq("empresa_id", empresa.id),
+      supabase.from("asignaciones").select("conductor_id, vehiculo_id, conductores(nombres), vehiculos(placa, marca, modelo, propietarios(nombres))").eq("empresa_id", empresa.id).eq("estado", "ACTIVA"),
     ]);
-    setDetailVehiculos(vRes.data || []);
-    setDetailConductores(cRes.data || []);
+    const asignaciones = aRes.data || [];
+    // Enrich vehiculos with conductor name
+    const vehiculosEnriched = (vRes.data || []).map((v: any) => {
+      const asig = asignaciones.find((a: any) => a.vehiculo_id === v.id);
+      return { ...v, conductor_nombre: asig?.conductores?.nombres || null };
+    });
+    // Enrich conductores with vehicle info and propietario
+    const conductoresEnriched = (cRes.data || []).map((c: any) => {
+      const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
+      return {
+        ...c,
+        vehiculo_placa: asig?.vehiculos?.placa || null,
+        vehiculo_marca: asig?.vehiculos?.marca || null,
+        propietario_nombre: asig?.vehiculos?.propietarios?.nombres || null,
+      };
+    });
+    setDetailVehiculos(vehiculosEnriched);
+    setDetailConductores(conductoresEnriched);
     setDetailPropietarios(pRes.data || []);
     setDetailLoading(false);
   };
@@ -226,10 +243,10 @@ export default function SuperAdminPanel() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Placa</TableHead>
-                            <TableHead>Marca</TableHead>
-                            <TableHead>Modelo</TableHead>
+                            <TableHead>Marca / Modelo</TableHead>
                             <TableHead>Color</TableHead>
-                            <TableHead>Año</TableHead>
+                            <TableHead>Conductor</TableHead>
+                            <TableHead>Propietario</TableHead>
                             <TableHead>Estado</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -237,10 +254,10 @@ export default function SuperAdminPanel() {
                           {detailVehiculos.map((v: any) => (
                             <TableRow key={v.id}>
                               <TableCell className="font-medium">{v.placa}</TableCell>
-                              <TableCell>{v.marca}</TableCell>
-                              <TableCell>{v.modelo}</TableCell>
+                              <TableCell>{v.marca} {v.modelo}</TableCell>
                               <TableCell>{v.color}</TableCell>
-                              <TableCell>{v.anio || "—"}</TableCell>
+                              <TableCell>{v.conductor_nombre || <span className="text-muted-foreground text-xs">Sin asignar</span>}</TableCell>
+                              <TableCell>{v.propietarios?.nombres || "—"}</TableCell>
                               <TableCell><Badge variant={v.estado === "HABILITADO" ? "default" : "destructive"}>{v.estado}</Badge></TableCell>
                             </TableRow>
                           ))}
@@ -262,22 +279,22 @@ export default function SuperAdminPanel() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Código</TableHead>
                             <TableHead>Nombres</TableHead>
                             <TableHead>Identificación</TableHead>
                             <TableHead>Celular</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead>Vehículo</TableHead>
+                            <TableHead>Propietario</TableHead>
                             <TableHead>Estado</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {detailConductores.map((c: any) => (
                             <TableRow key={c.id}>
-                              <TableCell className="font-mono text-xs">{c.codigo}</TableCell>
                               <TableCell className="font-medium">{c.nombres}</TableCell>
                               <TableCell>{c.identificacion}</TableCell>
                               <TableCell>{c.celular}</TableCell>
-                              <TableCell>{c.email}</TableCell>
+                              <TableCell>{c.vehiculo_placa ? <Badge variant="outline" className="text-xs">{c.vehiculo_placa} — {c.vehiculo_marca}</Badge> : <span className="text-muted-foreground text-xs">Sin asignar</span>}</TableCell>
+                              <TableCell>{c.propietario_nombre || "—"}</TableCell>
                               <TableCell><Badge variant={c.estado === "HABILITADO" ? "default" : "destructive"}>{c.estado}</Badge></TableCell>
                             </TableRow>
                           ))}
@@ -299,22 +316,27 @@ export default function SuperAdminPanel() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Código</TableHead>
                             <TableHead>Nombres</TableHead>
                             <TableHead>Identificación</TableHead>
                             <TableHead>Celular</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead>Vehículo(s)</TableHead>
                             <TableHead>Estado</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {detailPropietarios.map((p: any) => (
                             <TableRow key={p.id}>
-                              <TableCell className="font-mono text-xs">{p.codigo}</TableCell>
                               <TableCell className="font-medium">{p.nombres}</TableCell>
                               <TableCell>{p.identificacion}</TableCell>
                               <TableCell>{p.celular}</TableCell>
-                              <TableCell>{p.email}</TableCell>
+                              <TableCell>
+                                {p.vehiculos && p.vehiculos.length > 0
+                                  ? p.vehiculos.map((v: any, i: number) => (
+                                      <Badge key={i} variant="outline" className="text-xs mr-1">{v.placa} — {v.marca} {v.modelo}</Badge>
+                                    ))
+                                  : <span className="text-muted-foreground text-xs">Sin vehículos</span>
+                                }
+                              </TableCell>
                               <TableCell><Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge></TableCell>
                             </TableRow>
                           ))}

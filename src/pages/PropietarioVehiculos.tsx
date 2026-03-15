@@ -140,9 +140,7 @@ export default function PropietarioVehiculos() {
                   {search ? "No se encontraron vehículos" : "No tienes vehículos registrados"}
                 </p>
                 {!search && (
-                  <Button onClick={() => setDialogOpen(true)} className="gap-2">
-                    <Plus className="w-4 h-4" /> Registrar mi primer vehículo
-                  </Button>
+                  <p className="text-sm text-muted-foreground">Usa el botón de arriba para registrar tu primer vehículo</p>
                 )}
               </CardContent>
             </Card>
