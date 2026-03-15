@@ -34,7 +34,7 @@ export default function AgencyVehiculos() {
 
   const fetchData = async () => {
     const [vehRes, asigRes] = await Promise.all([
-      supabase.from("vehiculos").select("*, propietarios(nombres)").order("created_at", { ascending: false }),
+      supabase.from("vehiculos").select("*, propietarios(nombres, email)").order("created_at", { ascending: false }),
       supabase.from("asignaciones").select("vehiculo_id, conductores(nombres)").eq("estado", "ACTIVA"),
     ]);
     const asignaciones = asigRes.data || [];
@@ -110,6 +110,7 @@ export default function AgencyVehiculos() {
                       <TableHead>Marca / Modelo</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Color</TableHead>
+                      <TableHead>Email Propietario</TableHead>
                       <TableHead>Conductor</TableHead>
                       <TableHead>Propietario</TableHead>
                       <TableHead>Estado</TableHead>
@@ -123,6 +124,7 @@ export default function AgencyVehiculos() {
                         <TableCell>{v.marca} {v.modelo}</TableCell>
                         <TableCell>{v.tipo}</TableCell>
                         <TableCell>{v.color}</TableCell>
+                        <TableCell className="text-xs">{v.propietarios?.email || "—"}</TableCell>
                         <TableCell>
                           {v.conductor_nombre ? (
                             <Badge variant="outline" className="text-xs">{v.conductor_nombre}</Badge>

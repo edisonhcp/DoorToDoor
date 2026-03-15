@@ -169,6 +169,7 @@ export default function AgencyConductores() {
                       <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Licencia</TableHead>
                       <TableHead>Vehículo Asignado</TableHead>
                       <TableHead>Estado</TableHead>
@@ -182,6 +183,7 @@ export default function AgencyConductores() {
                         <TableCell>{c.apellidos}</TableCell>
                         <TableCell>{c.identificacion}</TableCell>
                         <TableCell>{c.celular}</TableCell>
+                        <TableCell className="text-xs">{c.email}</TableCell>
                         <TableCell>{c.tipo_licencia}</TableCell>
                         <TableCell>
                           {c.vehiculo ? (

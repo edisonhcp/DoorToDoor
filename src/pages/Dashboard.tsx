@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Truck, Users, Route, CheckCircle2, Clock, Plus, LinkIcon, AlertTriangle,
-  Trash2, MessageCircle
+  Trash2, MessageCircle, UserCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +22,10 @@ import {
 
 interface Stats {
   vehiculos: number;
+  vehiculosDeshabilitados: number;
   conductores: number;
-  viajesHoy: number;
+  conductoresDeshabilitados: number;
+  propietarios: number;
   viajesBorrador: number;
   viajesCerrados: number;
   asignacionesActivas: number;
@@ -357,10 +359,10 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [stats, setStats] = useState<Stats>({
-    vehiculos: 0, conductores: 0, viajesHoy: 0,
-    viajesBorrador: 0, viajesCerrados: 0, asignacionesActivas: 0,
+    vehiculos: 0, vehiculosDeshabilitados: 0, conductores: 0, conductoresDeshabilitados: 0,
+    propietarios: 0, viajesBorrador: 0, viajesCerrados: 0, asignacionesActivas: 0,
   });
-  const [recentViajes, setRecentViajes] = useState<any[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [empresaNombre, setEmpresaNombre] = useState("");
 
@@ -375,17 +377,18 @@ export default function Dashboard() {
     const fetchStats = async () => {
       if (role !== "GERENCIA") return;
 
-      const today = new Date().toISOString().split("T")[0];
+      
 
-      const [vehiculosRes, conductoresRes, viajesHoyRes, borradorRes, cerradosRes, asignacionesRes, recentRes, allCond, allVeh] =
+      const [vehiculosRes, vehiculosDeshabRes, conductoresRes, conductoresDeshabRes, propietariosRes, borradorRes, cerradosRes, asignacionesRes, allCond, allVeh] =
         await Promise.all([
           supabase.from("vehiculos").select("id", { count: "exact", head: true }),
+          supabase.from("vehiculos").select("id", { count: "exact", head: true }).eq("estado", "INHABILITADO"),
           supabase.from("conductores").select("id", { count: "exact", head: true }),
-          supabase.from("viajes").select("id", { count: "exact", head: true }).gte("fecha_salida", today).lt("fecha_salida", today + "T23:59:59"),
+          supabase.from("conductores").select("id", { count: "exact", head: true }).eq("estado", "INHABILITADO"),
+          supabase.from("propietarios").select("id", { count: "exact", head: true }),
           supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "BORRADOR"),
           supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "CERRADO"),
           supabase.from("asignaciones").select("conductor_id, vehiculo_id").eq("estado", "ACTIVA"),
-          supabase.from("viajes").select("*").order("created_at", { ascending: false }).limit(5),
           supabase.from("conductores").select("id, nombres").eq("estado", "HABILITADO"),
           supabase.from("vehiculos").select("id, placa, marca, modelo").eq("estado", "HABILITADO"),
         ]);
@@ -399,13 +402,14 @@ export default function Dashboard() {
 
       setStats({
         vehiculos: vehiculosRes.count || 0,
+        vehiculosDeshabilitados: vehiculosDeshabRes.count || 0,
         conductores: conductoresRes.count || 0,
-        viajesHoy: viajesHoyRes.count || 0,
+        conductoresDeshabilitados: conductoresDeshabRes.count || 0,
+        propietarios: propietariosRes.count || 0,
         viajesBorrador: borradorRes.count || 0,
         viajesCerrados: cerradosRes.count || 0,
         asignacionesActivas: activeAsignaciones.length,
       });
-      setRecentViajes(recentRes.data || []);
 
       // Fetch empresa name
       if (empresaId) {
@@ -451,10 +455,10 @@ export default function Dashboard() {
   };
 
   const statCards = [
-    { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10" },
-    { title: "Viajes Hoy", value: stats.viajesHoy, icon: Route, color: "text-secondary", bg: "bg-secondary/10" },
-    { title: "Asignaciones Activas", value: stats.asignacionesActivas, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-primary", bg: "bg-primary/10", sub: stats.vehiculosDeshabilitados > 0 ? `${stats.vehiculosDeshabilitados} deshabilitados` : null, subColor: "text-destructive" },
+    { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10", sub: stats.conductoresDeshabilitados > 0 ? `${stats.conductoresDeshabilitados} deshabilitados` : null, subColor: "text-destructive" },
+    { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-secondary", bg: "bg-secondary/10", sub: null, subColor: "" },
+    { title: "Asignaciones Activas", value: stats.asignacionesActivas, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10", sub: null, subColor: "" },
   ];
 
   return (
@@ -480,6 +484,9 @@ export default function Dashboard() {
                       <p className="text-3xl font-display font-bold text-foreground mt-1">
                         {loading ? "—" : stat.value}
                       </p>
+                      {stat.sub && (
+                        <p className={`text-xs mt-0.5 ${stat.subColor}`}>{stat.sub}</p>
+                      )}
                     </div>
                     <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
                       <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -566,45 +573,6 @@ export default function Dashboard() {
                     </Badge>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div variants={item}>
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-lg">Viajes Recientes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-14 rounded-lg bg-muted animate-pulse" />
-                    ))}
-                  </div>
-                ) : recentViajes.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Route className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p>No hay viajes registrados aún</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {recentViajes.map((viaje) => (
-                      <div key={viaje.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className={`w-2 h-2 rounded-full ${viaje.estado === "CERRADO" ? "bg-primary" : "bg-muted-foreground"}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">
-                            {viaje.origen} → {viaje.destino}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(viaje.fecha_salida).toLocaleDateString("es-ES")}
-                          </p>
-                        </div>
-                        <Badge variant="secondary">{viaje.estado}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </motion.div>

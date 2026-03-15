@@ -48,6 +48,8 @@ interface GlobalStats {
   conductores: number;
   vehiculos: number;
   propietarios: number;
+  viajesCerrados: number;
+  viajesCancelados: number;
 }
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -59,7 +61,7 @@ export default function SuperAdminPanel() {
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [stats, setStats] = useState<GlobalStats>({ companias: 0, conductores: 0, vehiculos: 0, propietarios: 0 });
+  const [stats, setStats] = useState<GlobalStats>({ companias: 0, conductores: 0, vehiculos: 0, propietarios: 0, viajesCerrados: 0, viajesCancelados: 0 });
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEmpresa, setEditingEmpresa] = useState<EmpresaRow | null>(null);
@@ -80,11 +82,13 @@ export default function SuperAdminPanel() {
   const [detailLoading, setDetailLoading] = useState(false);
 
   const fetchData = async () => {
-    const [empresasRes, conductoresRes, vehiculosRes, propietariosRes] = await Promise.all([
+    const [empresasRes, conductoresRes, vehiculosRes, propietariosRes, viajesCerradosRes, viajesBorradorRes] = await Promise.all([
       supabase.from("empresas").select("*").order("created_at", { ascending: false }),
       supabase.from("conductores").select("id", { count: "exact", head: true }),
       supabase.from("vehiculos").select("id", { count: "exact", head: true }),
       supabase.from("propietarios").select("id", { count: "exact", head: true }),
+      supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "CERRADO"),
+      supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "BORRADOR"),
     ]);
     setEmpresas((empresasRes.data as EmpresaRow[]) || []);
     setStats({
@@ -92,6 +96,8 @@ export default function SuperAdminPanel() {
       conductores: conductoresRes.count || 0,
       vehiculos: vehiculosRes.count || 0,
       propietarios: propietariosRes.count || 0,
+      viajesCerrados: viajesCerradosRes.count || 0,
+      viajesCancelados: viajesBorradorRes.count || 0,
     });
     setLoading(false);
   };
@@ -209,9 +215,11 @@ export default function SuperAdminPanel() {
 
   const statCards = [
     { title: "Compañías", value: stats.companias, icon: Building2, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10" },
     { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-secondary", bg: "bg-secondary/10" },
+    { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10" },
     { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Viajes Concluidos", value: stats.viajesCerrados, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Viajes Cancelados", value: stats.viajesCancelados, icon: Ban, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
   // Detail view for a specific empresa
@@ -391,7 +399,7 @@ export default function SuperAdminPanel() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {statCards.map((stat) => (
             <motion.div key={stat.title} variants={item}>
               <Card className="border-0 shadow-sm">

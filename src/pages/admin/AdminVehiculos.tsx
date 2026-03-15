@@ -41,7 +41,7 @@ export default function AdminVehiculos() {
     const fetch = async () => {
       const { data } = await supabase
         .from("vehiculos")
-        .select("*, empresas(nombre)")
+        .select("*, empresas(nombre), propietarios(nombres, apellidos)")
         .order("created_at", { ascending: false });
       setVehiculos((data as any) || []);
       setLoading(false);
@@ -94,6 +94,7 @@ export default function AdminVehiculos() {
                       <TableHead>Tipo</TableHead>
                       <TableHead>Color</TableHead>
                       <TableHead>Año</TableHead>
+                      <TableHead>Propietario</TableHead>
                       <TableHead>Compañía</TableHead>
                       <TableHead>Estado</TableHead>
                     </TableRow>
@@ -106,6 +107,7 @@ export default function AdminVehiculos() {
                         <TableCell>{v.tipo}</TableCell>
                         <TableCell>{v.color}</TableCell>
                         <TableCell>{v.anio || "—"}</TableCell>
+                        <TableCell>{(v as any).propietarios ? `${(v as any).propietarios.nombres} ${(v as any).propietarios.apellidos}` : "—"}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">{v.empresas?.nombre || "—"}</Badge>
                         </TableCell>

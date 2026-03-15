@@ -126,6 +126,7 @@ export default function AgencyPropietarios() {
                       <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Marca</TableHead>
                       <TableHead>Modelo</TableHead>
                       <TableHead>Tipo</TableHead>
@@ -141,6 +142,7 @@ export default function AgencyPropietarios() {
                         <TableCell>{row.apellidos}</TableCell>
                         <TableCell>{row.identificacion}</TableCell>
                         <TableCell>{row.celular}</TableCell>
+                        <TableCell className="text-xs">{row.email}</TableCell>
                         <TableCell>{row.vehiculo?.marca || "—"}</TableCell>
                         <TableCell>{row.vehiculo?.modelo || "—"}</TableCell>
                         <TableCell>{row.vehiculo?.tipo || "—"}</TableCell>
