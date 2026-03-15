@@ -54,6 +54,10 @@ export default function AgencyPropietarios() {
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
+    // Unlink profile first to avoid FK constraint
+    await supabase.from("profiles").update({ propietario_id: null }).eq("propietario_id", deleteAlert.id);
+    // Delete vehicles
+    await supabase.from("vehiculos").delete().eq("propietario_id", deleteAlert.id);
     const { error } = await supabase.from("propietarios").delete().eq("id", deleteAlert.id);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Propietario eliminado" }); fetchData(); }
