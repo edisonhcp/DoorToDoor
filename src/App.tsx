@@ -12,6 +12,7 @@ import AdminVehiculos from "./pages/admin/AdminVehiculos";
 import AdminConductores from "./pages/admin/AdminConductores";
 import AdminPropietarios from "./pages/admin/AdminPropietarios";
 import RegistroInvitacion from "./pages/RegistroInvitacion";
+import Invitaciones from "./pages/Invitaciones";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
