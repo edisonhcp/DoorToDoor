@@ -35,7 +35,7 @@ export default function AgencyConductores() {
   const fetchData = async () => {
     const [condRes, asigRes] = await Promise.all([
       supabase.from("conductores").select("*").order("created_at", { ascending: false }),
-      supabase.from("asignaciones").select("conductor_id, vehiculo_id, vehiculos(placa, marca, modelo)").eq("estado", "ACTIVA"),
+      supabase.from("asignaciones").select("conductor_id, vehiculo_id, vehiculos(placa, marca, modelo, estado)").eq("estado", "ACTIVA"),
     ]);
 
     const conductoresData = condRes.data || [];

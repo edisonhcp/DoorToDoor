@@ -35,7 +35,7 @@ export default function AgencyPropietarios() {
   const fetchData = async () => {
     const { data } = await supabase
       .from("propietarios")
-      .select("*, vehiculos(id, placa, marca, modelo, tipo, anio)")
+      .select("*, vehiculos(id, placa, marca, modelo, tipo, anio, estado)")
       .order("created_at", { ascending: false });
     setPropietarios(data || []);
     setLoading(false);
