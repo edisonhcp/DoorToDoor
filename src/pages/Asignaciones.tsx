@@ -104,6 +104,11 @@ export default function Asignaciones() {
         return;
       }
       setSubmitting(true);
+
+      // Check if vehicle was changed (selectedVehiculo will be a vehiculo_id if changed, or the original asignacion_id)
+      const vehiculoData = vehiculosDisponibles.find((v) => v.vehiculo_id === selectedVehiculo);
+      const newAsignacionId = vehiculoData ? vehiculoData.id : undefined;
+
       const { error } = await editarAsignacionRuta({
         viaje_id: editingId,
         destino,
@@ -112,6 +117,7 @@ export default function Asignaciones() {
         cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
         pasajeros_monto: parseFloat(valorPasajeros) || 0,
         encomiendas_monto: parseFloat(valorEncomienda) || 0,
+        asignacion_id: newAsignacionId,
       });
       setSubmitting(false);
 
