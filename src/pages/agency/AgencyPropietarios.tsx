@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import {
@@ -20,6 +19,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import { fetchPropietarios, deletePropietario } from "@/services/propietariosService";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -32,50 +32,22 @@ export default function AgencyPropietarios() {
   const [search, setSearch] = useState("");
   const [deleteAlert, setDeleteAlert] = useState<any>(null);
 
-  const fetchData = async () => {
-    const { data } = await supabase
-      .from("propietarios")
-      .select("*, vehiculos(id, placa, marca, modelo, tipo, anio, estado)")
-      .order("created_at", { ascending: false });
-    setPropietarios(data || []);
+  const loadData = async () => {
+    setPropietarios(await fetchPropietarios());
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { loadData(); }, []);
 
   if (role !== "GERENCIA") return <Navigate to="/dashboard" replace />;
 
-  const handleToggleEstado = async (p: any) => {
-    const newEstado = p.estado === "HABILITADO" ? "INHABILITADO" : "HABILITADO";
-    const { error } = await supabase.from("propietarios").update({ estado: newEstado }).eq("id", p.id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: newEstado === "HABILITADO" ? "Propietario habilitado" : "Propietario suspendido" }); fetchData(); }
-  };
-
   const handleDelete = async () => {
     if (!deleteAlert) return;
-    const propEmail = deleteAlert.email;
-    // Unlink profile first to avoid FK constraint
-    await supabase.from("profiles").update({ propietario_id: null }).eq("propietario_id", deleteAlert.id);
-    // Delete vehicles
-    await supabase.from("vehiculos").delete().eq("propietario_id", deleteAlert.id);
-    const { error } = await supabase.from("propietarios").delete().eq("id", deleteAlert.id);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-      setDeleteAlert(null);
-      return;
-    }
-
-    // Delete the auth user so the email can be reused
-    if (propEmail) {
-      await supabase.functions.invoke("delete-auth-user", {
-        body: { email: propEmail },
-      });
-    }
-
+    const { error } = await deletePropietario(deleteAlert);
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); setDeleteAlert(null); return; }
     toast({ title: "Propietario eliminado" });
     setDeleteAlert(null);
-    fetchData();
+    loadData();
   };
 
   const filtered = propietarios.filter(p =>
@@ -83,7 +55,6 @@ export default function AgencyPropietarios() {
     p.identificacion.includes(search)
   );
 
-  // Flatten: one row per vehicle per propietario
   const rows: any[] = [];
   filtered.forEach(p => {
     if (p.vehiculos && p.vehiculos.length > 0) {

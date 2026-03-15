@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Truck, Plus, Pencil, Search, AlertTriangle, MessageCircle } from "lucide-react";
+import { Truck, Plus, Search, AlertTriangle, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/select";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
+import { fetchPropietarioVehiculos, createVehiculo } from "@/services/vehiculosService";
 
 interface VehiculoForm {
   placa: string;
@@ -49,27 +49,15 @@ export default function PropietarioVehiculos() {
   const [saving, setSaving] = useState(false);
   const [propietarioId, setPropietarioId] = useState<string | null>(null);
 
-  const fetchData = async () => {
-    // Get propietario_id from profile
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("propietario_id")
-      .eq("user_id", user?.id || "")
-      .single();
-
-    if (profileData?.propietario_id) {
-      setPropietarioId(profileData.propietario_id);
-      const { data } = await supabase
-        .from("vehiculos")
-        .select("*")
-        .eq("propietario_id", profileData.propietario_id)
-        .order("created_at", { ascending: false });
-      setVehiculos(data || []);
-    }
+  const loadData = async () => {
+    if (!user?.id) return;
+    const result = await fetchPropietarioVehiculos(user.id);
+    setPropietarioId(result.propietarioId);
+    setVehiculos(result.vehiculos);
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, [user]);
+  useEffect(() => { loadData(); }, [user]);
 
   if (role !== "PROPIETARIO") return <Navigate to="/dashboard" replace />;
 
@@ -79,7 +67,7 @@ export default function PropietarioVehiculos() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("vehiculos").insert({
+    const { error } = await createVehiculo({
       placa: form.placa,
       marca: form.marca,
       modelo: form.modelo,
@@ -99,7 +87,7 @@ export default function PropietarioVehiculos() {
       toast({ title: "Vehículo registrado exitosamente" });
       setDialogOpen(false);
       setForm(emptyForm);
-      fetchData();
+      loadData();
     }
   };
 
@@ -182,7 +170,6 @@ export default function PropietarioVehiculos() {
         </motion.div>
       </motion.div>
 
-      {/* Register Vehicle Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>

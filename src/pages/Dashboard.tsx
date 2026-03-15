@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -19,17 +18,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-
-interface Stats {
-  vehiculos: number;
-  vehiculosDeshabilitados: number;
-  conductores: number;
-  conductoresDeshabilitados: number;
-  propietarios: number;
-  viajesBorrador: number;
-  viajesCerrados: number;
-  asignacionesActivas: number;
-}
+import { fetchConductorData, deleteConductorAccount } from "@/services/conductoresService";
+import { deletePropietarioAccount } from "@/services/propietariosService";
+import { fetchPropietarioVehiculos, deleteVehiculo } from "@/services/vehiculosService";
+import { fetchDashboardStats, fetchEmpresaNombre, createAsignacion, refreshAssignments, type DashboardStats } from "@/services/dashboardService";
 
 const container = {
   hidden: { opacity: 0 },
@@ -64,50 +56,25 @@ function SuspensionBanner({ message }: { message: string }) {
 // ─── Conductor Dashboard ───
 function ConductorDashboard({ profile, suspended }: { profile: any; suspended: any }) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [conductorInfo, setConductorInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deleteAccountAlert, setDeleteAccountAlert] = useState(false);
 
   useEffect(() => {
-    const fetchConductorData = async () => {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("conductor_id")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id || "")
-        .single();
-
-      if (profileData?.conductor_id) {
-        const [condRes, asigRes] = await Promise.all([
-          supabase.from("conductores").select("*").eq("id", profileData.conductor_id).single(),
-          supabase.from("asignaciones")
-            .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, estado, propietarios(nombres, apellidos))")
-            .eq("conductor_id", profileData.conductor_id)
-            .eq("estado", "ACTIVA")
-            .single(),
-        ]);
-        setConductorInfo({
-          conductor: condRes.data,
-          vehiculo: asigRes.data?.vehiculos || null,
-        });
-      }
+    const load = async () => {
+      if (!user?.id) return;
+      const data = await fetchConductorData(user.id);
+      setConductorInfo(data);
       setLoading(false);
     };
-    fetchConductorData();
-  }, []);
+    load();
+  }, [user]);
 
   const handleDeleteAccount = async () => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return;
-    const { data: prof } = await supabase.from("profiles").select("conductor_id").eq("user_id", userId).single();
-    if (prof?.conductor_id) {
-      await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
-        .eq("conductor_id", prof.conductor_id).eq("estado", "ACTIVA");
-      // Unlink profile before deleting conductor
-      await supabase.from("profiles").update({ conductor_id: null }).eq("user_id", userId);
-      await supabase.from("conductores").delete().eq("id", prof.conductor_id);
-    }
+    if (!user?.id) return;
+    await deleteConductorAccount(user.id);
     toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
-    await supabase.auth.signOut();
   };
 
   return (
@@ -220,49 +187,31 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
 function PropietarioDashboard({ profile, suspended }: { profile: any; suspended: any }) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [misVehiculos, setMisVehiculos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteAccountAlert, setDeleteAccountAlert] = useState(false);
   const [deleteVehiculoAlert, setDeleteVehiculoAlert] = useState<any>(null);
 
   useEffect(() => {
-    const fetch = async () => {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) return;
-      const { data: prof } = await supabase.from("profiles").select("propietario_id").eq("user_id", userId).single();
-      if (prof?.propietario_id) {
-        const { data } = await supabase
-          .from("vehiculos")
-          .select("*")
-          .eq("propietario_id", prof.propietario_id)
-          .order("created_at", { ascending: false });
-        setMisVehiculos(data || []);
-      }
+    const load = async () => {
+      if (!user?.id) return;
+      const result = await fetchPropietarioVehiculos(user.id);
+      setMisVehiculos(result.vehiculos);
       setLoading(false);
     };
-    fetch();
-  }, []);
+    load();
+  }, [user]);
 
   const handleDeleteAccount = async () => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return;
-    const { data: prof } = await supabase.from("profiles").select("propietario_id").eq("user_id", userId).single();
-    if (prof?.propietario_id) {
-      // Unlink profile before deleting
-      await supabase.from("profiles").update({ propietario_id: null }).eq("user_id", userId);
-      await supabase.from("vehiculos").delete().eq("propietario_id", prof.propietario_id);
-      await supabase.from("propietarios").delete().eq("id", prof.propietario_id);
-    }
+    if (!user?.id) return;
+    await deletePropietarioAccount(user.id);
     toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
-    await supabase.auth.signOut();
   };
 
   const handleDeleteVehiculo = async () => {
     if (!deleteVehiculoAlert) return;
-    // Close any assignments for this vehicle
-    await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
-      .eq("vehiculo_id", deleteVehiculoAlert.id).eq("estado", "ACTIVA");
-    const { error } = await supabase.from("vehiculos").delete().eq("id", deleteVehiculoAlert.id);
+    const { error } = await deleteVehiculo(deleteVehiculoAlert);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else {
       toast({ title: "Vehículo eliminado" });
@@ -387,15 +336,13 @@ export default function Dashboard() {
   const { profile, role, empresaId, suspended } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [stats, setStats] = useState<Stats>({
+  const [stats, setStats] = useState<DashboardStats>({
     vehiculos: 0, vehiculosDeshabilitados: 0, conductores: 0, conductoresDeshabilitados: 0,
     propietarios: 0, viajesBorrador: 0, viajesCerrados: 0, asignacionesActivas: 0,
   });
   
   const [loading, setLoading] = useState(true);
   const [empresaNombre, setEmpresaNombre] = useState("");
-
-  // Assignment state
   const [unassignedConductores, setUnassignedConductores] = useState<any[]>([]);
   const [unassignedVehiculos, setUnassignedVehiculos] = useState<any[]>([]);
   const [selectedConductor, setSelectedConductor] = useState("");
@@ -403,53 +350,22 @@ export default function Dashboard() {
   const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const load = async () => {
       if (role !== "GERENCIA") return;
 
-      
+      const result = await fetchDashboardStats();
+      setStats(result.stats);
+      setUnassignedConductores(result.unassignedConductores);
+      setUnassignedVehiculos(result.unassignedVehiculos);
 
-      const [vehiculosRes, vehiculosDeshabRes, conductoresRes, conductoresDeshabRes, propietariosRes, borradorRes, cerradosRes, asignacionesRes, allCond, allVeh] =
-        await Promise.all([
-          supabase.from("vehiculos").select("id", { count: "exact", head: true }),
-          supabase.from("vehiculos").select("id", { count: "exact", head: true }).eq("estado", "INHABILITADO"),
-          supabase.from("conductores").select("id", { count: "exact", head: true }),
-          supabase.from("conductores").select("id", { count: "exact", head: true }).eq("estado", "INHABILITADO"),
-          supabase.from("propietarios").select("id", { count: "exact", head: true }),
-          supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "BORRADOR"),
-          supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "CERRADO"),
-          supabase.from("asignaciones").select("conductor_id, vehiculo_id").eq("estado", "ACTIVA"),
-          supabase.from("conductores").select("id, nombres").eq("estado", "HABILITADO"),
-          supabase.from("vehiculos").select("id, placa, marca, modelo").eq("estado", "HABILITADO"),
-        ]);
-
-      const activeAsignaciones = asignacionesRes.data || [];
-      const assignedConductorIds = new Set(activeAsignaciones.map((a: any) => a.conductor_id));
-      const assignedVehiculoIds = new Set(activeAsignaciones.map((a: any) => a.vehiculo_id));
-
-      setUnassignedConductores((allCond.data || []).filter((c: any) => !assignedConductorIds.has(c.id)));
-      setUnassignedVehiculos((allVeh.data || []).filter((v: any) => !assignedVehiculoIds.has(v.id)));
-
-      setStats({
-        vehiculos: vehiculosRes.count || 0,
-        vehiculosDeshabilitados: vehiculosDeshabRes.count || 0,
-        conductores: conductoresRes.count || 0,
-        conductoresDeshabilitados: conductoresDeshabRes.count || 0,
-        propietarios: propietariosRes.count || 0,
-        viajesBorrador: borradorRes.count || 0,
-        viajesCerrados: cerradosRes.count || 0,
-        asignacionesActivas: activeAsignaciones.length,
-      });
-
-      // Fetch empresa name
       if (empresaId) {
-        const { data: emp } = await supabase.from("empresas").select("nombre").eq("id", empresaId).single();
-        if (emp) setEmpresaNombre(emp.nombre);
+        setEmpresaNombre(await fetchEmpresaNombre(empresaId));
       }
 
       setLoading(false);
     };
 
-    if (role) fetchStats();
+    if (role) load();
   }, [role]);
 
   if (role === "SUPER_ADMIN") return <Navigate to="/admin" replace />;
@@ -459,28 +375,17 @@ export default function Dashboard() {
   const handleAssign = async () => {
     if (!selectedConductor || !selectedVehiculo || !empresaId) return;
     setAssigning(true);
-    const { error } = await supabase.from("asignaciones").insert({
-      conductor_id: selectedConductor,
-      vehiculo_id: selectedVehiculo,
-      empresa_id: empresaId,
-    });
+    const { error } = await createAsignacion(selectedConductor, selectedVehiculo, empresaId);
     setAssigning(false);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else {
       toast({ title: "Conductor asignado al vehículo exitosamente" });
       setSelectedConductor("");
       setSelectedVehiculo("");
-      const [asigRes, allCond, allVeh] = await Promise.all([
-        supabase.from("asignaciones").select("conductor_id, vehiculo_id").eq("estado", "ACTIVA"),
-        supabase.from("conductores").select("id, nombres").eq("estado", "HABILITADO"),
-        supabase.from("vehiculos").select("id, placa, marca, modelo").eq("estado", "HABILITADO"),
-      ]);
-      const active = asigRes.data || [];
-      const cIds = new Set(active.map((a: any) => a.conductor_id));
-      const vIds = new Set(active.map((a: any) => a.vehiculo_id));
-      setUnassignedConductores((allCond.data || []).filter((c: any) => !cIds.has(c.id)));
-      setUnassignedVehiculos((allVeh.data || []).filter((v: any) => !vIds.has(v.id)));
-      setStats(prev => ({ ...prev, asignacionesActivas: active.length }));
+      const refreshed = await refreshAssignments();
+      setUnassignedConductores(refreshed.unassignedConductores);
+      setUnassignedVehiculos(refreshed.unassignedVehiculos);
+      setStats(prev => ({ ...prev, asignacionesActivas: refreshed.asignacionesActivas }));
     }
   };
 
@@ -506,15 +411,11 @@ export default function Dashboard() {
     },
     {
       title: "Propietarios", icon: UserCheck, color: "text-secondary", bg: "bg-secondary/10",
-      items: [
-        { label: "Total", value: stats.propietarios },
-      ],
+      items: [{ label: "Total", value: stats.propietarios }],
     },
     {
       title: "Asignaciones Activas", icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10",
-      items: [
-        { label: "Activas", value: stats.asignacionesActivas },
-      ],
+      items: [{ label: "Activas", value: stats.asignacionesActivas }],
     },
   ];
 
@@ -557,7 +458,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Assignment section */}
         {(unassignedConductores.length > 0 || unassignedVehiculos.length > 0) && (
           <motion.div variants={item}>
             <Card className="border-0 shadow-sm border-l-4 border-l-primary">

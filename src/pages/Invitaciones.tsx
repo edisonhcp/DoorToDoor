@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/table";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
+import { fetchInvitaciones, generateInvitation } from "@/services/invitacionesService";
 
 interface InvitacionRow {
   id: string;
@@ -48,60 +48,12 @@ export default function Invitaciones() {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
 
-  const fetchInvitaciones = async () => {
-    // Fetch invitations, profiles, conductores and propietarios in parallel
-    const [invRes, profRes, condRes, propRes] = await Promise.all([
-      supabase
-        .from("invitaciones")
-        .select("*")
-        .in("rol", ["CONDUCTOR", "PROPIETARIO"])
-        .order("created_at", { ascending: false }),
-      supabase.from("profiles").select("email, conductor_id, propietario_id"),
-      supabase.from("conductores").select("id, nombres, apellidos, email"),
-      supabase.from("propietarios").select("id, nombres, apellidos, email"),
-    ]);
-
-    const invData = (invRes.data || []) as InvitacionRow[];
-    const profiles = profRes.data || [];
-    const conductores = condRes.data || [];
-    const propietarios = propRes.data || [];
-
-    // For used invitations, check if the entity created from it still exists
-    // We match by checking profiles that have conductor_id/propietario_id linked
-    const conductorIds = new Set(conductores.map((c: any) => c.id));
-    const propietarioIds = new Set(propietarios.map((p: any) => p.id));
-    const conductorEmails = new Map(conductores.map((c: any) => [c.email, `${c.nombres} ${c.apellidos}`.trim()]));
-    const propietarioEmails = new Map(propietarios.map((p: any) => [p.email, `${p.nombres} ${p.apellidos}`.trim()]));
-
-    // We can't directly link invitation to the created entity, but we can check
-    // if there are conductor/propietario records in the empresa from this invitation
-    // For a simple approach: check profiles with matching conductor/propietario links
-    const enriched = invData.map((inv) => {
-      if (!inv.usada) return inv;
-      
-      if (inv.rol === "CONDUCTOR") {
-        // Check if any conductor still exists for this empresa
-        const existingConductor = conductores.find((c: any) => conductorEmails.has(c.email));
-        if (existingConductor) {
-          return { ...inv, registro_status: "activo" as const, registro_nombre: `${existingConductor.nombres} ${existingConductor.apellidos}`.trim() };
-        }
-        return { ...inv, registro_status: "eliminado" as const };
-      }
-      if (inv.rol === "PROPIETARIO") {
-        const existingProp = propietarios.find((p: any) => propietarioEmails.has(p.email));
-        if (existingProp) {
-          return { ...inv, registro_status: "activo" as const, registro_nombre: `${existingProp.nombres} ${existingProp.apellidos}`.trim() };
-        }
-        return { ...inv, registro_status: "eliminado" as const };
-      }
-      return inv;
-    });
-
-    setInvitaciones(enriched);
+  const loadData = async () => {
+    setInvitaciones(await fetchInvitaciones());
     setLoading(false);
   };
 
-  useEffect(() => { fetchInvitaciones(); }, []);
+  useEffect(() => { loadData(); }, []);
 
   if (role !== "GERENCIA") return <Navigate to="/dashboard" replace />;
 
@@ -109,17 +61,13 @@ export default function Invitaciones() {
     if (!selectedRol) return;
     setGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-invitation", {
-        body: { rol: selectedRol },
-      });
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      const data = await generateInvitation(selectedRol);
       const link = `${window.location.origin}/registro/${data.token}`;
       setGeneratedLink(link);
       setGenerateOpen(false);
       setLinkDialogOpen(true);
       setSelectedRol("");
-      fetchInvitaciones();
+      loadData();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -138,10 +86,7 @@ export default function Invitaciones() {
     return { label: "Activa", variant: "default" as const, icon: Clock, color: "text-primary" };
   };
 
-  const rolLabels: Record<string, string> = {
-    CONDUCTOR: "Conductor",
-    PROPIETARIO: "Propietario",
-  };
+  const rolLabels: Record<string, string> = { CONDUCTOR: "Conductor", PROPIETARIO: "Propietario" };
 
   const filtered = invitaciones.filter(inv =>
     rolLabels[inv.rol]?.toLowerCase().includes(search.toLowerCase()) ||

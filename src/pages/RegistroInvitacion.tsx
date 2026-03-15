@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { validateInvitation, registerWithInvitation } from "@/services/invitacionesService";
 
 interface DatosExtra {
   nombres: string;
@@ -66,16 +66,12 @@ export default function RegistroInvitacion() {
   useEffect(() => {
     const validate = async () => {
       if (!token) { setInvalid(true); setValidating(false); return; }
-
-      const { data, error } = await supabase.functions.invoke("validate-invitation", {
-        body: { token },
-      });
-
-      if (error || data?.error) {
+      const result = await validateInvitation(token);
+      if (!result.valid) {
         setInvalid(true);
       } else {
-        setRol(data.rol);
-        setEmpresaNombre(data.empresa_nombre || "");
+        setRol(result.rol);
+        setEmpresaNombre(result.empresa_nombre || "");
       }
       setValidating(false);
     };
@@ -97,14 +93,7 @@ export default function RegistroInvitacion() {
         body.datos_extra = datos;
       }
 
-      const { data, error } = await supabase.functions.invoke("register-with-invitation", { body });
-      if (error) {
-        // Try to parse the error body for a specific message
-        const errorMsg = data?.error || error.message || "Error al registrar";
-        throw new Error(errorMsg);
-      }
-      if (data?.error) throw new Error(data.error);
-
+      await registerWithInvitation(body);
       toast({ title: "¡Registro exitoso!", description: "Ya puedes iniciar sesión con tu cuenta." });
       navigate("/login");
     } catch (err: any) {
@@ -147,7 +136,6 @@ export default function RegistroInvitacion() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar relative overflow-hidden items-center justify-center p-12">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary blur-[100px]" />
@@ -168,7 +156,6 @@ export default function RegistroInvitacion() {
         </motion.div>
       </div>
 
-      {/* Right form */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full max-w-lg">
           <div className="lg:hidden flex items-center gap-3 mb-6">
@@ -189,7 +176,6 @@ export default function RegistroInvitacion() {
           <Card className="border-0 shadow-xl shadow-primary/5">
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Account fields */}
                 <div className="space-y-2">
                   <Label>Correo electrónico</Label>
                   <div className="relative">
@@ -212,7 +198,6 @@ export default function RegistroInvitacion() {
                   </div>
                 </div>
 
-                {/* Extra fields for GERENCIA */}
                 {rol === "GERENCIA" && (
                   <div className="border-t border-border pt-4 space-y-3">
                     <p className="text-sm font-semibold text-foreground">Datos de la Compañía</p>
@@ -228,7 +213,6 @@ export default function RegistroInvitacion() {
                   </div>
                 )}
 
-                {/* Extra fields for CONDUCTOR */}
                 {rol === "CONDUCTOR" && (
                   <div className="border-t border-border pt-4 space-y-3">
                     <p className="text-sm font-semibold text-foreground">Datos del Conductor</p>
@@ -258,7 +242,6 @@ export default function RegistroInvitacion() {
                   </div>
                 )}
 
-                {/* Extra fields for PROPIETARIO */}
                 {rol === "PROPIETARIO" && (
                   <div className="border-t border-border pt-4 space-y-3">
                     <p className="text-sm font-semibold text-foreground">Datos del Propietario</p>

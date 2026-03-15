@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import {
@@ -20,6 +19,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import { fetchVehiculos, toggleVehiculoEstado, deleteVehiculo } from "@/services/vehiculosService";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -32,44 +32,26 @@ export default function AgencyVehiculos() {
   const [search, setSearch] = useState("");
   const [deleteAlert, setDeleteAlert] = useState<any>(null);
 
-  const fetchData = async () => {
-    const [vehRes, asigRes] = await Promise.all([
-      supabase.from("vehiculos").select("*, propietarios(nombres, email)").order("created_at", { ascending: false }),
-      supabase.from("asignaciones").select("vehiculo_id, conductores(nombres)").eq("estado", "ACTIVA"),
-    ]);
-    const asignaciones = asigRes.data || [];
-    const enriched = (vehRes.data || []).map((v: any) => {
-      const asig = asignaciones.find((a: any) => a.vehiculo_id === v.id);
-      return { ...v, conductor_nombre: asig?.conductores?.nombres || null };
-    });
-    setVehiculos(enriched);
+  const loadData = async () => {
+    setVehiculos(await fetchVehiculos());
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { loadData(); }, []);
 
   if (role !== "GERENCIA") return <Navigate to="/dashboard" replace />;
 
   const handleToggleEstado = async (v: any) => {
-    const newEstado = v.estado === "HABILITADO" ? "INHABILITADO" : "HABILITADO";
-    // If suspending, break the assignment
-    if (newEstado === "INHABILITADO") {
-      await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
-        .eq("vehiculo_id", v.id).eq("estado", "ACTIVA");
-    }
-    const { error } = await supabase.from("vehiculos").update({ estado: newEstado }).eq("id", v.id);
+    const { error, newEstado } = await toggleVehiculoEstado(v);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: newEstado === "HABILITADO" ? "Vehículo habilitado" : "Vehículo suspendido" }); fetchData(); }
+    else { toast({ title: newEstado === "HABILITADO" ? "Vehículo habilitado" : "Vehículo suspendido" }); loadData(); }
   };
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
-    // Break assignment first
-    await supabase.from("asignaciones").update({ estado: "CERRADA", fecha_fin: new Date().toISOString() })
-      .eq("vehiculo_id", deleteAlert.id).eq("estado", "ACTIVA");
-    const { error } = await supabase.from("vehiculos").delete().eq("id", deleteAlert.id);
+    const { error } = await deleteVehiculo(deleteAlert);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Vehículo eliminado" }); fetchData(); }
+    else { toast({ title: "Vehículo eliminado" }); loadData(); }
     setDeleteAlert(null);
   };
 

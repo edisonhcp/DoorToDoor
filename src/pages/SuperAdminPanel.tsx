@@ -25,9 +25,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
+import {
+  fetchGlobalStats, updateEmpresa, deleteEmpresa, toggleEmpresaSuspend, fetchEmpresaDetail
+} from "@/services/empresasService";
+import { generateInvitation } from "@/services/invitacionesService";
 
 interface EmpresaRow {
   id: string;
@@ -74,75 +77,37 @@ export default function SuperAdminPanel() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [generatingLink, setGeneratingLink] = useState(false);
 
-  // Detail view state
   const [detailEmpresa, setDetailEmpresa] = useState<EmpresaRow | null>(null);
   const [detailVehiculos, setDetailVehiculos] = useState<any[]>([]);
   const [detailConductores, setDetailConductores] = useState<any[]>([]);
   const [detailPropietarios, setDetailPropietarios] = useState<any[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  const fetchData = async () => {
-    const [empresasRes, conductoresRes, vehiculosRes, propietariosRes, viajesCerradosRes, viajesBorradorRes] = await Promise.all([
-      supabase.from("empresas").select("*").order("created_at", { ascending: false }),
-      supabase.from("conductores").select("id", { count: "exact", head: true }),
-      supabase.from("vehiculos").select("id", { count: "exact", head: true }),
-      supabase.from("propietarios").select("id", { count: "exact", head: true }),
-      supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "CERRADO"),
-      supabase.from("viajes").select("id", { count: "exact", head: true }).eq("estado", "BORRADOR"),
-    ]);
-    setEmpresas((empresasRes.data as EmpresaRow[]) || []);
-    setStats({
-      companias: empresasRes.data?.length || 0,
-      conductores: conductoresRes.count || 0,
-      vehiculos: vehiculosRes.count || 0,
-      propietarios: propietariosRes.count || 0,
-      viajesCerrados: viajesCerradosRes.count || 0,
-      viajesCancelados: viajesBorradorRes.count || 0,
-    });
+  const loadData = async () => {
+    const result = await fetchGlobalStats();
+    setEmpresas(result.empresas as EmpresaRow[]);
+    setStats(result.stats);
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { loadData(); }, []);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
   const handleViewDetail = async (empresa: EmpresaRow) => {
     setDetailEmpresa(empresa);
     setDetailLoading(true);
-    const [vRes, cRes, pRes, aRes] = await Promise.all([
-      supabase.from("vehiculos").select("*, propietarios(nombres)").eq("empresa_id", empresa.id),
-      supabase.from("conductores").select("*").eq("empresa_id", empresa.id),
-      supabase.from("propietarios").select("*, vehiculos(placa, marca, modelo, anio)").eq("empresa_id", empresa.id),
-      supabase.from("asignaciones").select("conductor_id, vehiculo_id, conductores(nombres), vehiculos(placa, marca, modelo, anio, propietarios(nombres))").eq("empresa_id", empresa.id).eq("estado", "ACTIVA"),
-    ]);
-    const asignaciones = aRes.data || [];
-    // Enrich vehiculos with conductor name
-    const vehiculosEnriched = (vRes.data || []).map((v: any) => {
-      const asig = asignaciones.find((a: any) => a.vehiculo_id === v.id);
-      return { ...v, conductor_nombre: asig?.conductores?.nombres || null };
-    });
-    // Enrich conductores with vehicle info and propietario
-    const conductoresEnriched = (cRes.data || []).map((c: any) => {
-      const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
-      return {
-        ...c,
-        vehiculo_placa: asig?.vehiculos?.placa || null,
-        vehiculo_marca: asig?.vehiculos?.marca || null,
-        vehiculo_modelo: asig?.vehiculos?.modelo || null,
-        vehiculo_anio: asig?.vehiculos?.anio || null,
-        propietario_nombre: asig?.vehiculos?.propietarios?.nombres || null,
-      };
-    });
-    setDetailVehiculos(vehiculosEnriched);
-    setDetailConductores(conductoresEnriched);
-    setDetailPropietarios(pRes.data || []);
+    const detail = await fetchEmpresaDetail(empresa.id);
+    setDetailVehiculos(detail.vehiculos);
+    setDetailConductores(detail.conductores);
+    setDetailPropietarios(detail.propietarios);
     setDetailLoading(false);
   };
 
   const handleEdit = async () => {
     if (!editingEmpresa) return;
     setSaving(true);
-    const { error } = await supabase.from("empresas").update({
+    const { error } = await updateEmpresa(editingEmpresa.id, {
       nombre: editingEmpresa.nombre,
       ruc: editingEmpresa.ruc,
       ciudad: editingEmpresa.ciudad,
@@ -151,47 +116,30 @@ export default function SuperAdminPanel() {
       email: editingEmpresa.email,
       propietario_nombre: editingEmpresa.propietario_nombre,
       propietario_apellidos: editingEmpresa.propietario_apellidos,
-    }).eq("id", editingEmpresa.id);
+    });
     setSaving(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Compañía actualizada" });
-      setEditDialogOpen(false);
-      fetchData();
-    }
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Compañía actualizada" }); setEditDialogOpen(false); loadData(); }
   };
 
   const handleDelete = async () => {
     if (!deletingEmpresa) return;
-    const { error } = await supabase.from("empresas").delete().eq("id", deletingEmpresa.id);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Compañía eliminada" });
-      fetchData();
-    }
+    const { error } = await deleteEmpresa(deletingEmpresa.id);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Compañía eliminada" }); loadData(); }
     setDeleteAlertOpen(false);
   };
 
   const handleToggleSuspend = async (empresa: EmpresaRow) => {
-    const { error } = await supabase.from("empresas").update({ activo: !empresa.activo }).eq("id", empresa.id);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: empresa.activo ? "Compañía suspendida" : "Compañía reactivada" });
-      fetchData();
-    }
+    const { error } = await toggleEmpresaSuspend(empresa);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: empresa.activo ? "Compañía suspendida" : "Compañía reactivada" }); loadData(); }
   };
 
   const handleGenerateLink = async (empresaId?: string) => {
     setGeneratingLink(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-invitation", {
-        body: { rol: "GERENCIA", empresa_id: empresaId },
-      });
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      const data = await generateInvitation("GERENCIA", empresaId);
       const link = `${window.location.origin}/registro/${data.token}`;
       setGeneratedLink(link);
       setLinkDialogOpen(true);
@@ -222,7 +170,6 @@ export default function SuperAdminPanel() {
     { title: "Viajes Cancelados", value: stats.viajesCancelados, icon: Ban, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
-  // Detail view for a specific empresa
   if (detailEmpresa) {
     return (
       <DashboardLayout>
@@ -382,7 +329,6 @@ export default function SuperAdminPanel() {
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        {/* Header */}
         <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -398,7 +344,6 @@ export default function SuperAdminPanel() {
           </Button>
         </motion.div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {statCards.map((stat) => (
             <motion.div key={stat.title} variants={item}>
@@ -419,13 +364,11 @@ export default function SuperAdminPanel() {
           ))}
         </div>
 
-        {/* Search */}
         <motion.div variants={item} className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar por nombre, RUC o ciudad..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
         </motion.div>
 
-        {/* Companies list */}
         <motion.div variants={item}>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -497,7 +440,6 @@ export default function SuperAdminPanel() {
         </motion.div>
       </motion.div>
 
-      {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -522,7 +464,6 @@ export default function SuperAdminPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Alert */}
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -540,7 +481,6 @@ export default function SuperAdminPanel() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Generated Link Dialog */}
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
