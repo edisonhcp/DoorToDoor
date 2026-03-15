@@ -13,6 +13,7 @@ import AdminConductores from "./pages/admin/AdminConductores";
 import AdminPropietarios from "./pages/admin/AdminPropietarios";
 import RegistroInvitacion from "./pages/RegistroInvitacion";
 import Invitaciones from "./pages/Invitaciones";
+import PropietarioVehiculos from "./pages/PropietarioVehiculos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/registro/:token" element={<RegistroInvitacion />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/mis-vehiculos" element={<ProtectedRoute><PropietarioVehiculos /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><SuperAdminPanel /></ProtectedRoute>} />
             <Route path="/admin/vehiculos" element={<ProtectedRoute><AdminVehiculos /></ProtectedRoute>} />
             <Route path="/admin/conductores" element={<ProtectedRoute><AdminConductores /></ProtectedRoute>} />
