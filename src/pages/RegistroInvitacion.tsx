@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,7 +30,6 @@ interface DatosEmpresa {
   ciudad: string;
   direccion: string;
   celular_empresa: string;
-  email_empresa: string;
   propietario_nombre: string;
 }
 
@@ -41,7 +41,7 @@ const emptyDatos: DatosExtra = {
 
 const emptyEmpresa: DatosEmpresa = {
   nombre_empresa: "", ruc: "", ciudad: "", direccion: "",
-  celular_empresa: "", email_empresa: "", propietario_nombre: "",
+  celular_empresa: "", propietario_nombre: "",
 };
 
 export default function RegistroInvitacion() {
@@ -56,7 +56,6 @@ export default function RegistroInvitacion() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [datos, setDatos] = useState<DatosExtra>(emptyDatos);
   const [datosEmpresa, setDatosEmpresa] = useState<DatosEmpresa>(emptyEmpresa);
@@ -66,8 +65,6 @@ export default function RegistroInvitacion() {
     const validate = async () => {
       if (!token) { setInvalid(true); setValidating(false); return; }
 
-      // We need to check invitation validity via a public query
-      // Since invitaciones has RLS, we'll call the edge function with minimal data to validate
       const { data, error } = await supabase.functions.invoke("validate-invitation", {
         body: { token },
       });
@@ -87,6 +84,9 @@ export default function RegistroInvitacion() {
     e.preventDefault();
     if (!token) return;
     setSubmitting(true);
+
+    // Use email as username
+    const username = email.split("@")[0];
 
     try {
       const body: any = { token, email, password, username };
@@ -184,11 +184,7 @@ export default function RegistroInvitacion() {
           <Card className="border-0 shadow-xl shadow-primary/5">
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Account fields */}
-                <div className="space-y-2">
-                  <Label>Nombre de usuario</Label>
-                  <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="tu_usuario" required />
-                </div>
+                {/* Account fields - no username, just email + password */}
                 <div className="space-y-2">
                   <Label>Correo electrónico</Label>
                   <div className="relative">
@@ -221,8 +217,7 @@ export default function RegistroInvitacion() {
                       <div><Label>Ciudad</Label><Input value={datosEmpresa.ciudad} onChange={e => setDatosEmpresa({ ...datosEmpresa, ciudad: e.target.value })} required /></div>
                       <div className="col-span-2"><Label>Dirección</Label><Input value={datosEmpresa.direccion} onChange={e => setDatosEmpresa({ ...datosEmpresa, direccion: e.target.value })} required /></div>
                       <div><Label>Celular de la compañía</Label><Input value={datosEmpresa.celular_empresa} onChange={e => setDatosEmpresa({ ...datosEmpresa, celular_empresa: e.target.value })} required /></div>
-                      <div><Label>Email de la compañía</Label><Input type="email" value={datosEmpresa.email_empresa} onChange={e => setDatosEmpresa({ ...datosEmpresa, email_empresa: e.target.value })} required /></div>
-                      <div className="col-span-2"><Label>Nombre del representante</Label><Input value={datosEmpresa.propietario_nombre} onChange={e => setDatosEmpresa({ ...datosEmpresa, propietario_nombre: e.target.value })} required /></div>
+                      <div><Label>Nombre del representante</Label><Input value={datosEmpresa.propietario_nombre} onChange={e => setDatosEmpresa({ ...datosEmpresa, propietario_nombre: e.target.value })} required /></div>
                     </div>
                   </div>
                 )}
@@ -237,7 +232,18 @@ export default function RegistroInvitacion() {
                       <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
                       <div className="col-span-2"><Label>Domicilio</Label><Input value={datos.domicilio} onChange={e => setDatos({ ...datos, domicilio: e.target.value })} /></div>
                       <div><Label>Tipo de licencia</Label><Input value={datos.tipo_licencia} onChange={e => setDatos({ ...datos, tipo_licencia: e.target.value })} /></div>
-                      <div><Label>Estado civil</Label><Input value={datos.estado_civil} onChange={e => setDatos({ ...datos, estado_civil: e.target.value })} /></div>
+                      <div className="space-y-2">
+                        <Label>Estado civil</Label>
+                        <Select value={datos.estado_civil} onValueChange={v => setDatos({ ...datos, estado_civil: v })}>
+                          <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Soltero">Soltero</SelectItem>
+                            <SelectItem value="Casado">Casado</SelectItem>
+                            <SelectItem value="Divorciado">Divorciado</SelectItem>
+                            <SelectItem value="Viudo">Viudo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div><Label>Nacionalidad</Label><Input value={datos.nacionalidad} onChange={e => setDatos({ ...datos, nacionalidad: e.target.value })} /></div>
                       <div><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
                       <div className="col-span-2"><Label>Fecha caducidad licencia</Label><Input type="date" value={datos.fecha_caducidad_licencia} onChange={e => setDatos({ ...datos, fecha_caducidad_licencia: e.target.value })} /></div>
@@ -254,7 +260,18 @@ export default function RegistroInvitacion() {
                       <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value })} required /></div>
                       <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
                       <div className="col-span-2"><Label>Dirección</Label><Input value={datos.direccion} onChange={e => setDatos({ ...datos, direccion: e.target.value })} /></div>
-                      <div><Label>Estado civil</Label><Input value={datos.estado_civil} onChange={e => setDatos({ ...datos, estado_civil: e.target.value })} /></div>
+                      <div className="space-y-2">
+                        <Label>Estado civil</Label>
+                        <Select value={datos.estado_civil} onValueChange={v => setDatos({ ...datos, estado_civil: v })}>
+                          <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Soltero">Soltero</SelectItem>
+                            <SelectItem value="Casado">Casado</SelectItem>
+                            <SelectItem value="Divorciado">Divorciado</SelectItem>
+                            <SelectItem value="Viudo">Viudo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div><Label>Nacionalidad</Label><Input value={datos.nacionalidad} onChange={e => setDatos({ ...datos, nacionalidad: e.target.value })} /></div>
                       <div className="col-span-2"><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
                     </div>

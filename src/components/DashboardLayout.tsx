@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Truck, Users, Route, ClipboardList,
-  Settings, LogOut, Menu, X, Building2, Shield, Link2
+  Settings, LogOut, Menu, X, Building2, Shield, Link2, UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,12 +10,22 @@ import { cn } from "@/lib/utils";
 
 const gerenciaNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Propietarios", icon: UserCheck, href: "/dashboard/propietarios" },
   { label: "Vehículos", icon: Truck, href: "/dashboard/vehiculos" },
   { label: "Conductores", icon: Users, href: "/dashboard/conductores" },
   { label: "Asignaciones", icon: ClipboardList, href: "/dashboard/asignaciones" },
   { label: "Viajes", icon: Route, href: "/dashboard/viajes" },
   { label: "Invitaciones", icon: Link2, href: "/dashboard/invitaciones" },
   { label: "Configuración", icon: Settings, href: "/dashboard/config" },
+];
+
+const propietarioNavItems = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Mis Vehículos", icon: Truck, href: "/dashboard/mis-vehiculos" },
+];
+
+const conductorNavItems = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
 ];
 
 const superAdminNavItems = [
@@ -44,7 +54,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   // Show different nav based on role
-  const navItems = role === "SUPER_ADMIN" ? superAdminNavItems : gerenciaNavItems;
+  const getNavItems = () => {
+    switch (role) {
+      case "SUPER_ADMIN": return superAdminNavItems;
+      case "GERENCIA": return gerenciaNavItems;
+      case "PROPIETARIO": return propietarioNavItems;
+      case "CONDUCTOR": return conductorNavItems;
+      default: return gerenciaNavItems;
+    }
+  };
+
+  const navItems = getNavItems();
 
   return (
     <div className="min-h-screen flex bg-background">

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Building2, Users, Truck, Search, Shield, Link2, Pencil,
-  Trash2, Ban, CheckCircle2, Copy, MoreVertical, UserCheck
+  Trash2, Ban, CheckCircle2, Copy, MoreVertical, UserCheck, Eye
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +71,13 @@ export default function SuperAdminPanel() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [generatingLink, setGeneratingLink] = useState(false);
 
+  // Detail view state
+  const [detailEmpresa, setDetailEmpresa] = useState<EmpresaRow | null>(null);
+  const [detailVehiculos, setDetailVehiculos] = useState<any[]>([]);
+  const [detailConductores, setDetailConductores] = useState<any[]>([]);
+  const [detailPropietarios, setDetailPropietarios] = useState<any[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   const fetchData = async () => {
     const [empresasRes, conductoresRes, vehiculosRes, propietariosRes] = await Promise.all([
       supabase.from("empresas").select("*").order("created_at", { ascending: false }),
@@ -87,6 +98,20 @@ export default function SuperAdminPanel() {
   useEffect(() => { fetchData(); }, []);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
+
+  const handleViewDetail = async (empresa: EmpresaRow) => {
+    setDetailEmpresa(empresa);
+    setDetailLoading(true);
+    const [vRes, cRes, pRes] = await Promise.all([
+      supabase.from("vehiculos").select("*").eq("empresa_id", empresa.id),
+      supabase.from("conductores").select("*").eq("empresa_id", empresa.id),
+      supabase.from("propietarios").select("*").eq("empresa_id", empresa.id),
+    ]);
+    setDetailVehiculos(vRes.data || []);
+    setDetailConductores(cRes.data || []);
+    setDetailPropietarios(pRes.data || []);
+    setDetailLoading(false);
+  };
 
   const handleEdit = async () => {
     if (!editingEmpresa) return;
@@ -168,6 +193,144 @@ export default function SuperAdminPanel() {
     { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-primary", bg: "bg-primary/10" },
   ];
 
+  // Detail view for a specific empresa
+  if (detailEmpresa) {
+    return (
+      <DashboardLayout>
+        <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+          <motion.div variants={item} className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => setDetailEmpresa(null)}>← Volver</Button>
+            <div>
+              <h1 className="text-2xl font-display font-bold text-foreground">{detailEmpresa.nombre}</h1>
+              <p className="text-muted-foreground text-sm">RUC: {detailEmpresa.ruc} · {detailEmpresa.ciudad}</p>
+            </div>
+          </motion.div>
+
+          <motion.div variants={item}>
+            <Tabs defaultValue="vehiculos">
+              <TabsList>
+                <TabsTrigger value="vehiculos" className="gap-1"><Truck className="w-4 h-4" /> Vehículos ({detailVehiculos.length})</TabsTrigger>
+                <TabsTrigger value="conductores" className="gap-1"><Users className="w-4 h-4" /> Conductores ({detailConductores.length})</TabsTrigger>
+                <TabsTrigger value="propietarios" className="gap-1"><UserCheck className="w-4 h-4" /> Propietarios ({detailPropietarios.length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="vehiculos">
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-0">
+                    {detailLoading ? (
+                      <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+                    ) : detailVehiculos.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground">No hay vehículos registrados</div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Placa</TableHead>
+                            <TableHead>Marca</TableHead>
+                            <TableHead>Modelo</TableHead>
+                            <TableHead>Color</TableHead>
+                            <TableHead>Año</TableHead>
+                            <TableHead>Estado</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {detailVehiculos.map((v: any) => (
+                            <TableRow key={v.id}>
+                              <TableCell className="font-medium">{v.placa}</TableCell>
+                              <TableCell>{v.marca}</TableCell>
+                              <TableCell>{v.modelo}</TableCell>
+                              <TableCell>{v.color}</TableCell>
+                              <TableCell>{v.anio || "—"}</TableCell>
+                              <TableCell><Badge variant={v.estado === "HABILITADO" ? "default" : "destructive"}>{v.estado}</Badge></TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="conductores">
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-0">
+                    {detailLoading ? (
+                      <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+                    ) : detailConductores.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground">No hay conductores registrados</div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Nombres</TableHead>
+                            <TableHead>Identificación</TableHead>
+                            <TableHead>Celular</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Estado</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {detailConductores.map((c: any) => (
+                            <TableRow key={c.id}>
+                              <TableCell className="font-mono text-xs">{c.codigo}</TableCell>
+                              <TableCell className="font-medium">{c.nombres}</TableCell>
+                              <TableCell>{c.identificacion}</TableCell>
+                              <TableCell>{c.celular}</TableCell>
+                              <TableCell>{c.email}</TableCell>
+                              <TableCell><Badge variant={c.estado === "HABILITADO" ? "default" : "destructive"}>{c.estado}</Badge></TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="propietarios">
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-0">
+                    {detailLoading ? (
+                      <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+                    ) : detailPropietarios.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground">No hay propietarios registrados</div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Nombres</TableHead>
+                            <TableHead>Identificación</TableHead>
+                            <TableHead>Celular</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Estado</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {detailPropietarios.map((p: any) => (
+                            <TableRow key={p.id}>
+                              <TableCell className="font-mono text-xs">{p.codigo}</TableCell>
+                              <TableCell className="font-medium">{p.nombres}</TableCell>
+                              <TableCell>{p.identificacion}</TableCell>
+                              <TableCell>{p.celular}</TableCell>
+                              <TableCell>{p.email}</TableCell>
+                              <TableCell><Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge></TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        </motion.div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
@@ -211,12 +374,7 @@ export default function SuperAdminPanel() {
         {/* Search */}
         <motion.div variants={item} className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre, RUC o ciudad..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Buscar por nombre, RUC o ciudad..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
         </motion.div>
 
         {/* Companies list */}
@@ -237,7 +395,7 @@ export default function SuperAdminPanel() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map(empresa => (
-                <Card key={empresa.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${!empresa.activo ? 'opacity-60' : ''}`}>
+                <Card key={empresa.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${!empresa.activo ? 'opacity-60' : ''}`} onClick={() => handleViewDetail(empresa)}>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -249,15 +407,18 @@ export default function SuperAdminPanel() {
                         </Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => e.stopPropagation()}>
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => { setEditingEmpresa(empresa); setEditDialogOpen(true); }}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingEmpresa(empresa); setEditDialogOpen(true); }}>
                               <Pencil className="w-4 h-4 mr-2" /> Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleSuspend(empresa)}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewDetail(empresa); }}>
+                              <Eye className="w-4 h-4 mr-2" /> Ver detalle
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleToggleSuspend(empresa); }}>
                               {empresa.activo ? (
                                 <><Ban className="w-4 h-4 mr-2" /> Suspender</>
                               ) : (
@@ -266,7 +427,7 @@ export default function SuperAdminPanel() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => { setDeletingEmpresa(empresa); setDeleteAlertOpen(true); }}
+                              onClick={(e) => { e.stopPropagation(); setDeletingEmpresa(empresa); setDeleteAlertOpen(true); }}
                             >
                               <Trash2 className="w-4 h-4 mr-2" /> Eliminar
                             </DropdownMenuItem>
@@ -296,10 +457,7 @@ export default function SuperAdminPanel() {
           </DialogHeader>
           {editingEmpresa && (
             <div className="grid grid-cols-2 gap-3 py-4">
-              <div className="col-span-2">
-                <Label>Nombre</Label>
-                <Input value={editingEmpresa.nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, nombre: e.target.value })} />
-              </div>
+              <div className="col-span-2"><Label>Nombre</Label><Input value={editingEmpresa.nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, nombre: e.target.value })} /></div>
               <div><Label>RUC</Label><Input value={editingEmpresa.ruc} onChange={e => setEditingEmpresa({ ...editingEmpresa, ruc: e.target.value })} /></div>
               <div><Label>Ciudad</Label><Input value={editingEmpresa.ciudad} onChange={e => setEditingEmpresa({ ...editingEmpresa, ciudad: e.target.value })} /></div>
               <div className="col-span-2"><Label>Dirección</Label><Input value={editingEmpresa.direccion} onChange={e => setEditingEmpresa({ ...editingEmpresa, direccion: e.target.value })} /></div>
@@ -355,7 +513,6 @@ export default function SuperAdminPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </DashboardLayout>
   );
 }

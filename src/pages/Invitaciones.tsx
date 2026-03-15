@@ -39,19 +39,19 @@ export default function Invitaciones() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Generate dialog
   const [generateOpen, setGenerateOpen] = useState(false);
   const [selectedRol, setSelectedRol] = useState<string>("");
   const [generating, setGenerating] = useState(false);
 
-  // Link dialog
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
 
   const fetchInvitaciones = async () => {
+    // Only fetch CONDUCTOR and PROPIETARIO invitations (not GERENCIA)
     const { data } = await supabase
       .from("invitaciones")
       .select("*")
+      .in("rol", ["CONDUCTOR", "PROPIETARIO"])
       .order("created_at", { ascending: false });
     setInvitaciones((data as InvitacionRow[]) || []);
     setLoading(false);
@@ -97,7 +97,6 @@ export default function Invitaciones() {
   const rolLabels: Record<string, string> = {
     CONDUCTOR: "Conductor",
     PROPIETARIO: "Propietario",
-    GERENCIA: "Gerencia",
   };
 
   const filtered = invitaciones.filter(inv =>
@@ -114,7 +113,6 @@ export default function Invitaciones() {
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        {/* Header */}
         <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Invitaciones</h1>
@@ -126,7 +124,6 @@ export default function Invitaciones() {
           </Button>
         </motion.div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { title: "Total", value: stats.total, icon: Link2, color: "text-primary", bg: "bg-primary/10" },
@@ -151,13 +148,11 @@ export default function Invitaciones() {
           ))}
         </div>
 
-        {/* Search */}
         <motion.div variants={item} className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar por rol o token..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
         </motion.div>
 
-        {/* Table */}
         <motion.div variants={item}>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-0">
@@ -235,7 +230,6 @@ export default function Invitaciones() {
         </motion.div>
       </motion.div>
 
-      {/* Generate Dialog */}
       <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
         <DialogContent>
           <DialogHeader>
@@ -243,7 +237,7 @@ export default function Invitaciones() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Selecciona el tipo de usuario que deseas invitar. El link generado expirará en 7 días.
+              Selecciona el tipo de usuario que deseas invitar. El link generado expirará en 7 días y solo podrá ser usado una vez.
             </p>
             <Select value={selectedRol} onValueChange={setSelectedRol}>
               <SelectTrigger>
@@ -272,7 +266,6 @@ export default function Invitaciones() {
         </DialogContent>
       </Dialog>
 
-      {/* Generated Link Dialog */}
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -280,7 +273,7 @@ export default function Invitaciones() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Envía este enlace al usuario para que se registre. El link expira en 7 días.
+              Envía este enlace al usuario para que se registre. El link expira en 7 días y solo puede usarse una vez.
             </p>
             <div className="flex gap-2">
               <Input value={generatedLink} readOnly className="text-xs" />
