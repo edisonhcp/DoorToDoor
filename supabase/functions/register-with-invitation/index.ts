@@ -88,28 +88,31 @@ Deno.serve(async (req) => {
     }
 
     // If CONDUCTOR, create conductor record
-    if (rol === 'CONDUCTOR' && datos_extra) {
+    if (rol === 'CONDUCTOR') {
+      const extra = datos_extra || {};
       const { data: conductorData, error: conductorError } = await adminClient
         .from('conductores')
         .insert({
           empresa_id: empresaId,
-          nombres: datos_extra.nombres || username,
-          identificacion: datos_extra.identificacion || '',
-          codigo: datos_extra.codigo || `C-${Date.now()}`,
-          celular: datos_extra.celular || '',
+          nombres: extra.nombres || username,
+          identificacion: extra.identificacion || `ID-${Date.now()}`,
+          codigo: extra.codigo || `C-${Date.now()}`,
+          celular: extra.celular || 'PENDIENTE',
           email: email,
-          domicilio: datos_extra.domicilio || '',
-          tipo_licencia: datos_extra.tipo_licencia || '',
-          estado_civil: datos_extra.estado_civil || '',
-          nacionalidad: datos_extra.nacionalidad || 'Ecuatoriana',
-          fecha_nacimiento: datos_extra.fecha_nacimiento || '2000-01-01',
-          fecha_caducidad_licencia: datos_extra.fecha_caducidad_licencia || '2030-01-01',
+          domicilio: extra.domicilio || 'PENDIENTE',
+          tipo_licencia: extra.tipo_licencia || 'PENDIENTE',
+          estado_civil: extra.estado_civil || 'Soltero',
+          nacionalidad: extra.nacionalidad || 'Ecuatoriana',
+          fecha_nacimiento: extra.fecha_nacimiento || '2000-01-01',
+          fecha_caducidad_licencia: extra.fecha_caducidad_licencia || '2030-01-01',
         })
         .select()
         .single();
 
-      if (!conductorError && conductorData) {
-        // Link profile to conductor
+      if (conductorError) {
+        console.error('Error creating conductor:', conductorError);
+      }
+      if (conductorData) {
         await adminClient
           .from('profiles')
           .update({ conductor_id: conductorData.id })
@@ -118,25 +121,29 @@ Deno.serve(async (req) => {
     }
 
     // If PROPIETARIO, create propietario record
-    if (rol === 'PROPIETARIO' && datos_extra) {
+    if (rol === 'PROPIETARIO') {
+      const extra = datos_extra || {};
       const { data: propData, error: propError } = await adminClient
         .from('propietarios')
         .insert({
           empresa_id: empresaId,
-          nombres: datos_extra.nombres || username,
-          identificacion: datos_extra.identificacion || '',
-          codigo: datos_extra.codigo || `P-${Date.now()}`,
-          celular: datos_extra.celular || '',
+          nombres: extra.nombres || username,
+          identificacion: extra.identificacion || `ID-${Date.now()}`,
+          codigo: extra.codigo || `P-${Date.now()}`,
+          celular: extra.celular || 'PENDIENTE',
           email: email,
-          direccion: datos_extra.direccion || '',
-          estado_civil: datos_extra.estado_civil || '',
-          nacionalidad: datos_extra.nacionalidad || 'Ecuatoriana',
-          fecha_nacimiento: datos_extra.fecha_nacimiento || '2000-01-01',
+          direccion: extra.direccion || 'PENDIENTE',
+          estado_civil: extra.estado_civil || 'Soltero',
+          nacionalidad: extra.nacionalidad || 'Ecuatoriana',
+          fecha_nacimiento: extra.fecha_nacimiento || '2000-01-01',
         })
         .select()
         .single();
 
-      if (!propError && propData) {
+      if (propError) {
+        console.error('Error creating propietario:', propError);
+      }
+      if (propData) {
         await adminClient
           .from('profiles')
           .update({ propietario_id: propData.id })
