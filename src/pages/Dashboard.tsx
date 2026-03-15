@@ -455,8 +455,12 @@ export default function Dashboard() {
     }
   };
 
+  const vehiculosActivos = stats.vehiculos - stats.vehiculosDeshabilitados;
+
   const statCards = [
-    { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-primary", bg: "bg-primary/10", sub: stats.vehiculosDeshabilitados > 0 ? `${stats.vehiculosDeshabilitados} deshabilitados` : null, subColor: "text-destructive" },
+    { title: "Vehículos Activos", value: vehiculosActivos, icon: Truck, color: "text-primary", bg: "bg-primary/10", sub: null, subColor: "" },
+    { title: "Vehículos Deshabilitados", value: stats.vehiculosDeshabilitados, icon: Truck, color: "text-destructive", bg: "bg-destructive/10", sub: null, subColor: "" },
+    { title: "Total Vehículos", value: stats.vehiculos, icon: Truck, color: "text-muted-foreground", bg: "bg-muted", sub: null, subColor: "" },
     { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10", sub: stats.conductoresDeshabilitados > 0 ? `${stats.conductoresDeshabilitados} deshabilitados` : null, subColor: "text-destructive" },
     { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-secondary", bg: "bg-secondary/10", sub: null, subColor: "" },
     { title: "Asignaciones Activas", value: stats.asignacionesActivas, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10", sub: null, subColor: "" },
