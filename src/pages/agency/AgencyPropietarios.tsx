@@ -65,7 +65,7 @@ export default function AgencyPropietarios() {
   };
 
   const filtered = propietarios.filter(p =>
-    p.nombres.toLowerCase().includes(search.toLowerCase()) ||
+    `${p.nombres} ${p.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
     p.identificacion.includes(search)
   );
 
