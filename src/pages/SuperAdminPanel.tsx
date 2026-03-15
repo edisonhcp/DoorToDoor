@@ -279,22 +279,22 @@ export default function SuperAdminPanel() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Código</TableHead>
                             <TableHead>Nombres</TableHead>
                             <TableHead>Identificación</TableHead>
                             <TableHead>Celular</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead>Vehículo</TableHead>
+                            <TableHead>Propietario</TableHead>
                             <TableHead>Estado</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {detailConductores.map((c: any) => (
                             <TableRow key={c.id}>
-                              <TableCell className="font-mono text-xs">{c.codigo}</TableCell>
                               <TableCell className="font-medium">{c.nombres}</TableCell>
                               <TableCell>{c.identificacion}</TableCell>
                               <TableCell>{c.celular}</TableCell>
-                              <TableCell>{c.email}</TableCell>
+                              <TableCell>{c.vehiculo_placa ? <Badge variant="outline" className="text-xs">{c.vehiculo_placa} — {c.vehiculo_marca}</Badge> : <span className="text-muted-foreground text-xs">Sin asignar</span>}</TableCell>
+                              <TableCell>{c.propietario_nombre || "—"}</TableCell>
                               <TableCell><Badge variant={c.estado === "HABILITADO" ? "default" : "destructive"}>{c.estado}</Badge></TableCell>
                             </TableRow>
                           ))}
