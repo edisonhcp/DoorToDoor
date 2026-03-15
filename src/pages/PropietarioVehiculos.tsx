@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Truck, Plus, Search, AlertTriangle, MessageCircle } from "lucide-react";
+import { Truck, Plus, Search, AlertTriangle, MessageCircle, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,6 +146,17 @@ export default function PropietarioVehiculos() {
                     <h3 className="font-display font-semibold text-foreground">{v.placa}</h3>
                     <p className="text-sm text-muted-foreground">{v.marca} {v.modelo} {v.anio || ""}</p>
                     <p className="text-xs text-muted-foreground mt-1">{v.color} · {v.tipo} · Cap: {v.capacidad}</p>
+                    {v.conductor && (
+                      <div className="mt-2 p-2 rounded-lg bg-muted/50 border border-border">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          Conductor: <span className="font-medium text-foreground">{v.conductor.nombres} {v.conductor.apellidos}</span>
+                        </p>
+                        {v.conductor.celular && (
+                          <p className="text-xs text-muted-foreground ml-4">{v.conductor.celular}</p>
+                        )}
+                      </div>
+                    )}
                     <div className="flex gap-2 mt-2">
                       {v.gps && <Badge variant="secondary" className="text-xs">GPS</Badge>}
                       {v.seguro && <Badge variant="secondary" className="text-xs">Seguro</Badge>}

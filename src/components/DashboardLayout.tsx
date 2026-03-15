@@ -22,10 +22,14 @@ const gerenciaNavItems = [
 const propietarioNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Mis Vehículos", icon: Truck, href: "/dashboard/mis-vehiculos" },
+  { label: "Asignaciones", icon: ClipboardList, href: "/dashboard/propietario-asignaciones" },
+  { label: "Viajes", icon: Route, href: "/dashboard/propietario-viajes" },
 ];
 
 const conductorNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Asignaciones", icon: ClipboardList, href: "/dashboard/conductor-asignaciones" },
+  { label: "Rutas", icon: Route, href: "/dashboard/conductor-rutas" },
 ];
 
 const superAdminNavItems = [

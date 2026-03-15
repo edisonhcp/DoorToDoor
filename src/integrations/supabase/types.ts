@@ -248,46 +248,64 @@ export type Database = {
         Row: {
           aceite: number
           alimentacion: number
+          almuerzo: boolean
           combustible: number
+          combustible_foto_url: string | null
           created_at: string
+          desayuno: boolean
           empresa_id: string
           hotel: number
           id: string
+          merienda: boolean
           pago_conductor: number
           peaje: number
           total_egreso: number
           updated_at: string
           varios: number
+          varios_foto_url: string | null
+          varios_texto: string | null
           viaje_id: string
         }
         Insert: {
           aceite?: number
           alimentacion?: number
+          almuerzo?: boolean
           combustible?: number
+          combustible_foto_url?: string | null
           created_at?: string
+          desayuno?: boolean
           empresa_id: string
           hotel?: number
           id?: string
+          merienda?: boolean
           pago_conductor?: number
           peaje?: number
           total_egreso?: number
           updated_at?: string
           varios?: number
+          varios_foto_url?: string | null
+          varios_texto?: string | null
           viaje_id: string
         }
         Update: {
           aceite?: number
           alimentacion?: number
+          almuerzo?: boolean
           combustible?: number
+          combustible_foto_url?: string | null
           created_at?: string
+          desayuno?: boolean
           empresa_id?: string
           hotel?: number
           id?: string
+          merienda?: boolean
           pago_conductor?: number
           peaje?: number
           total_egreso?: number
           updated_at?: string
           varios?: number
+          varios_foto_url?: string | null
+          varios_texto?: string | null
           viaje_id?: string
         }
         Relationships: [
