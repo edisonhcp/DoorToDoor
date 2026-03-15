@@ -169,6 +169,7 @@ export default function AgencyConductores() {
                       <TableHead>Apellidos</TableHead>
                       <TableHead>Identificación</TableHead>
                       <TableHead>Celular</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Licencia</TableHead>
                       <TableHead>Vehículo Asignado</TableHead>
                       <TableHead>Estado</TableHead>
