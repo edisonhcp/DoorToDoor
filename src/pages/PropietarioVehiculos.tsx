@@ -147,11 +147,11 @@ export default function PropietarioVehiculos() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map(v => (
-                <Card key={v.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <Card key={v.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${v.estado === "INHABILITADO" ? "border border-destructive/30 bg-destructive/5" : ""}`}>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Truck className="w-5 h-5 text-primary" />
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${v.estado === "INHABILITADO" ? "bg-destructive/10" : "bg-primary/10"}`}>
+                        <Truck className={`w-5 h-5 ${v.estado === "INHABILITADO" ? "text-destructive" : "text-primary"}`} />
                       </div>
                       <Badge variant={v.estado === "HABILITADO" ? "default" : "destructive"}>{v.estado}</Badge>
                     </div>
@@ -162,6 +162,18 @@ export default function PropietarioVehiculos() {
                       {v.gps && <Badge variant="secondary" className="text-xs">GPS</Badge>}
                       {v.seguro && <Badge variant="secondary" className="text-xs">Seguro</Badge>}
                     </div>
+                    {v.estado === "INHABILITADO" && (
+                      <div className="mt-3 pt-3 border-t border-destructive/20 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+                        <p className="text-xs text-destructive flex-1">Vehículo deshabilitado. Contacta a la gerencia.</p>
+                        <Button variant="outline" size="sm" className="gap-1 shrink-0 h-7 text-xs" asChild>
+                          <a href="https://wa.me/" target="_blank" rel="noopener noreferrer">
+                            <MessageCircle className="w-3 h-3" />
+                            WhatsApp
+                          </a>
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
