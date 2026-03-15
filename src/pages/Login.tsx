@@ -196,6 +196,34 @@ export default function Login() {
           </p>
         </motion.div>
       </div>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">Recuperar contraseña</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">Correo electrónico</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                placeholder="tu@empresa.com"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setForgotOpen(false)}>Cancelar</Button>
+            <Button onClick={handleForgotPassword} disabled={sendingReset || !forgotEmail}>
+              {sendingReset ? "Enviando..." : "Enviar enlace"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

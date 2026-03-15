@@ -33,6 +33,7 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro/:token" element={<RegistroInvitacion />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/mis-vehiculos" element={<ProtectedRoute><PropietarioVehiculos /></ProtectedRoute>} />
             <Route path="/dashboard/propietarios" element={<ProtectedRoute><AgencyPropietarios /></ProtectedRoute>} />
