@@ -28,7 +28,7 @@ export async function fetchVehiculosDisponibles(empresaId: string) {
   // Get vehicles with ACTIVA assignments (have a conductor)
   const { data: asignaciones } = await supabase
     .from("asignaciones")
-    .select("vehiculo_id, conductor_id, vehiculos(id, placa, marca, modelo, capacidad), conductores(id, nombres, apellidos)")
+    .select("id, vehiculo_id, conductor_id, vehiculos(id, placa, marca, modelo, capacidad), conductores(id, nombres, apellidos)")
     .eq("empresa_id", empresaId)
     .eq("estado", "ACTIVA");
 
