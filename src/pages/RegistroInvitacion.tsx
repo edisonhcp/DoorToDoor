@@ -43,7 +43,7 @@ const emptyDatos: DatosExtra = {
 
 const emptyEmpresa: DatosEmpresa = {
   nombre_empresa: "", ruc: "", ciudad: "", direccion: "",
-  celular_empresa: "", propietario_nombre: "",
+  celular_empresa: "", propietario_nombre: "", propietario_apellidos: "",
 };
 
 export default function RegistroInvitacion() {
