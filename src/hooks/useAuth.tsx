@@ -82,11 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // If no suspension condition was met, clear any previous suspension
-      // But keep empresa suspension for CONDUCTOR/PROPIETARIO (already set above)
-      if (!empresa || empresa?.activo !== false || userRole === "SUPER_ADMIN") {
-        // Only clear if no empresa suspension was set
-      }
     }
   };
 
