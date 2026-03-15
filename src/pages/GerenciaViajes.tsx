@@ -183,27 +183,19 @@ export default function GerenciaViajes() {
               );
             })}
 
-        {viajes.length > 0 && (
+            {viajes.length > 0 && (
               <motion.div variants={item}>
-                <Card
-                  className="cursor-pointer hover:shadow-md transition-shadow border-primary/30"
-                  onClick={() => setExpanded(expanded === "__consolidado__" ? null : "__consolidado__")}
-                >
+                <Card className="border-primary/30">
                   <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center justify-between text-base">
-                      <div className="flex items-center gap-2">
-                        <LayoutList className="w-5 h-5 text-primary" />
-                        <span>Consolidado</span>
-                        <span className="text-muted-foreground text-xs">({vehicleKeys.length} vehículos)</span>
-                      </div>
-                      {expanded === "__consolidado__" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <LayoutList className="w-5 h-5 text-primary" />
+                      <span>Consolidado</span>
+                      <span className="text-muted-foreground text-xs">({vehicleKeys.length} vehículos)</span>
                     </CardTitle>
                   </CardHeader>
-                  {expanded === "__consolidado__" && (
-                    <CardContent onClick={(e) => e.stopPropagation()}>
-                      <ConsolidadoTable vehicleMap={vehicleMap} vehicleKeys={vehicleKeys} />
-                    </CardContent>
-                  )}
+                  <CardContent>
+                    <ConsolidadoTable vehicleMap={vehicleMap} vehicleKeys={vehicleKeys} />
+                  </CardContent>
                 </Card>
               </motion.div>
             )}
