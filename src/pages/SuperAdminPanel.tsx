@@ -105,8 +105,8 @@ export default function SuperAdminPanel() {
     const [vRes, cRes, pRes, aRes] = await Promise.all([
       supabase.from("vehiculos").select("*, propietarios(nombres)").eq("empresa_id", empresa.id),
       supabase.from("conductores").select("*").eq("empresa_id", empresa.id),
-      supabase.from("propietarios").select("*, vehiculos(placa, marca, modelo)").eq("empresa_id", empresa.id),
-      supabase.from("asignaciones").select("conductor_id, vehiculo_id, conductores(nombres), vehiculos(placa, marca, modelo, propietarios(nombres))").eq("empresa_id", empresa.id).eq("estado", "ACTIVA"),
+      supabase.from("propietarios").select("*, vehiculos(placa, marca, modelo, anio)").eq("empresa_id", empresa.id),
+      supabase.from("asignaciones").select("conductor_id, vehiculo_id, conductores(nombres), vehiculos(placa, marca, modelo, anio, propietarios(nombres))").eq("empresa_id", empresa.id).eq("estado", "ACTIVA"),
     ]);
     const asignaciones = aRes.data || [];
     // Enrich vehiculos with conductor name
