@@ -362,6 +362,7 @@ export default function Dashboard() {
   });
   const [recentViajes, setRecentViajes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [empresaNombre, setEmpresaNombre] = useState("");
 
   // Assignment state
   const [unassignedConductores, setUnassignedConductores] = useState<any[]>([]);
