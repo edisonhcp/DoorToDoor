@@ -423,6 +423,7 @@ export default function Dashboard() {
     if (role) fetchStats();
   }, [role]);
 
+  if (role === "SUPER_ADMIN") return <Navigate to="/admin" replace />;
   if (role === "PROPIETARIO") return <PropietarioDashboard profile={profile} suspended={suspended} />;
   if (role === "CONDUCTOR") return <ConductorDashboard profile={profile} suspended={suspended} />;
 
