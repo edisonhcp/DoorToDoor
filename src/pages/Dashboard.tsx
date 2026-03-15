@@ -377,7 +377,7 @@ export default function Dashboard() {
     const fetchStats = async () => {
       if (role !== "GERENCIA") return;
 
-      const today = new Date().toISOString().split("T")[0];
+      
 
       const [vehiculosRes, vehiculosDeshabRes, conductoresRes, conductoresDeshabRes, propietariosRes, borradorRes, cerradosRes, asignacionesRes, allCond, allVeh] =
         await Promise.all([
