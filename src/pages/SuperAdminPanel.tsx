@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Building2, Plus, Users, Truck, Search, Shield, Link2, Pencil,
-  Trash2, Ban, CheckCircle2, Copy, ExternalLink, MoreVertical
+  Building2, Users, Truck, Search, Shield, Link2, Pencil,
+  Trash2, Ban, CheckCircle2, Copy, MoreVertical, UserCheck
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -39,9 +39,10 @@ interface EmpresaRow {
 }
 
 interface GlobalStats {
-  empresas: number;
+  companias: number;
   conductores: number;
   vehiculos: number;
+  propietarios: number;
 }
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -53,9 +54,8 @@ export default function SuperAdminPanel() {
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [stats, setStats] = useState<GlobalStats>({ empresas: 0, conductores: 0, vehiculos: 0 });
+  const [stats, setStats] = useState<GlobalStats>({ companias: 0, conductores: 0, vehiculos: 0, propietarios: 0 });
 
-  // Dialog states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEmpresa, setEditingEmpresa] = useState<EmpresaRow | null>(null);
   const [saving, setSaving] = useState(false);
@@ -69,16 +69,18 @@ export default function SuperAdminPanel() {
   const [selectEmpresaDialogOpen, setSelectEmpresaDialogOpen] = useState(false);
 
   const fetchData = async () => {
-    const [empresasRes, conductoresRes, vehiculosRes] = await Promise.all([
+    const [empresasRes, conductoresRes, vehiculosRes, propietariosRes] = await Promise.all([
       supabase.from("empresas").select("*").order("created_at", { ascending: false }),
       supabase.from("conductores").select("id", { count: "exact", head: true }),
       supabase.from("vehiculos").select("id", { count: "exact", head: true }),
+      supabase.from("propietarios").select("id", { count: "exact", head: true }),
     ]);
     setEmpresas((empresasRes.data as EmpresaRow[]) || []);
     setStats({
-      empresas: empresasRes.data?.length || 0,
+      companias: empresasRes.data?.length || 0,
       conductores: conductoresRes.count || 0,
       vehiculos: vehiculosRes.count || 0,
+      propietarios: propietariosRes.count || 0,
     });
     setLoading(false);
   };
@@ -103,7 +105,7 @@ export default function SuperAdminPanel() {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Empresa actualizada" });
+      toast({ title: "Compañía actualizada" });
       setEditDialogOpen(false);
       fetchData();
     }
@@ -115,7 +117,7 @@ export default function SuperAdminPanel() {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Empresa eliminada" });
+      toast({ title: "Compañía eliminada" });
       fetchData();
     }
     setDeleteAlertOpen(false);
@@ -126,7 +128,7 @@ export default function SuperAdminPanel() {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: empresa.activo ? "Empresa suspendida" : "Empresa reactivada" });
+      toast({ title: empresa.activo ? "Compañía suspendida" : "Compañía reactivada" });
       fetchData();
     }
   };
@@ -161,9 +163,10 @@ export default function SuperAdminPanel() {
   );
 
   const statCards = [
-    { title: "Empresas", value: stats.empresas, icon: Building2, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Compañías", value: stats.companias, icon: Building2, color: "text-primary", bg: "bg-primary/10" },
     { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10" },
     { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-secondary", bg: "bg-secondary/10" },
+    { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-primary", bg: "bg-primary/10" },
   ];
 
   return (
@@ -176,7 +179,7 @@ export default function SuperAdminPanel() {
               <Shield className="w-5 h-5 text-primary" />
               <Badge className="bg-primary/10 text-primary border-0 font-medium">Super Admin</Badge>
             </div>
-            <h1 className="text-3xl font-display font-bold text-foreground">Gestión de Empresas</h1>
+            <h1 className="text-3xl font-display font-bold text-foreground">Gestión de Compañías</h1>
             <p className="text-muted-foreground mt-1">Administra las agencias de transporte registradas</p>
           </div>
           <Button onClick={() => setSelectEmpresaDialogOpen(true)} disabled={generatingLink} className="gap-2 font-display">
@@ -186,7 +189,7 @@ export default function SuperAdminPanel() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((stat) => (
             <motion.div key={stat.title} variants={item}>
               <Card className="border-0 shadow-sm">
@@ -217,7 +220,7 @@ export default function SuperAdminPanel() {
           />
         </motion.div>
 
-        {/* Empresas list */}
+        {/* Companies list */}
         <motion.div variants={item}>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -228,7 +231,7 @@ export default function SuperAdminPanel() {
               <CardContent className="py-12 text-center">
                 <Building2 className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
                 <p className="text-muted-foreground">
-                  {search ? "No se encontraron empresas" : "No hay empresas registradas aún"}
+                  {search ? "No se encontraron compañías" : "No hay compañías registradas aún"}
                 </p>
               </CardContent>
             </Card>
@@ -290,7 +293,7 @@ export default function SuperAdminPanel() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl">Editar Empresa</DialogTitle>
+            <DialogTitle className="font-display text-xl">Editar Compañía</DialogTitle>
           </DialogHeader>
           {editingEmpresa && (
             <div className="grid grid-cols-2 gap-3 py-4">
@@ -317,7 +320,7 @@ export default function SuperAdminPanel() {
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar empresa?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar compañía?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción eliminará permanentemente a <strong>{deletingEmpresa?.nombre}</strong> y no se puede deshacer.
             </AlertDialogDescription>
@@ -354,14 +357,14 @@ export default function SuperAdminPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Select Empresa Dialog */}
+      {/* Select Company Dialog */}
       <Dialog open={selectEmpresaDialogOpen} onOpenChange={setSelectEmpresaDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-display text-xl">Seleccionar Empresa</DialogTitle>
+            <DialogTitle className="font-display text-xl">Seleccionar Compañía</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 py-4">
-            <p className="text-sm text-muted-foreground mb-3">Selecciona la empresa para generar el link de registro:</p>
+            <p className="text-sm text-muted-foreground mb-3">Selecciona la compañía para generar el link de registro:</p>
             {empresas.filter(e => e.activo).map(empresa => (
               <button
                 key={empresa.id}

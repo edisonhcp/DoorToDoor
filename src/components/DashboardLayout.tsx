@@ -19,7 +19,10 @@ const gerenciaNavItems = [
 ];
 
 const superAdminNavItems = [
-  { label: "Empresas", icon: Building2, href: "/admin" },
+  { label: "Compañías", icon: Building2, href: "/admin" },
+  { label: "Vehículos", icon: Truck, href: "/admin/vehiculos" },
+  { label: "Conductores", icon: Users, href: "/admin/conductores" },
+  { label: "Propietarios", icon: ClipboardList, href: "/admin/propietarios" },
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
