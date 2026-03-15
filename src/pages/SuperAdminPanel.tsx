@@ -501,7 +501,8 @@ export default function SuperAdminPanel() {
               <div className="col-span-2"><Label>Dirección</Label><Input value={editingEmpresa.direccion} onChange={e => setEditingEmpresa({ ...editingEmpresa, direccion: e.target.value })} /></div>
               <div><Label>Celular</Label><Input value={editingEmpresa.celular} onChange={e => setEditingEmpresa({ ...editingEmpresa, celular: e.target.value })} /></div>
               <div><Label>Email</Label><Input value={editingEmpresa.email} onChange={e => setEditingEmpresa({ ...editingEmpresa, email: e.target.value })} /></div>
-              <div className="col-span-2"><Label>Propietario</Label><Input value={editingEmpresa.propietario_nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, propietario_nombre: e.target.value })} /></div>
+              <div><Label>Nombres Propietario</Label><Input value={editingEmpresa.propietario_nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, propietario_nombre: e.target.value })} /></div>
+              <div><Label>Apellidos Propietario</Label><Input value={(editingEmpresa as any).propietario_apellidos || ""} onChange={e => setEditingEmpresa({ ...editingEmpresa, propietario_apellidos: e.target.value } as any)} /></div>
             </div>
           )}
           <DialogFooter>
