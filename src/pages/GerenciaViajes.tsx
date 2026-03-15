@@ -95,7 +95,7 @@ export default function GerenciaViajes() {
               );
             })}
 
-            {viajes.length > 0 && (
+        {viajes.length > 0 && (
               <motion.div variants={item}>
                 <Card
                   className="cursor-pointer hover:shadow-md transition-shadow border-primary/30"
@@ -106,14 +106,14 @@ export default function GerenciaViajes() {
                       <div className="flex items-center gap-2">
                         <LayoutList className="w-5 h-5 text-primary" />
                         <span>Consolidado</span>
-                        <span className="text-muted-foreground text-xs">({viajes.length} viajes)</span>
+                        <span className="text-muted-foreground text-xs">({vehicleKeys.length} vehículos)</span>
                       </div>
                       {expanded === "__consolidado__" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </CardTitle>
                   </CardHeader>
                   {expanded === "__consolidado__" && (
                     <CardContent onClick={(e) => e.stopPropagation()}>
-                      <ViajesTable viajes={viajes} showEgresos showConductorColumn />
+                      <ConsolidadoTable vehicleMap={vehicleMap} vehicleKeys={vehicleKeys} />
                     </CardContent>
                   )}
                 </Card>
