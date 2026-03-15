@@ -41,7 +41,10 @@ export default function AgencyConductores() {
 
   if (role !== "GERENCIA") return <Navigate to="/dashboard" replace />;
 
+  const enRutaMsg = "No se puede realizar esta acción porque el conductor está en ruta. Espere a que finalice.";
+
   const handleToggleEstado = async (c: any) => {
+    if (c.en_ruta) { toast({ title: "En ruta", description: enRutaMsg, variant: "destructive" }); return; }
     const { error, newEstado } = await toggleConductorEstado(c);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: newEstado === "HABILITADO" ? "Conductor habilitado" : "Conductor suspendido" }); loadData(); }
@@ -49,6 +52,7 @@ export default function AgencyConductores() {
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
+    if (deleteAlert.en_ruta) { toast({ title: "En ruta", description: enRutaMsg, variant: "destructive" }); setDeleteAlert(null); return; }
     const { error } = await deleteConductor(deleteAlert);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Conductor eliminado" });
@@ -57,6 +61,7 @@ export default function AgencyConductores() {
   };
 
   const handleUnassign = async (c: any) => {
+    if (c.en_ruta) { toast({ title: "En ruta", description: enRutaMsg, variant: "destructive" }); return; }
     const { error } = await unassignConductor(c);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Asignación de vehículo eliminada" }); loadData(); }

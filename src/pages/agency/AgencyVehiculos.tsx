@@ -41,7 +41,10 @@ export default function AgencyVehiculos() {
 
   if (role !== "GERENCIA") return <Navigate to="/dashboard" replace />;
 
+  const enRutaMsg = "No se puede realizar esta acción porque el vehículo está en ruta. Espere a que finalice.";
+
   const handleToggleEstado = async (v: any) => {
+    if (v.en_ruta) { toast({ title: "En ruta", description: enRutaMsg, variant: "destructive" }); return; }
     const { error, newEstado } = await toggleVehiculoEstado(v);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: newEstado === "HABILITADO" ? "Vehículo habilitado" : "Vehículo suspendido" }); loadData(); }
@@ -49,6 +52,7 @@ export default function AgencyVehiculos() {
 
   const handleDelete = async () => {
     if (!deleteAlert) return;
+    if (deleteAlert.en_ruta) { toast({ title: "En ruta", description: enRutaMsg, variant: "destructive" }); setDeleteAlert(null); return; }
     const { error } = await deleteVehiculo(deleteAlert);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Vehículo eliminado" }); loadData(); }
