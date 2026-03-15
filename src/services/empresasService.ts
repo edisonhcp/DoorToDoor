@@ -41,6 +41,51 @@ export async function toggleEmpresaSuspend(empresa: any) {
   return { error };
 }
 
+export async function fetchConsolidadoEmpresas() {
+  const { data: empresas } = await supabase
+    .from("empresas")
+    .select("id, nombre, tipo_comision, comision_pct, comision_fija, activo")
+    .eq("activo", true)
+    .order("nombre");
+
+  if (!empresas || empresas.length === 0) return [];
+
+  const results = await Promise.all(
+    empresas.map(async (emp: any) => {
+      const { count: totalVehiculos } = await supabase
+        .from("vehiculos")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", emp.id);
+
+      const { data: ingresos } = await supabase
+        .from("ingresos_viaje")
+        .select("total_ingreso, comision_gerencia")
+        .eq("empresa_id", emp.id);
+
+      const { count: totalViajes } = await supabase
+        .from("viajes")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", emp.id)
+        .eq("estado", "FINALIZADO" as any);
+
+      const totalIngresos = (ingresos || []).reduce((s: number, i: any) => s + Number(i.total_ingreso || 0), 0);
+      const totalComision = (ingresos || []).reduce((s: number, i: any) => s + Number(i.comision_gerencia || 0), 0);
+
+      return {
+        id: emp.id,
+        nombre: emp.nombre,
+        tipoComision: emp.tipo_comision,
+        totalVehiculos: totalVehiculos || 0,
+        totalViajes: totalViajes || 0,
+        totalIngresos,
+        totalComision,
+      };
+    })
+  );
+
+  return results;
+}
+
 export async function fetchEmpresaDetail(empresaId: string) {
   const [vRes, cRes, pRes, aRes] = await Promise.all([
     supabase.from("vehiculos").select("*, propietarios(nombres)").eq("empresa_id", empresaId),
