@@ -97,8 +97,12 @@ export default function RegistroInvitacion() {
       }
 
       const { data, error } = await supabase.functions.invoke("register-with-invitation", { body });
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        // Try to parse the error body for a specific message
+        const errorMsg = data?.error || error.message || "Error al registrar";
+        throw new Error(errorMsg);
+      }
+      if (data?.error) throw new Error(data.error);
 
       toast({ title: "¡Registro exitoso!", description: "Ya puedes iniciar sesión con tu cuenta." });
       navigate("/login");
