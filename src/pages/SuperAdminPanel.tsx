@@ -61,7 +61,7 @@ export default function SuperAdminPanel() {
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [stats, setStats] = useState<GlobalStats>({ companias: 0, conductores: 0, vehiculos: 0, propietarios: 0 });
+  const [stats, setStats] = useState<GlobalStats>({ companias: 0, conductores: 0, vehiculos: 0, propietarios: 0, viajesCerrados: 0, viajesCancelados: 0 });
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEmpresa, setEditingEmpresa] = useState<EmpresaRow | null>(null);
