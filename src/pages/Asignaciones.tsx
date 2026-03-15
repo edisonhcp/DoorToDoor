@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Route, Truck, Plus, Clock, MapPin, Users, DollarSign, Package, PlayCircle, CheckCircle2 } from "lucide-react";
+import { Route, Truck, Plus, Clock, MapPin, Users, DollarSign, Package, Pencil, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   fetchVehiculosDisponibles,
   crearAsignacionRuta,
   fetchAsignacionesActivas,
+  editarAsignacionRuta,
   type RutaAsignada,
 } from "@/services/asignacionesRutaService";
 
@@ -41,6 +42,10 @@ export default function Asignaciones() {
   const [asignaciones, setAsignaciones] = useState<RutaAsignada[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Edit mode
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
   const [selectedVehiculo, setSelectedVehiculo] = useState("");
@@ -50,6 +55,17 @@ export default function Asignaciones() {
   const [cantidadPasajeros, setCantidadPasajeros] = useState("");
   const [valorPasajeros, setValorPasajeros] = useState("");
   const [valorEncomienda, setValorEncomienda] = useState("");
+
+  const clearForm = () => {
+    setSelectedVehiculo("");
+    setDestino("");
+    setOrigen("");
+    setHoraSalida("");
+    setCantidadPasajeros("");
+    setValorPasajeros("");
+    setValorEncomienda("");
+    setEditingId(null);
+  };
 
   const loadData = async () => {
     if (!empresaId) return;
@@ -66,40 +82,75 @@ export default function Asignaciones() {
     loadData();
   }, [empresaId]);
 
-  const handleAsignar = async () => {
-    if (!selectedVehiculo || !destino || !origen || !empresaId) {
-      toast({ title: "Completa todos los campos obligatorios", variant: "destructive" });
-      return;
-    }
+  const handleEdit = (a: RutaAsignada) => {
+    setEditingId(a.id);
+    setOrigen(a.origen);
+    setDestino(a.destino);
+    setHoraSalida(a.hora_salida || "");
+    setCantidadPasajeros(String(a.cantidad_pasajeros || 0));
+    setValorPasajeros(String(a.ingresos?.pasajeros_monto || 0));
+    setValorEncomienda(String(a.ingresos?.encomiendas_monto || 0));
+    setSelectedVehiculo("");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-    const vehiculoData = vehiculosDisponibles.find((v) => v.vehiculo_id === selectedVehiculo);
-    if (!vehiculoData) return;
+  const handleSubmit = async () => {
+    if (!empresaId) return;
 
-    setSubmitting(true);
-    const { error } = await crearAsignacionRuta({
-      asignacion_id: vehiculoData.id,
-      destino,
-      origen,
-      hora_salida: horaSalida,
-      cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
-      pasajeros_monto: parseFloat(valorPasajeros) || 0,
-      encomiendas_monto: parseFloat(valorEncomienda) || 0,
-      empresa_id: empresaId,
-    });
-    setSubmitting(false);
+    if (editingId) {
+      // Edit mode
+      if (!destino || !origen) {
+        toast({ title: "Completa todos los campos obligatorios", variant: "destructive" });
+        return;
+      }
+      setSubmitting(true);
+      const { error } = await editarAsignacionRuta({
+        viaje_id: editingId,
+        destino,
+        origen,
+        hora_salida: horaSalida,
+        cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
+        pasajeros_monto: parseFloat(valorPasajeros) || 0,
+        encomiendas_monto: parseFloat(valorEncomienda) || 0,
+      });
+      setSubmitting(false);
 
-    if (error) {
-      toast({ title: "Error al asignar ruta", description: error.message, variant: "destructive" });
+      if (error) {
+        toast({ title: "Error al editar ruta", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Ruta actualizada exitosamente" });
+        clearForm();
+        loadData();
+      }
     } else {
-      toast({ title: "Ruta asignada exitosamente" });
-      setSelectedVehiculo("");
-      setDestino("");
-      setOrigen("");
-      setHoraSalida("");
-      setCantidadPasajeros("");
-      setValorPasajeros("");
-      setValorEncomienda("");
-      loadData();
+      // Create mode
+      if (!selectedVehiculo || !destino || !origen) {
+        toast({ title: "Completa todos los campos obligatorios", variant: "destructive" });
+        return;
+      }
+      const vehiculoData = vehiculosDisponibles.find((v) => v.vehiculo_id === selectedVehiculo);
+      if (!vehiculoData) return;
+
+      setSubmitting(true);
+      const { error } = await crearAsignacionRuta({
+        asignacion_id: vehiculoData.id,
+        destino,
+        origen,
+        hora_salida: horaSalida,
+        cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
+        pasajeros_monto: parseFloat(valorPasajeros) || 0,
+        encomiendas_monto: parseFloat(valorEncomienda) || 0,
+        empresa_id: empresaId,
+      });
+      setSubmitting(false);
+
+      if (error) {
+        toast({ title: "Error al asignar ruta", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Ruta asignada exitosamente" });
+        clearForm();
+        loadData();
+      }
     }
   };
 
@@ -112,110 +163,98 @@ export default function Asignaciones() {
         </motion.div>
 
         {/* Form */}
-        <motion.div variants={item}>
-          <Card className="border-0 shadow-sm border-l-4 border-l-primary">
+        <motion.div variants={item} ref={formRef}>
+          <Card className={`border-0 shadow-sm border-l-4 ${editingId ? "border-l-amber-500" : "border-l-primary"}`}>
             <CardHeader className="pb-3">
-              <CardTitle className="font-display text-base flex items-center gap-2">
-                <Plus className="w-4 h-4 text-primary" />
-                Nueva Asignación de Ruta
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-display text-base flex items-center gap-2">
+                  {editingId ? (
+                    <>
+                      <Pencil className="w-4 h-4 text-amber-500" />
+                      Editando Asignación
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 text-primary" />
+                      Nueva Asignación de Ruta
+                    </>
+                  )}
+                </CardTitle>
+                {editingId && (
+                  <Button variant="ghost" size="sm" onClick={clearForm} className="gap-1 text-muted-foreground">
+                    <X className="w-4 h-4" /> Cancelar
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Vehículo */}
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">Vehículo disponible</Label>
-                  <Select value={selectedVehiculo} onValueChange={setSelectedVehiculo}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar vehículo..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {vehiculosDisponibles.map((v) => (
-                        <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
-                          {v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Vehículo - only show on create */}
+                {!editingId && (
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Vehículo disponible</Label>
+                    <Select value={selectedVehiculo} onValueChange={setSelectedVehiculo}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar vehículo..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vehiculosDisponibles.map((v) => (
+                          <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
+                            {v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
-                {/* Origen */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Origen</Label>
-                  <Input
-                    placeholder="Ciudad de origen"
-                    value={origen}
-                    onChange={(e) => setOrigen(e.target.value)}
-                  />
+                  <Input placeholder="Ciudad de origen" value={origen} onChange={(e) => setOrigen(e.target.value)} />
                 </div>
 
-                {/* Destino */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Destino</Label>
-                  <Input
-                    placeholder="Ciudad de destino"
-                    value={destino}
-                    onChange={(e) => setDestino(e.target.value)}
-                  />
+                  <Input placeholder="Ciudad de destino" value={destino} onChange={(e) => setDestino(e.target.value)} />
                 </div>
 
-                {/* Hora */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Hora de salida</Label>
-                  <Input
-                    type="time"
-                    value={horaSalida}
-                    onChange={(e) => setHoraSalida(e.target.value)}
-                  />
+                  <Input type="time" value={horaSalida} onChange={(e) => setHoraSalida(e.target.value)} />
                 </div>
 
-                {/* Cantidad pasajeros */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Cantidad de pasajeros</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    value={cantidadPasajeros}
-                    onChange={(e) => setCantidadPasajeros(e.target.value)}
-                  />
+                  <Input type="number" min="0" placeholder="0" value={cantidadPasajeros} onChange={(e) => setCantidadPasajeros(e.target.value)} />
                 </div>
 
-                {/* Valor pasajeros */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Valor total pasajeros ($)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={valorPasajeros}
-                    onChange={(e) => setValorPasajeros(e.target.value)}
-                  />
+                  <Input type="number" min="0" step="0.01" placeholder="0.00" value={valorPasajeros} onChange={(e) => setValorPasajeros(e.target.value)} />
                 </div>
 
-                {/* Valor encomienda */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Valor de encomienda ($)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={valorEncomienda}
-                    onChange={(e) => setValorEncomienda(e.target.value)}
-                  />
+                  <Input type="number" min="0" step="0.01" placeholder="0.00" value={valorEncomienda} onChange={(e) => setValorEncomienda(e.target.value)} />
                 </div>
 
-                {/* Asignar button */}
                 <div className="flex items-end">
                   <Button
-                    onClick={handleAsignar}
-                    disabled={!selectedVehiculo || !destino || !origen || submitting}
-                    className="gap-2 w-full"
+                    onClick={handleSubmit}
+                    disabled={editingId ? (!destino || !origen || submitting) : (!selectedVehiculo || !destino || !origen || submitting)}
+                    className={`gap-2 w-full ${editingId ? "bg-amber-500 hover:bg-amber-600" : ""}`}
                   >
-                    <Route className="w-4 h-4" />
-                    {submitting ? "Asignando..." : "Asignar"}
+                    {editingId ? (
+                      <>
+                        <Pencil className="w-4 h-4" />
+                        {submitting ? "Guardando..." : "Guardar cambios"}
+                      </>
+                    ) : (
+                      <>
+                        <Route className="w-4 h-4" />
+                        {submitting ? "Asignando..." : "Asignar"}
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -243,8 +282,9 @@ export default function Asignaciones() {
             <div className="space-y-3">
               {asignaciones.map((a) => {
                 const badge = estadoBadge[a.estado] || { label: a.estado, variant: "secondary" as const };
+                const canEdit = a.estado === "ASIGNADO" || a.estado === "EN_RUTA";
                 return (
-                  <Card key={a.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <Card key={a.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${editingId === a.id ? "ring-2 ring-amber-500" : ""}`}>
                     <CardContent className="p-5">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-start gap-4 flex-1">
@@ -291,6 +331,17 @@ export default function Asignaciones() {
                             </div>
                           </div>
                         </div>
+                        {canEdit && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 shrink-0"
+                            onClick={() => handleEdit(a)}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            Editar
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

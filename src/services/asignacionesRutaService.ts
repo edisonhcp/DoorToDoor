@@ -190,3 +190,39 @@ export async function finalizarRuta(viajeId: string) {
     .eq("id", viajeId);
   return { error };
 }
+
+export async function editarAsignacionRuta(params: {
+  viaje_id: string;
+  destino: string;
+  origen: string;
+  hora_salida: string;
+  cantidad_pasajeros: number;
+  pasajeros_monto: number;
+  encomiendas_monto: number;
+}) {
+  const { error: viajeError } = await supabase
+    .from("viajes")
+    .update({
+      destino: params.destino,
+      origen: params.origen,
+      hora_salida: params.hora_salida,
+      cantidad_pasajeros: params.cantidad_pasajeros,
+    })
+    .eq("id", params.viaje_id);
+
+  if (viajeError) return { error: viajeError };
+
+  const totalIngreso = params.pasajeros_monto + params.encomiendas_monto;
+  const { error: ingresosError } = await supabase
+    .from("ingresos_viaje")
+    .update({
+      pasajeros_monto: params.pasajeros_monto,
+      encomiendas_monto: params.encomiendas_monto,
+      total_ingreso: totalIngreso,
+    })
+    .eq("viaje_id", params.viaje_id);
+
+  if (ingresosError) return { error: ingresosError };
+
+  return { error: null };
+}
