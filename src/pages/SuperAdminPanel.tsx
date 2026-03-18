@@ -364,6 +364,7 @@ export default function SuperAdminPanel() {
                       <TableHead>RUC / C.I.</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Celular</TableHead>
+                      <TableHead>Comisión</TableHead>
                       <TableHead>Fecha Registro</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="w-10"></TableHead>
