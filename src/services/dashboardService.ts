@@ -51,6 +51,27 @@ export async function fetchEmpresaNombre(empresaId: string) {
   return data?.nombre || "";
 }
 
+export async function fetchEmpresaInfo(empresaId: string) {
+  const { data } = await supabase.from("empresas").select("*").eq("id", empresaId).single();
+  return data;
+}
+
+export async function updateEmpresaInfo(empresaId: string, updates: any) {
+  const { error } = await supabase.from("empresas").update(updates).eq("id", empresaId);
+  return { error };
+}
+
+export async function uploadEmpresaLogo(empresaId: string, file: File) {
+  const ext = file.name.split(".").pop();
+  const filePath = `logos/${empresaId}.${ext}`;
+  const { error: uploadError } = await supabase.storage.from("recibos").upload(filePath, file, { upsert: true });
+  if (uploadError) return { error: uploadError, url: null };
+  const { data: urlData } = supabase.storage.from("recibos").getPublicUrl(filePath);
+  const logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+  const { error: updateError } = await supabase.from("empresas").update({ logo_url: logoUrl }).eq("id", empresaId);
+  return { error: updateError, url: logoUrl };
+}
+
 export async function createAsignacion(conductorId: string, vehiculoId: string, empresaId: string) {
   const { error } = await supabase.from("asignaciones").insert({
     conductor_id: conductorId,
