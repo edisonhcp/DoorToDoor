@@ -106,22 +106,33 @@ export default function AdminPropietarios() {
                                 <TableCell>{p.identificacion}</TableCell>
                                 <TableCell>{p.celular}</TableCell>
                                 <TableCell>
-                                  {p.vehiculos && p.vehiculos.length > 0
-                                    ? p.vehiculos.map((v: any, i: number) => (
-                                        <div key={i} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                                          <span>{v.marca} {v.modelo} {v.anio || ""} · {v.placa}</span>
-                                          {v.estado === "INHABILITADO" && (
-                                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">INHABILITADO</Badge>
-                                          )}
-                                        </div>
-                                      ))
-                                    : <span className="text-xs text-muted-foreground">Sin vehículos</span>
-                                  }
+                                  <div className="divide-y divide-border">
+                                    {p.vehiculos && p.vehiculos.length > 0
+                                      ? p.vehiculos.map((v: any, i: number) => (
+                                          <div key={i} className="text-xs text-muted-foreground py-1.5 first:pt-0 last:pb-0">
+                                            {v.marca} {v.modelo} {v.anio || ""} · {v.placa}
+                                          </div>
+                                        ))
+                                      : <span className="text-xs text-muted-foreground">Sin vehículos</span>
+                                    }
+                                  </div>
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">
-                                    {p.estado}
-                                  </Badge>
+                                  <div className="divide-y divide-border">
+                                    {p.vehiculos && p.vehiculos.length > 0
+                                      ? p.vehiculos.map((v: any, i: number) => (
+                                          <div key={i} className="py-1.5 first:pt-0 last:pb-0">
+                                            <Badge
+                                              variant={v.estado === "INHABILITADO" ? "destructive" : "default"}
+                                              className="text-[10px] px-1.5 py-0"
+                                            >
+                                              {v.estado}
+                                            </Badge>
+                                          </div>
+                                        ))
+                                      : <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{p.estado}</Badge>
+                                    }
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))}
