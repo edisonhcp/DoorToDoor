@@ -56,6 +56,10 @@ Deno.serve(async (req) => {
 
     // If GERENCIA registration, update the placeholder empresa with real data
     if (rol === 'GERENCIA' && datos_extra) {
+      const tipoComision = datos_extra.tipo_comision || 'PORCENTAJE';
+      const comisionPct = tipoComision === 'PORCENTAJE' ? (parseFloat(datos_extra.comision_pct || '10') / 100) : 0.10;
+      const comisionFija = tipoComision === 'FIJO' ? parseFloat(datos_extra.comision_fija || '0') : 0;
+
       await adminClient
         .from('empresas')
         .update({
@@ -67,6 +71,10 @@ Deno.serve(async (req) => {
           email: datos_extra.email_empresa || email,
           propietario_nombre: datos_extra.propietario_nombre || username,
           propietario_apellidos: datos_extra.propietario_apellidos || '',
+          tipo_comision: tipoComision,
+          comision_pct: comisionPct,
+          comision_fija: comisionFija,
+          frecuencia_comision: datos_extra.frecuencia_comision || 'SEMANAL',
           activo: true,
         })
         .eq('id', empresaId);

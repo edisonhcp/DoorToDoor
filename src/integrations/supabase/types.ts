@@ -335,6 +335,7 @@ export type Database = {
           created_at: string
           direccion: string
           email: string
+          frecuencia_comision: Database["public"]["Enums"]["frecuencia_comision"]
           id: string
           logo_url: string | null
           nombre: string
@@ -352,6 +353,7 @@ export type Database = {
           created_at?: string
           direccion: string
           email: string
+          frecuencia_comision?: Database["public"]["Enums"]["frecuencia_comision"]
           id?: string
           logo_url?: string | null
           nombre: string
@@ -369,6 +371,7 @@ export type Database = {
           created_at?: string
           direccion?: string
           email?: string
+          frecuencia_comision?: Database["public"]["Enums"]["frecuencia_comision"]
           id?: string
           logo_url?: string | null
           nombre?: string
@@ -987,6 +990,7 @@ export type Database = {
         | "ASIGNADO"
         | "EN_RUTA"
         | "FINALIZADO"
+      frecuencia_comision: "SEMANAL" | "QUINCENAL" | "MENSUAL"
       invitacion_rol: "CONDUCTOR" | "PROPIETARIO" | "GERENCIA"
       tipo_comision_empresa: "PORCENTAJE" | "FIJO" | "MIXTO"
     }
@@ -1145,6 +1149,7 @@ export const Constants = {
         "EN_RUTA",
         "FINALIZADO",
       ],
+      frecuencia_comision: ["SEMANAL", "QUINCENAL", "MENSUAL"],
       invitacion_rol: ["CONDUCTOR", "PROPIETARIO", "GERENCIA"],
       tipo_comision_empresa: ["PORCENTAJE", "FIJO", "MIXTO"],
     },

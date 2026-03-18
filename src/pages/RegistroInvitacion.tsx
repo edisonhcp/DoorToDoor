@@ -33,6 +33,10 @@ interface DatosEmpresa {
   celular_empresa: string;
   propietario_nombre: string;
   propietario_apellidos: string;
+  tipo_comision: string;
+  comision_pct: string;
+  comision_fija: string;
+  frecuencia_comision: string;
 }
 
 const emptyDatos: DatosExtra = {
@@ -44,6 +48,8 @@ const emptyDatos: DatosExtra = {
 const emptyEmpresa: DatosEmpresa = {
   nombre_empresa: "", ruc: "", ciudad: "", direccion: "",
   celular_empresa: "", propietario_nombre: "", propietario_apellidos: "",
+  tipo_comision: "PORCENTAJE", comision_pct: "10", comision_fija: "0",
+  frecuencia_comision: "SEMANAL",
 };
 
 export default function RegistroInvitacion() {
@@ -209,6 +215,72 @@ export default function RegistroInvitacion() {
                       <div><Label>Celular de la compañía</Label><Input value={datosEmpresa.celular_empresa} onChange={e => setDatosEmpresa({ ...datosEmpresa, celular_empresa: e.target.value })} required /></div>
                       <div><Label>Nombres del representante</Label><Input value={datosEmpresa.propietario_nombre} onChange={e => setDatosEmpresa({ ...datosEmpresa, propietario_nombre: e.target.value })} required /></div>
                       <div><Label>Apellidos del representante</Label><Input value={datosEmpresa.propietario_apellidos} onChange={e => setDatosEmpresa({ ...datosEmpresa, propietario_apellidos: e.target.value })} required /></div>
+                    </div>
+
+                    <div className="border-t border-border pt-4 space-y-3">
+                      <p className="text-sm font-semibold text-foreground">Configuración de Comisión</p>
+                      
+                      <div className="space-y-2">
+                        <Label>¿Esta compañía recibe la comisión mediante?</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setDatosEmpresa({ ...datosEmpresa, tipo_comision: "PORCENTAJE" })}
+                            className={`p-3 rounded-lg border-2 text-left transition-colors ${datosEmpresa.tipo_comision === "PORCENTAJE" ? "border-primary bg-primary/5" : "border-border"}`}
+                          >
+                            <p className="text-sm font-medium text-foreground">Porcentaje</p>
+                            <p className="text-xs text-muted-foreground">Se cobra un % del ingreso</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDatosEmpresa({ ...datosEmpresa, tipo_comision: "FIJO" })}
+                            className={`p-3 rounded-lg border-2 text-left transition-colors ${datosEmpresa.tipo_comision === "FIJO" ? "border-primary bg-primary/5" : "border-border"}`}
+                          >
+                            <p className="text-sm font-medium text-foreground">Valor Fijo</p>
+                            <p className="text-xs text-muted-foreground">Se cobra un monto fijo</p>
+                          </button>
+                        </div>
+                      </div>
+
+                      {datosEmpresa.tipo_comision === "PORCENTAJE" ? (
+                        <div className="space-y-2">
+                          <Label>Porcentaje de comisión (%)</Label>
+                          <Input
+                            type="number" min="0" max="100" step="1"
+                            value={datosEmpresa.comision_pct}
+                            onChange={e => setDatosEmpresa({ ...datosEmpresa, comision_pct: e.target.value })}
+                            placeholder="Ej: 10"
+                            required
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Label>Valor fijo de comisión ($)</Label>
+                          <Input
+                            type="number" min="0" step="0.01"
+                            value={datosEmpresa.comision_fija}
+                            onChange={e => setDatosEmpresa({ ...datosEmpresa, comision_fija: e.target.value })}
+                            placeholder="Ej: 50.00"
+                            required
+                          />
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <Label>¿Con qué frecuencia recibe la comisión?</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(["SEMANAL", "QUINCENAL", "MENSUAL"] as const).map(freq => (
+                            <button
+                              key={freq}
+                              type="button"
+                              onClick={() => setDatosEmpresa({ ...datosEmpresa, frecuencia_comision: freq })}
+                              className={`p-2.5 rounded-lg border-2 text-center text-sm font-medium transition-colors ${datosEmpresa.frecuencia_comision === freq ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground"}`}
+                            >
+                              {freq.charAt(0) + freq.slice(1).toLowerCase()}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

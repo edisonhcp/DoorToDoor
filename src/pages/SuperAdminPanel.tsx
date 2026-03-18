@@ -44,6 +44,10 @@ interface EmpresaRow {
   propietario_apellidos: string;
   activo: boolean;
   created_at: string;
+  tipo_comision: string;
+  comision_pct: number;
+  comision_fija: number;
+  frecuencia_comision: string;
 }
 
 interface GlobalStats {
@@ -364,6 +368,7 @@ export default function SuperAdminPanel() {
                       <TableHead>RUC / C.I.</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Celular</TableHead>
+                      <TableHead>Comisión</TableHead>
                       <TableHead>Fecha Registro</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="w-10"></TableHead>
@@ -381,6 +386,10 @@ export default function SuperAdminPanel() {
                         <TableCell>{empresa.ruc}</TableCell>
                         <TableCell className="text-xs">{empresa.email}</TableCell>
                         <TableCell>{empresa.celular}</TableCell>
+                        <TableCell className="text-xs">
+                          <div>{empresa.tipo_comision === "PORCENTAJE" ? `${((empresa.comision_pct || 0) * 100).toFixed(0)}%` : `$${empresa.comision_fija || 0}`}</div>
+                          <div className="text-muted-foreground capitalize">{(empresa.frecuencia_comision || "SEMANAL").toLowerCase()}</div>
+                        </TableCell>
                         <TableCell>{new Date(empresa.created_at).toLocaleDateString("es-ES")}</TableCell>
                         <TableCell>
                           <Badge variant={empresa.activo ? "default" : "destructive"} className="text-xs">
