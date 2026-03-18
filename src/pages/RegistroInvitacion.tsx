@@ -48,6 +48,8 @@ const emptyDatos: DatosExtra = {
 const emptyEmpresa: DatosEmpresa = {
   nombre_empresa: "", ruc: "", ciudad: "", direccion: "",
   celular_empresa: "", propietario_nombre: "", propietario_apellidos: "",
+  tipo_comision: "PORCENTAJE", comision_pct: "10", comision_fija: "0",
+  frecuencia_comision: "SEMANAL",
 };
 
 export default function RegistroInvitacion() {
