@@ -161,14 +161,6 @@ export default function SuperAdminPanel() {
     e.ciudad.toLowerCase().includes(search.toLowerCase())
   );
 
-  const statCards = [
-    { title: "Compañías", value: stats.companias, icon: Building2, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-secondary", bg: "bg-secondary/10" },
-    { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10" },
-    { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Viajes Concluidos", value: stats.viajesCerrados, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Viajes Cancelados", value: stats.viajesCancelados, icon: Ban, color: "text-destructive", bg: "bg-destructive/10" },
-  ];
 
   if (detailEmpresa) {
     return (
@@ -344,26 +336,6 @@ export default function SuperAdminPanel() {
           </Button>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {statCards.map((stat) => (
-            <motion.div key={stat.title} variants={item}>
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-5 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-3xl font-display font-bold text-foreground mt-1">
-                      {loading ? "—" : stat.value}
-                    </p>
-                  </div>
-                  <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
-                    <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
         <motion.div variants={item} className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar por nombre, RUC o ciudad..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
@@ -371,9 +343,7 @@ export default function SuperAdminPanel() {
 
         <motion.div variants={item}>
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => <div key={i} className="h-40 rounded-xl bg-muted animate-pulse" />)}
-            </div>
+            <div className="h-48 rounded-xl bg-muted animate-pulse" />
           ) : filtered.length === 0 ? (
             <Card className="border-0 shadow-sm">
               <CardContent className="py-12 text-center">
@@ -384,58 +354,75 @@ export default function SuperAdminPanel() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map(empresa => (
-                <Card key={empresa.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${!empresa.activo ? 'opacity-60' : ''}`} onClick={() => handleViewDetail(empresa)}>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className={`text-xs ${!empresa.activo ? 'bg-destructive/10 text-destructive' : ''}`}>
-                          {empresa.activo ? empresa.ciudad : "Suspendida"}
-                        </Badge>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => e.stopPropagation()}>
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingEmpresa(empresa); setEditDialogOpen(true); }}>
-                              <Pencil className="w-4 h-4 mr-2" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewDetail(empresa); }}>
-                              <Eye className="w-4 h-4 mr-2" /> Ver detalle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleToggleSuspend(empresa); }}>
-                              {empresa.activo ? (
-                                <><Ban className="w-4 h-4 mr-2" /> Suspender</>
-                              ) : (
-                                <><CheckCircle2 className="w-4 h-4 mr-2" /> Reactivar</>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={(e) => { e.stopPropagation(); setDeletingEmpresa(empresa); setDeleteAlertOpen(true); }}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                    <h3 className="font-display font-semibold text-foreground mb-1 truncate">{empresa.nombre}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">RUC: {empresa.ruc}</p>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{empresa.propietario_nombre} {empresa.propietario_apellidos}</span>
-                      <span>{new Date(empresa.created_at).toLocaleDateString("es-ES")}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nombre</TableHead>
+                      <TableHead>Propietario</TableHead>
+                      <TableHead>RUC / C.I.</TableHead>
+                      <TableHead>Correo</TableHead>
+                      <TableHead>Celular</TableHead>
+                      <TableHead>Fecha Registro</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map(empresa => (
+                      <TableRow
+                        key={empresa.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleViewDetail(empresa)}
+                      >
+                        <TableCell className="font-medium">{empresa.nombre}</TableCell>
+                        <TableCell>{empresa.propietario_nombre} {empresa.propietario_apellidos}</TableCell>
+                        <TableCell>{empresa.ruc}</TableCell>
+                        <TableCell className="text-xs">{empresa.email}</TableCell>
+                        <TableCell>{empresa.celular}</TableCell>
+                        <TableCell>{new Date(empresa.created_at).toLocaleDateString("es-ES")}</TableCell>
+                        <TableCell>
+                          <Badge variant={empresa.activo ? "default" : "destructive"} className="text-xs">
+                            {empresa.activo ? "Activa" : "Suspendida"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell onClick={e => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => { setEditingEmpresa(empresa); setEditDialogOpen(true); }}>
+                                <Pencil className="w-4 h-4 mr-2" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewDetail(empresa)}>
+                                <Eye className="w-4 h-4 mr-2" /> Ver detalle
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleToggleSuspend(empresa)}>
+                                {empresa.activo ? (
+                                  <><Ban className="w-4 h-4 mr-2" /> Suspender</>
+                                ) : (
+                                  <><CheckCircle2 className="w-4 h-4 mr-2" /> Reactivar</>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => { setDeletingEmpresa(empresa); setDeleteAlertOpen(true); }}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" /> Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           )}
         </motion.div>
       </motion.div>

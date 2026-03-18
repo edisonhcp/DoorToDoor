@@ -12,6 +12,7 @@ import AdminVehiculos from "./pages/admin/AdminVehiculos";
 import AdminConductores from "./pages/admin/AdminConductores";
 import AdminPropietarios from "./pages/admin/AdminPropietarios";
 import AdminConsolidadoViajes from "./pages/admin/AdminConsolidadoViajes";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import AgencyPropietarios from "./pages/agency/AgencyPropietarios";
 import AgencyVehiculos from "./pages/agency/AgencyVehiculos";
 import AgencyConductores from "./pages/agency/AgencyConductores";
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/dashboard/propietario-asignaciones" element={<ProtectedRoute><PropietarioAsignaciones /></ProtectedRoute>} />
             <Route path="/dashboard/propietario-viajes" element={<ProtectedRoute><PropietarioViajes /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><SuperAdminPanel /></ProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/vehiculos" element={<ProtectedRoute><AdminVehiculos /></ProtectedRoute>} />
             <Route path="/admin/conductores" element={<ProtectedRoute><AdminConductores /></ProtectedRoute>} />
             <Route path="/admin/propietarios" element={<ProtectedRoute><AdminPropietarios /></ProtectedRoute>} />

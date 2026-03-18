@@ -33,6 +33,7 @@ const conductorNavItems = [
 ];
 
 const superAdminNavItems = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
   { label: "Compañías", icon: Building2, href: "/admin" },
   { label: "Vehículos", icon: Truck, href: "/admin/vehiculos" },
   { label: "Conductores", icon: Users, href: "/admin/conductores" },
