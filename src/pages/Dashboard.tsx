@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Truck, Users, Route, CheckCircle2, Clock, Plus, AlertTriangle,
-  Trash2, MessageCircle, UserCheck
+  Trash2, MessageCircle, UserCheck, Percent, DollarSign, CalendarClock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ import {
 import { fetchConductorData, deleteConductorAccount } from "@/services/conductoresService";
 import { deletePropietarioAccount } from "@/services/propietariosService";
 import { fetchPropietarioVehiculos, deleteVehiculo } from "@/services/vehiculosService";
-import { fetchDashboardStats, fetchEmpresaNombre, type DashboardStats } from "@/services/dashboardService";
+import { fetchDashboardStats, fetchEmpresaNombre, fetchEmpresaInfo, type DashboardStats } from "@/services/dashboardService";
 import { fetchRutasConductor, iniciarRuta, finalizarRuta, type RutaAsignada } from "@/services/asignacionesRutaService";
 
 const container = {
