@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Building2, ChevronDown, ChevronUp, Shield } from "lucide-react";
+import { Users, Building2, ChevronDown, ChevronUp, Shield, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -10,6 +10,7 @@ import { Navigate } from "react-router-dom";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -19,6 +20,7 @@ export default function AdminConductores() {
   const [empresaMap, setEmpresaMap] = useState<Record<string, { nombre: string; conductores: any[] }>>({});
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,7 +58,18 @@ export default function AdminConductores() {
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
-  const empresaKeys = Object.keys(empresaMap);
+  const q = search.toLowerCase();
+  const empresaKeys = Object.keys(empresaMap).filter((empId) => {
+    if (!q) return true;
+    const emp = empresaMap[empId];
+    if (emp.nombre.toLowerCase().includes(q)) return true;
+    return emp.conductores.some((c: any) =>
+      c.nombres?.toLowerCase().includes(q) ||
+      c.apellidos?.toLowerCase().includes(q) ||
+      c.identificacion?.includes(q) ||
+      c.celular?.includes(q)
+    );
+  });
 
   return (
     <DashboardLayout>
@@ -70,12 +83,17 @@ export default function AdminConductores() {
           <p className="text-muted-foreground mt-1">Todos los conductores registrados, agrupados por compañía</p>
         </motion.div>
 
+        <motion.div variants={item} className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Buscar por nombre, identificación o celular..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+        </motion.div>
+
         {loading ? (
           <div className="h-48 rounded-xl bg-muted animate-pulse" />
         ) : empresaKeys.length === 0 ? (
           <div className="p-8 text-center">
             <Users className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="text-muted-foreground">No se encontraron conductores</p>
+            <p className="text-muted-foreground">{search ? "No se encontraron conductores" : "No hay conductores registrados"}</p>
           </div>
         ) : (
           empresaKeys.map((empId) => {

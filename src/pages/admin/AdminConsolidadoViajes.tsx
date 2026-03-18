@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { Building2, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { fetchConsolidadoEmpresas } from "@/services/empresasService";
+import { Input } from "@/components/ui/input";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -22,6 +23,7 @@ export default function AdminConsolidadoViajes() {
   const [empresas, setEmpresas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -34,6 +36,10 @@ export default function AdminConsolidadoViajes() {
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/admin" replace />;
 
+  const filtered = empresas.filter(emp =>
+    !search || emp.nombre.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
@@ -42,11 +48,16 @@ export default function AdminConsolidadoViajes() {
           <p className="text-muted-foreground mt-1">Resumen financiero por compañía</p>
         </motion.div>
 
+        <motion.div variants={item} className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Buscar por nombre de compañía..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+        </motion.div>
+
         {loading ? (
           <div className="h-48 rounded-xl bg-muted animate-pulse" />
         ) : (
           <>
-            {empresas.map((emp, idx) => {
+            {filtered.map((emp, idx) => {
               const isOpen = expanded === emp.id;
               return (
                 <motion.div key={emp.id} variants={item}>
@@ -100,7 +111,7 @@ export default function AdminConsolidadoViajes() {
             })}
 
             {/* Grand total */}
-            {empresas.length > 0 && (
+            {filtered.length > 0 && (
               <motion.div variants={item}>
                 <Card className="border-primary/30">
                   <CardContent className="pt-6">
@@ -117,7 +128,7 @@ export default function AdminConsolidadoViajes() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {empresas.map((emp, idx) => (
+                          {filtered.map((emp, idx) => (
                             <TableRow key={emp.id}>
                               <TableCell>{idx + 1}</TableCell>
                               <TableCell className="font-medium">{emp.nombre}</TableCell>
@@ -132,10 +143,10 @@ export default function AdminConsolidadoViajes() {
                           <TableRow>
                             <TableCell colSpan={4} className="font-bold">TOTAL GENERAL</TableCell>
                             <TableCell className="text-right font-bold">
-                              ${empresas.reduce((s, e) => s + e.totalComision, 0).toFixed(2)}
+                              ${filtered.reduce((s, e) => s + e.totalComision, 0).toFixed(2)}
                             </TableCell>
                             <TableCell className="text-right font-bold">
-                              ${empresas.reduce((s, e) => s + e.totalIngresos, 0).toFixed(2)}
+                              ${filtered.reduce((s, e) => s + e.totalIngresos, 0).toFixed(2)}
                             </TableCell>
                           </TableRow>
                         </TableFooter>
