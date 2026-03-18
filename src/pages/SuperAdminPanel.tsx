@@ -387,7 +387,7 @@ export default function SuperAdminPanel() {
                         <TableCell className="text-xs">{empresa.email}</TableCell>
                         <TableCell>{empresa.celular}</TableCell>
                         <TableCell className="text-xs">
-                          <div>{empresa.tipo_comision === "PORCENTAJE" ? `${((empresa.comision_pct || 0) * 100).toFixed(0)}%` : `$${empresa.comision_fija || 0}`}</div>
+                          <div>{empresa.tipo_comision === "PORCENTAJE" ? `${Math.round((empresa.comision_pct || 0) * 100)}%` : `$${empresa.comision_fija || 0}`}</div>
                           <div className="text-muted-foreground capitalize">{(empresa.frecuencia_comision || "SEMANAL").toLowerCase()}</div>
                         </TableCell>
                         <TableCell>{new Date(empresa.created_at).toLocaleDateString("es-ES")}</TableCell>
