@@ -307,7 +307,7 @@ export default function ConductorAsignaciones() {
                             <Input type="file" accept="image/*" onChange={e => setVariosFile(e.target.files?.[0] || null)} className="text-xs" />
                           </div>
 
-                          <Button onClick={() => handleSaveEgresos(v.id)} disabled={saving} className="gap-2" size="sm">
+                          <Button onClick={() => handlePreSaveEgresos(v.id)} disabled={saving} className="gap-2" size="sm">
                             <Save className="w-4 h-4" />
                             {saving ? "Guardando..." : "Guardar Egresos"}
                           </Button>
