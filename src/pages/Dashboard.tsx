@@ -126,7 +126,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
             {empresaInfo && (
               <Card className="border-0 shadow-sm min-w-[220px]">
                 <CardContent className="p-4">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Comisión Configurada</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Comisión Configurada de {empresaInfo.nombre}</p>
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       {empresaInfo.tipo_comision === "PORCENTAJE" ? (
