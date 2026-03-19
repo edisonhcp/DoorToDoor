@@ -73,7 +73,7 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
 
   const comisionCompania = tipoComision === "PORCENTAJE" 
     ? totals.totalIngreso * comisionPct 
-    : comisionFija * viajes.length;
+    : comisionFija;
   const totalPropietario = totals.totalIngreso - totals.totalEgreso - comisionCompania;
 
   const frecuenciaLabel: Record<string, string> = {
