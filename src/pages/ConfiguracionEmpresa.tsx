@@ -89,7 +89,7 @@ export default function ConfiguracionEmpresa() {
       propietario_apellidos: form.propietario_apellidos,
       tipo_comision: form.tipo_comision,
       comision_pct: form.tipo_comision === "PORCENTAJE" ? form.comision_pct / 100 : 0,
-      comision_fija: form.tipo_comision === "FIJO" ? form.comision_fija : 0,
+      comision_fija: form.tipo_comision === "FIJO" ? (Number(form.comision_fija) || 0) : 0,
       frecuencia_comision: form.frecuencia_comision,
     });
 
