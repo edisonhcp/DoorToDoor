@@ -242,7 +242,7 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground text-xs">Total a recibir Propietario</p>
-              <p className="font-bold text-lg text-accent-foreground">${totalPropietario.toFixed(2)}</p>
+              <p className="font-bold text-lg text-success">${totalPropietario.toFixed(2)}</p>
             </div>
           </div>
         </div>
