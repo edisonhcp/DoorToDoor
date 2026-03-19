@@ -29,7 +29,7 @@ export default function ConfiguracionEmpresa() {
     propietario_apellidos: "",
     tipo_comision: "PORCENTAJE",
     comision_pct: 0,
-    comision_fija: 0,
+    comision_fija: "" as any,
     frecuencia_comision: "SEMANAL",
   });
 
