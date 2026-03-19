@@ -226,8 +226,8 @@ export default function ConfiguracionEmpresa() {
                   type="number"
                   min={0}
                   max={100}
-                  value={form.comision_pct}
-                  onChange={(e) => update("comision_pct", Number(e.target.value))}
+                  value={form.comision_pct || ""}
+                  onChange={(e) => update("comision_pct", e.target.value === "" ? "" : Number(e.target.value))}
                 />
               </div>
             ) : (
