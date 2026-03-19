@@ -163,7 +163,6 @@ export default function Invitaciones() {
                       <TableHead>Rol</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Token</TableHead>
-                      <TableHead>Estado</TableHead>
                       <TableHead>Creada</TableHead>
                       <TableHead>Expira</TableHead>
                       <TableHead>Acciones</TableHead>
