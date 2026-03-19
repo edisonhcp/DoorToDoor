@@ -165,7 +165,8 @@ export default function ConductorAsignaciones() {
                             <Badge variant={badge.variant}>{badge.label}</Badge>
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                            {v.hora_salida && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{v.hora_salida}</span>}
+                            {v.fecha_salida && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Salida: {new Date(v.fecha_salida).toLocaleDateString("es-EC")} {v.hora_salida || ""}</span>}
+                            {v.estado === "FINALIZADO" && v.fecha_llegada && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Llegada: {new Date(v.fecha_llegada).toLocaleDateString("es-EC")} {new Date(v.fecha_llegada).toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" })}</span>}
                             <span className="flex items-center gap-1"><Users className="w-3 h-3" />{v.cantidad_pasajeros} pasajeros</span>
                             {v.vehiculo && <span><Truck className="w-3 h-3 inline mr-1" />{v.vehiculo.placa}</span>}
                           </div>
