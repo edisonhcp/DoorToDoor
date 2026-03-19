@@ -227,7 +227,7 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
       {showSummary && showEgresos && viajes.length > 0 && (
         <div className="border rounded-lg p-4 bg-muted/30">
           <h3 className="text-sm font-semibold mb-3">Resumen</h3>
-          <div className={`grid grid-cols-2 ${!showConductorColumn ? 'sm:grid-cols-5' : 'sm:grid-cols-4'} gap-3 text-sm`}>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
             <div className="space-y-1">
               <p className="text-muted-foreground text-xs">Total Ingreso</p>
               <p className="font-bold text-lg text-primary">${totals.totalIngreso.toFixed(2)}</p>
@@ -244,12 +244,10 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
               <p className="text-muted-foreground text-xs">Total a recibir Propietario</p>
               <p className="font-bold text-lg text-success">${totalPropietario.toFixed(2)}</p>
             </div>
-            {!showConductorColumn && (
-              <div className="space-y-1">
-                <p className="text-muted-foreground text-xs">Total a recibir Conductor</p>
-                <p className="font-bold text-lg text-foreground">${totals.conductor.toFixed(2)}</p>
-              </div>
-            )}
+            <div className="space-y-1">
+              <p className="text-muted-foreground text-xs">Total a recibir Conductor</p>
+              <p className="font-bold text-lg text-foreground">${totals.conductor.toFixed(2)}</p>
+            </div>
           </div>
         </div>
       )}
