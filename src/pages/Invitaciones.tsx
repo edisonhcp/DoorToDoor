@@ -82,9 +82,10 @@ export default function Invitaciones() {
   };
 
   const getStatus = (inv: InvitacionRow) => {
-    if (inv.usada) return { label: "Usada", variant: "default" as const, icon: CheckCircle2, color: "text-muted-foreground" };
+    if (inv.registro_status === "activo") return { label: "Registrado", variant: "default" as const, icon: CheckCircle2, color: "text-green-600" };
+    if (inv.registro_status === "eliminado") return { label: "Eliminado", variant: "destructive" as const, icon: XCircle, color: "text-destructive" };
     if (new Date(inv.expires_at) < new Date()) return { label: "Expirada", variant: "destructive" as const, icon: XCircle, color: "text-destructive" };
-    return { label: "Activa", variant: "default" as const, icon: Clock, color: "text-primary" };
+    return { label: "Pendiente", variant: "default" as const, icon: Clock, color: "text-primary" };
   };
 
   const rolLabels: Record<string, string> = { CONDUCTOR: "Conductor", PROPIETARIO: "Propietario" };
