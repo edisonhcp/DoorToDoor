@@ -48,7 +48,7 @@ export default function ConfiguracionEmpresa() {
           propietario_apellidos: data.propietario_apellidos || "",
           tipo_comision: data.tipo_comision || "PORCENTAJE",
           comision_pct: Math.round((data.comision_pct || 0) * 100),
-          comision_fija: data.comision_fija || 0,
+          comision_fija: data.comision_fija || "",
           frecuencia_comision: data.frecuencia_comision || "SEMANAL",
         });
         if (data.logo_url) setLogoPreview(data.logo_url);
