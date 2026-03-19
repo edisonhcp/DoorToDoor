@@ -131,7 +131,7 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
                   if (eg?.almuerzo) alimParts.push("A");
                   if (eg?.merienda) alimParts.push("M");
                   const alimCosto = calcAlimentacion(eg);
-                  const rowTotalEgreso = (eg?.peaje || 0) + (eg?.hotel || 0) + (eg?.pago_conductor || 0) + (eg?.combustible || 0) + (eg?.varios || 0) + alimCosto;
+                  const rowTotalEgreso = (eg?.peaje || 0) + (eg?.hotel || 0) + (eg?.combustible || 0) + (eg?.varios || 0) + alimCosto;
 
                   return (
                     <TableRow key={v.id} className="text-sm">

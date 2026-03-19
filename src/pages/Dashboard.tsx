@@ -261,7 +261,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                         {ruta.estado === "EN_RUTA" && (
                           <Button onClick={() => handleFinalizarRuta(ruta.id)} variant="outline" className="gap-2">
                             <CheckCircle2 className="w-4 h-4" />
-                            Ruta Finalizada
+                            Finalizar Ruta
                           </Button>
                         )}
                       </div>
