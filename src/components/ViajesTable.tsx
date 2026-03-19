@@ -230,7 +230,7 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div className="space-y-1">
               <p className="text-muted-foreground text-xs">Total Ingreso</p>
-              <p className="font-bold text-lg text-foreground">${totals.totalIngreso.toFixed(2)}</p>
+              <p className="font-bold text-lg text-primary">${totals.totalIngreso.toFixed(2)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground text-xs">Total Egreso</p>
