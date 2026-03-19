@@ -112,6 +112,8 @@ export default function GerenciaViajes() {
       if (!empresaId) return;
       const { data } = await fetchViajesConDetalle(empresaId);
       setViajes(data);
+      const info = await fetchEmpresaInfo(empresaId);
+      setEmpresaInfo(info);
       setLoading(false);
     };
     load();
