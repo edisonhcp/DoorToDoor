@@ -43,7 +43,7 @@ function calcAlimentacion(eg: ViajeRow["egresos"]): number {
   return count * ALIMENTACION_COSTO;
 }
 
-export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = true, showSummary = true, comisionPct = 0.10 }: ViajesTableProps) {
+export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = true, showSummary = true, comisionPct = 0.10, comisionFija = 0, tipoComision = "PORCENTAJE", frecuenciaComision = "SEMANAL" }: ViajesTableProps) {
   const formatDate = (d: string) => {
     try { return new Date(d).toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" }); }
     catch { return d; }
