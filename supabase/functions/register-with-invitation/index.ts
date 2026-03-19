@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
     // Mark invitation as used
     await adminClient
       .from('invitaciones')
-      .update({ usada: true })
+      .update({ usada: true, used_by_email: email })
       .eq('id', invitacion.id);
 
     console.log('Registration complete for:', email);

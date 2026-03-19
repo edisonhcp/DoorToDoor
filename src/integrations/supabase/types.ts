@@ -457,6 +457,7 @@ export type Database = {
           rol: Database["public"]["Enums"]["invitacion_rol"]
           token: string
           usada: boolean
+          used_by_email: string | null
         }
         Insert: {
           created_at?: string
@@ -466,6 +467,7 @@ export type Database = {
           rol: Database["public"]["Enums"]["invitacion_rol"]
           token: string
           usada?: boolean
+          used_by_email?: string | null
         }
         Update: {
           created_at?: string
@@ -475,6 +477,7 @@ export type Database = {
           rol?: Database["public"]["Enums"]["invitacion_rol"]
           token?: string
           usada?: boolean
+          used_by_email?: string | null
         }
         Relationships: [
           {

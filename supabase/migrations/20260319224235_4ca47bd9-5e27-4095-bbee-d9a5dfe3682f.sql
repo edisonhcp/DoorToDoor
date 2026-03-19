@@ -1,0 +1,1 @@
+ALTER TABLE public.invitaciones ADD COLUMN used_by_email text DEFAULT NULL;
