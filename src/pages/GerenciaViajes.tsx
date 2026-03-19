@@ -212,7 +212,7 @@ export default function GerenciaViajes() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ConsolidadoTable vehicleMap={vehicleMap} vehicleKeys={vehicleKeys} />
+                    <ConsolidadoTable vehicleMap={vehicleMap} vehicleKeys={vehicleKeys} empresaInfo={empresaInfo} />
                   </CardContent>
                 </Card>
               </motion.div>
