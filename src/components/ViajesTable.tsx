@@ -29,6 +29,9 @@ interface ViajesTableProps {
   showConductorColumn?: boolean;
   showSummary?: boolean;
   comisionPct?: number;
+  comisionFija?: number;
+  tipoComision?: "PORCENTAJE" | "FIJO" | "MIXTO";
+  frecuenciaComision?: string;
 }
 
 function calcAlimentacion(eg: ViajeRow["egresos"]): number {
