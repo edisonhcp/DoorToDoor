@@ -54,11 +54,12 @@ function SuspensionBanner({ message }: { message: string }) {
 // ─── Conductor Dashboard ───
 function ConductorDashboard({ profile, suspended }: { profile: any; suspended: any }) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, empresaId } = useAuth();
   const [conductorInfo, setConductorInfo] = useState<any>(null);
   const [rutasAsignadas, setRutasAsignadas] = useState<RutaAsignada[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteAccountAlert, setDeleteAccountAlert] = useState(false);
+  const [empresaInfo, setEmpresaInfo] = useState<any>(null);
 
   const loadRutas = async () => {
     if (!user?.id) return;
@@ -72,10 +73,14 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
       const data = await fetchConductorData(user.id);
       setConductorInfo(data);
       await loadRutas();
+      if (empresaId) {
+        const info = await fetchEmpresaInfo(empresaId);
+        setEmpresaInfo(info);
+      }
       setLoading(false);
     };
     load();
-  }, [user]);
+  }, [user, empresaId]);
 
   const handleIniciarRuta = async (viajeId: string) => {
     const { error } = await iniciarRuta(viajeId);
@@ -176,6 +181,42 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
             </Card>
           )}
         </motion.div>
+
+        {/* Comisión Configurada */}
+        {empresaInfo && (
+          <motion.div variants={item}>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6">
+                <p className="text-sm font-medium text-muted-foreground mb-3">Comisión Configurada</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    {empresaInfo.tipo_comision === "PORCENTAJE" ? (
+                      <Percent className="w-5 h-5 text-primary" />
+                    ) : (
+                      <DollarSign className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-lg font-display font-bold text-foreground">
+                      {empresaInfo.tipo_comision === "PORCENTAJE"
+                        ? `${Math.round((empresaInfo.comision_pct || 0) * 100)}%`
+                        : `$${empresaInfo.comision_fija || 0}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {empresaInfo.tipo_comision === "PORCENTAJE" ? "Porcentaje" : "Valor Fijo"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="w-4 h-4 text-muted-foreground" />
+                    <Badge variant="secondary" className="capitalize">
+                      {(empresaInfo.frecuencia_comision || "SEMANAL").toLowerCase()}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Rutas asignadas */}
         {rutasAsignadas.length > 0 && (

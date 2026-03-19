@@ -29,7 +29,7 @@ export default function ConfiguracionEmpresa() {
     propietario_apellidos: "",
     tipo_comision: "PORCENTAJE",
     comision_pct: 0,
-    comision_fija: 0,
+    comision_fija: "" as any,
     frecuencia_comision: "SEMANAL",
   });
 
@@ -48,7 +48,7 @@ export default function ConfiguracionEmpresa() {
           propietario_apellidos: data.propietario_apellidos || "",
           tipo_comision: data.tipo_comision || "PORCENTAJE",
           comision_pct: Math.round((data.comision_pct || 0) * 100),
-          comision_fija: data.comision_fija || 0,
+          comision_fija: data.comision_fija || "",
           frecuencia_comision: data.frecuencia_comision || "SEMANAL",
         });
         if (data.logo_url) setLogoPreview(data.logo_url);
@@ -88,8 +88,8 @@ export default function ConfiguracionEmpresa() {
       propietario_nombre: form.propietario_nombre,
       propietario_apellidos: form.propietario_apellidos,
       tipo_comision: form.tipo_comision,
-      comision_pct: form.tipo_comision === "PORCENTAJE" ? form.comision_pct / 100 : 0,
-      comision_fija: form.tipo_comision === "FIJO" ? form.comision_fija : 0,
+      comision_pct: form.tipo_comision === "PORCENTAJE" ? (Number(form.comision_pct) || 0) / 100 : 0,
+      comision_fija: form.tipo_comision === "FIJO" ? (Number(form.comision_fija) || 0) : 0,
       frecuencia_comision: form.frecuencia_comision,
     });
 
@@ -226,8 +226,8 @@ export default function ConfiguracionEmpresa() {
                   type="number"
                   min={0}
                   max={100}
-                  value={form.comision_pct}
-                  onChange={(e) => update("comision_pct", Number(e.target.value))}
+                  value={form.comision_pct || ""}
+                  onChange={(e) => update("comision_pct", e.target.value === "" ? "" : Number(e.target.value))}
                 />
               </div>
             ) : (
@@ -236,8 +236,8 @@ export default function ConfiguracionEmpresa() {
                 <Input
                   type="number"
                   min={0}
-                  value={form.comision_fija}
-                  onChange={(e) => update("comision_fija", Number(e.target.value))}
+                  value={form.comision_fija || ""}
+                  onChange={(e) => update("comision_fija", e.target.value === "" ? "" : Number(e.target.value))}
                 />
               </div>
             )}

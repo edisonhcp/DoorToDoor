@@ -29,6 +29,9 @@ interface ViajesTableProps {
   showConductorColumn?: boolean;
   showSummary?: boolean;
   comisionPct?: number;
+  comisionFija?: number;
+  tipoComision?: "PORCENTAJE" | "FIJO" | "MIXTO";
+  frecuenciaComision?: string;
 }
 
 function calcAlimentacion(eg: ViajeRow["egresos"]): number {
@@ -40,7 +43,7 @@ function calcAlimentacion(eg: ViajeRow["egresos"]): number {
   return count * ALIMENTACION_COSTO;
 }
 
-export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = true, showSummary = true, comisionPct = 0.10 }: ViajesTableProps) {
+export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = true, showSummary = true, comisionPct = 0.10, comisionFija = 0, tipoComision = "PORCENTAJE", frecuenciaComision = "SEMANAL" }: ViajesTableProps) {
   const formatDate = (d: string) => {
     try { return new Date(d).toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" }); }
     catch { return d; }
@@ -68,8 +71,20 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
     alimentacion: 0, peaje: 0, hotel: 0, conductor: 0, combustible: 0, varios: 0, totalEgreso: 0,
   });
 
-  const comisionCompania = totals.totalIngreso * comisionPct;
+  const comisionCompania = tipoComision === "PORCENTAJE" 
+    ? totals.totalIngreso * comisionPct 
+    : comisionFija * viajes.length;
   const totalPropietario = totals.totalIngreso - totals.totalEgreso - comisionCompania;
+
+  const frecuenciaLabel: Record<string, string> = {
+    SEMANAL: "Semanal",
+    QUINCENAL: "Quincenal", 
+    MENSUAL: "Mensual",
+  };
+
+  const comisionLabel = tipoComision === "PORCENTAJE"
+    ? `Compañía (${(comisionPct * 100).toFixed(0)}%) - ${frecuenciaLabel[frecuenciaComision] || frecuenciaComision}`
+    : `Compañía ($${comisionFija}) - ${frecuenciaLabel[frecuenciaComision] || frecuenciaComision}`;
 
   return (
     <div className="space-y-4">
@@ -222,7 +237,7 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
               <p className="font-bold text-lg text-destructive">${totals.totalEgreso.toFixed(2)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-muted-foreground text-xs">Compañía ({(comisionPct * 100).toFixed(0)}%)</p>
+              <p className="text-muted-foreground text-xs">{comisionLabel}</p>
               <p className="font-bold text-lg text-accent-foreground">${comisionCompania.toFixed(2)}</p>
             </div>
             <div className="space-y-1">
