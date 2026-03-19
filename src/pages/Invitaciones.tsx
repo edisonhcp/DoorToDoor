@@ -161,6 +161,7 @@ export default function Invitaciones() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Rol</TableHead>
+                      <TableHead>Correo</TableHead>
                       <TableHead>Token</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Creada</TableHead>
