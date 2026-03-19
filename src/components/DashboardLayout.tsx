@@ -29,8 +29,9 @@ const propietarioNavItems = [
 
 const conductorNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { label: "Asignaciones", icon: ClipboardList, href: "/dashboard/conductor-asignaciones" },
-  { label: "Rutas", icon: Route, href: "/dashboard/conductor-rutas" },
+  { label: "Asignaciones de ruta", icon: ClipboardList, href: "/dashboard/conductor-asignaciones" },
+  { label: "Consolidado rutas", icon: Route, href: "/dashboard/conductor-rutas" },
+  { label: "Configuración", icon: Settings, href: "/dashboard/conductor-config" },
 ];
 
 const superAdminNavItems = [
