@@ -163,7 +163,6 @@ export default function Invitaciones() {
                       <TableHead>Rol</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Token</TableHead>
-                      <TableHead>Estado</TableHead>
                       <TableHead>Creada</TableHead>
                       <TableHead>Expira</TableHead>
                       <TableHead>Acciones</TableHead>
@@ -171,7 +170,6 @@ export default function Invitaciones() {
                   </TableHeader>
                   <TableBody>
                     {filtered.map(inv => {
-                      const status = getStatus(inv);
                       const link = `${window.location.origin}/registro/${inv.token}`;
                       return (
                         <TableRow key={inv.id}>
@@ -186,12 +184,6 @@ export default function Invitaciones() {
                           </TableCell>
                           <TableCell className="font-mono text-xs text-muted-foreground max-w-[120px] truncate">
                             {inv.token.slice(0, 8)}...
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={status.variant} className={`text-xs gap-1 ${status.color}`}>
-                              <status.icon className="w-3 h-3" />
-                              {status.label}
-                            </Badge>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {new Date(inv.created_at).toLocaleDateString("es-ES")}
