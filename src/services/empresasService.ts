@@ -57,26 +57,40 @@ export async function fetchConsolidadoEmpresas() {
         .select("id", { count: "exact", head: true })
         .eq("empresa_id", emp.id);
 
-      const { data: ingresos } = await supabase
-        .from("ingresos_viaje")
-        .select("total_ingreso, comision_gerencia")
-        .eq("empresa_id", emp.id);
-
-      const { count: totalViajes } = await supabase
+      const { data: viajes } = await supabase
         .from("viajes")
-        .select("id", { count: "exact", head: true })
+        .select("id, asignacion_id, ingresos_viaje(total_ingreso)")
         .eq("empresa_id", emp.id)
         .eq("estado", "FINALIZADO" as any);
 
-      const totalIngresos = (ingresos || []).reduce((s: number, i: any) => s + Number(i.total_ingreso || 0), 0);
-      const totalComision = (ingresos || []).reduce((s: number, i: any) => s + Number(i.comision_gerencia || 0), 0);
+      const totalViajes = viajes?.length || 0;
+      const totalIngresos = (viajes || []).reduce((s: number, v: any) => s + Number(v.ingresos_viaje?.total_ingreso || 0), 0);
+
+      // Group by vehicle (via asignacion_id) to calculate commission per vehicle
+      const vehicleMap: Record<string, number> = {};
+      (viajes || []).forEach((v: any) => {
+        const key = v.asignacion_id || v.id;
+        if (!vehicleMap[key]) vehicleMap[key] = 0;
+        vehicleMap[key] += Number(v.ingresos_viaje?.total_ingreso || 0);
+      });
+
+      let totalComision = 0;
+      Object.values(vehicleMap).forEach((vehicleIngreso) => {
+        if (emp.tipo_comision === "PORCENTAJE") {
+          totalComision += vehicleIngreso * (emp.comision_pct || 0);
+        } else if (emp.tipo_comision === "FIJO") {
+          totalComision += emp.comision_fija || 0;
+        } else if (emp.tipo_comision === "MIXTO") {
+          totalComision += vehicleIngreso * (emp.comision_pct || 0) + (emp.comision_fija || 0);
+        }
+      });
 
       return {
         id: emp.id,
         nombre: emp.nombre,
         tipoComision: emp.tipo_comision,
         totalVehiculos: totalVehiculos || 0,
-        totalViajes: totalViajes || 0,
+        totalViajes,
         totalIngresos,
         totalComision,
       };
