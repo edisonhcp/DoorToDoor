@@ -96,8 +96,31 @@ export default function ConductorAsignaciones() {
     setVariosFile(null);
   };
 
-  const handleSaveEgresos = async (viajeId: string) => {
-    if (!empresaId) return;
+  const handlePreSaveEgresos = (viajeId: string) => {
+    const alimentacionItems = [];
+    if (egresoForm.desayuno) alimentacionItems.push("Desayuno");
+    if (egresoForm.almuerzo) alimentacionItems.push("Almuerzo");
+    if (egresoForm.merienda) alimentacionItems.push("Merienda");
+
+    const resumen = {
+      peaje: parseFloat(egresoForm.peaje) || 0,
+      hotel: parseFloat(egresoForm.hotel) || 0,
+      pago_conductor: parseFloat(egresoForm.pago_conductor) || 0,
+      combustible: parseFloat(egresoForm.combustible) || 0,
+      varios: parseFloat(egresoForm.varios) || 0,
+      alimentacion: alimentacionItems.join(", ") || "Ninguna",
+      varios_texto: egresoForm.varios_texto || "",
+      total: (parseFloat(egresoForm.peaje) || 0) + (parseFloat(egresoForm.hotel) || 0) +
+        (parseFloat(egresoForm.pago_conductor) || 0) + (parseFloat(egresoForm.combustible) || 0) +
+        (parseFloat(egresoForm.varios) || 0),
+    };
+    setConfirmDialog({ open: true, viajeId, resumen });
+  };
+
+  const handleConfirmSaveEgresos = async () => {
+    if (!confirmDialog || !empresaId) return;
+    const viajeId = confirmDialog.viajeId;
+    setConfirmDialog(null);
     setSaving(true);
 
     let combustible_foto_url: string | null | undefined = undefined;
