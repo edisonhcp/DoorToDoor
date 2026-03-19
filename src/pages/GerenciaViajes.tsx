@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { fetchViajesConDetalle } from "@/services/egresosService";
+import { fetchEmpresaInfo } from "@/services/dashboardService";
 import { ViajesTable } from "@/components/ViajesTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -104,12 +105,15 @@ export default function GerenciaViajes() {
   const [viajes, setViajes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [empresaInfo, setEmpresaInfo] = useState<any>(null);
 
   useEffect(() => {
     const load = async () => {
       if (!empresaId) return;
       const { data } = await fetchViajesConDetalle(empresaId);
       setViajes(data);
+      const info = await fetchEmpresaInfo(empresaId);
+      setEmpresaInfo(info);
       setLoading(false);
     };
     load();
@@ -175,7 +179,15 @@ export default function GerenciaViajes() {
                     </CardHeader>
                     {isOpen && (
                       <CardContent onClick={(e) => e.stopPropagation()}>
-                        <ViajesTable viajes={veh.viajes} showEgresos showConductorColumn />
+                        <ViajesTable
+                          viajes={veh.viajes}
+                          showEgresos
+                          showConductorColumn
+                          comisionPct={empresaInfo?.comision_pct || 0.10}
+                          comisionFija={empresaInfo?.comision_fija || 0}
+                          tipoComision={empresaInfo?.tipo_comision || "PORCENTAJE"}
+                          frecuenciaComision={empresaInfo?.frecuencia_comision || "SEMANAL"}
+                        />
                       </CardContent>
                     )}
                   </Card>
