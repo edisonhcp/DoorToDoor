@@ -108,10 +108,49 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
         )}
 
         <motion.div variants={item}>
-          <h1 className="text-3xl font-display font-bold text-foreground">
-            Hola, {profile?.username || "Conductor"} 👋
-          </h1>
-          <p className="text-muted-foreground mt-1">Panel de conductor</p>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              {empresaInfo?.nombre && (
+                <p className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4" />
+                  {empresaInfo.nombre}
+                </p>
+              )}
+              <h1 className="text-3xl font-display font-bold text-foreground">
+                Hola, {conductorInfo?.conductor ? `${conductorInfo.conductor.nombres} ${conductorInfo.conductor.apellidos}` : profile?.username || "Conductor"} 👋
+              </h1>
+              <p className="text-muted-foreground mt-1">Panel de conductor</p>
+            </div>
+
+            {/* Comisión Configurada - lado derecho */}
+            {empresaInfo && (
+              <Card className="border-0 shadow-sm min-w-[220px]">
+                <CardContent className="p-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Comisión Configurada</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      {empresaInfo.tipo_comision === "PORCENTAJE" ? (
+                        <Percent className="w-4 h-4 text-primary" />
+                      ) : (
+                        <DollarSign className="w-4 h-4 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-lg font-display font-bold text-foreground">
+                        {empresaInfo.tipo_comision === "PORCENTAJE"
+                          ? `${Math.round((empresaInfo.comision_pct || 0) * 100)}%`
+                          : `$${empresaInfo.comision_fija || 0}`}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <CalendarClock className="w-3 h-3" />
+                        <span className="capitalize">{(empresaInfo.frecuencia_comision || "SEMANAL").toLowerCase()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </motion.div>
 
         <motion.div variants={item}>
