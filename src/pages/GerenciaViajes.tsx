@@ -179,7 +179,15 @@ export default function GerenciaViajes() {
                     </CardHeader>
                     {isOpen && (
                       <CardContent onClick={(e) => e.stopPropagation()}>
-                        <ViajesTable viajes={veh.viajes} showEgresos showConductorColumn />
+                        <ViajesTable
+                          viajes={veh.viajes}
+                          showEgresos
+                          showConductorColumn
+                          comisionPct={empresaInfo?.comision_pct || 0.10}
+                          comisionFija={empresaInfo?.comision_fija || 0}
+                          tipoComision={empresaInfo?.tipo_comision || "PORCENTAJE"}
+                          frecuenciaComision={empresaInfo?.frecuencia_comision || "SEMANAL"}
+                        />
                       </CardContent>
                     )}
                   </Card>
