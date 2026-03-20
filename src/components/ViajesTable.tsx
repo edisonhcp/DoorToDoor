@@ -13,6 +13,7 @@ interface ViajeRow {
   hora_salida: string | null;
   cantidad_pasajeros: number | null;
   fecha_salida: string;
+  estado?: string;
   vehiculo?: { placa: string; marca: string; modelo: string } | null;
   conductor?: { nombres: string; apellidos: string } | null;
   ingresos?: { pasajeros_monto: number; encomiendas_monto: number; total_ingreso: number } | null;
