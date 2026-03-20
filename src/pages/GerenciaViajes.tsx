@@ -187,7 +187,7 @@ export default function GerenciaViajes() {
               const veh = vehicleMap[key];
               const isOpen = expanded === key;
               return (
-                <motion.div key={key} variants={item}>
+                <motion.div key={key} variants={item} className={printingVehicle && printingVehicle !== key ? "print:hidden" : ""}>
                   <Card
                     className="cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => setExpanded(isOpen ? null : key)}
