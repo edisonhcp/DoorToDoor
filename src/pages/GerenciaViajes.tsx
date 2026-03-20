@@ -215,7 +215,11 @@ export default function GerenciaViajes() {
                                   variant="outline"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    window.print();
+                                    setPrintingVehicle(key);
+                                    setTimeout(() => {
+                                      window.print();
+                                      setPrintingVehicle(null);
+                                    }, 100);
                                   }}
                                 >
                                   <Printer className="w-4 h-4 mr-1" />
