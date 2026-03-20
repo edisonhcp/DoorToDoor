@@ -208,18 +208,31 @@ export default function GerenciaViajes() {
                           {isOpen && (() => {
                             const allFinalized = veh.viajes.length > 0 && veh.viajes.every((v: any) => v.estado === "FINALIZADO");
                             return (
-                              <Button
-                                size="sm"
-                                disabled={!allFinalized}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFinalizarPeriodo(veh.placa);
-                                }}
-                                title={!allFinalized ? "Todos los viajes deben estar finalizados" : ""}
-                              >
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                Finalizar {frecuenciaLabel}
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.print();
+                                  }}
+                                >
+                                  <Printer className="w-4 h-4 mr-1" />
+                                  Imprimir
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  disabled={!allFinalized}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleFinalizarPeriodo(veh.placa);
+                                  }}
+                                  title={!allFinalized ? "Todos los viajes deben estar finalizados" : ""}
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  Finalizar {frecuenciaLabel}
+                                </Button>
+                              </>
                             );
                           })()}
                           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
