@@ -59,7 +59,11 @@ export async function validateInvitation(token: string) {
 
 export async function registerWithInvitation(body: any) {
   const { data, error } = await supabase.functions.invoke("register-with-invitation", { body });
-  if (error) throw new Error(data?.error || error.message || "Error al registrar");
+  // When edge function returns non-2xx, error is set but data may contain the real message
+  if (error) {
+    const msg = data?.error || error.message || "Error al registrar";
+    throw new Error(msg);
+  }
   if (data?.error) throw new Error(data.error);
   return data;
 }
