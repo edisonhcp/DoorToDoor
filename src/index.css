@@ -105,3 +105,56 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 }
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  /* Hide sidebar, topbar, and non-print elements */
+  aside,
+  header,
+  .no-print,
+  button,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-header {
+    display: block !important;
+  }
+
+  /* Remove card styling for clean print */
+  .print\\:shadow-none {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Main content takes full width */
+  main {
+    padding: 0 !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  /* Page margin */
+  @page {
+    margin: 1.5cm;
+    size: landscape;
+  }
+
+  /* Prevent page breaks inside rows */
+  tr {
+    page-break-inside: avoid;
+  }
+
+  table {
+    font-size: 9pt;
+  }
+}

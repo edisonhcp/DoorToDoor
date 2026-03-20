@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Bus, ChevronDown, ChevronUp, LayoutList, Printer, User, CheckCircle } from "lucide-react";
+import { PrintHeader } from "@/components/PrintHeader";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
@@ -167,8 +168,12 @@ export default function GerenciaViajes() {
 
   return (
     <DashboardLayout>
+      <PrintHeader
+        reportTitle="Consolidado Rutas"
+        subtitle="Registro completo de rutas con ingresos y egresos"
+      />
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item}>
+        <motion.div variants={item} className="no-print">
           <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
           <p className="text-muted-foreground mt-1">Registro completo de rutas con ingresos y egresos</p>
         </motion.div>
