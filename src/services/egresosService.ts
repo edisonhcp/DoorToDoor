@@ -168,7 +168,7 @@ export async function fetchViajesPropietario(userId: string) {
       egresos_viaje(peaje, hotel, pago_conductor, combustible, varios, total_egreso, desayuno, almuerzo, merienda)
     `)
     .in("asignacion_id", asignacionIds)
-    .eq("estado", "FINALIZADO" as any)
+    .in("estado", ["FINALIZADO", "EN_RUTA"] as any)
     .order("fecha_salida", { ascending: false });
 
   const asignacionMap = Object.fromEntries(

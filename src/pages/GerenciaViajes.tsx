@@ -32,7 +32,6 @@ function calcAlim(eg: any): number {
 }
 
 function ConsolidadoTable({ vehicleMap, vehicleKeys, empresaInfo }: { vehicleMap: Record<string, any>; vehicleKeys: string[]; empresaInfo: any }) {
-  // Find the most recent Sunday cutoff from all trips
   let latestSunday = "";
   vehicleKeys.forEach((key) => {
     vehicleMap[key].viajes.forEach((v: any) => {
@@ -138,7 +137,7 @@ export default function GerenciaViajes() {
   const frecuencia = empresaInfo?.frecuencia_comision || "SEMANAL";
   const frecuenciaLabel = FRECUENCIA_LABELS[frecuencia] || "Período";
 
-  // Group by propietario + vehicle
+  // Group by vehicle
   const vehicleMap: Record<string, { placa: string; marca: string; modelo: string; propietario: string; viajes: any[] }> = {};
   viajes.forEach((v) => {
     const placa = v.vehiculo?.placa || "sin-vehiculo";
@@ -157,9 +156,9 @@ export default function GerenciaViajes() {
 
   const vehicleKeys = Object.keys(vehicleMap);
 
-  const handleFinalizarPeriodo = () => {
-    toast.success(`Corte de ${frecuenciaLabel.toLowerCase()} realizado correctamente`);
-    // TODO: Implement period finalization logic
+  const handleFinalizarPeriodo = (placa: string) => {
+    toast.success(`Corte de ${frecuenciaLabel.toLowerCase()} realizado para vehículo ${placa}`);
+    // TODO: Implement period finalization logic per vehicle
   };
 
   const handlePrint = () => {
@@ -170,8 +169,8 @@ export default function GerenciaViajes() {
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <motion.div variants={item}>
-          <h1 className="text-3xl font-display font-bold text-foreground">Viajes</h1>
-          <p className="text-muted-foreground mt-1">Registro completo de rutas finalizadas con ingresos y egresos</p>
+          <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
+          <p className="text-muted-foreground mt-1">Registro completo de rutas con ingresos y egresos</p>
         </motion.div>
 
         {loading ? (
@@ -200,7 +199,21 @@ export default function GerenciaViajes() {
                           </span>
                           <span className="text-muted-foreground text-xs">({veh.viajes.length} viajes)</span>
                         </div>
-                        {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        <div className="flex items-center gap-2">
+                          {isOpen && (
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFinalizarPeriodo(veh.placa);
+                              }}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Finalizar {frecuenciaLabel}
+                            </Button>
+                          )}
+                          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </div>
                       </CardTitle>
                     </CardHeader>
                     {isOpen && (
@@ -231,16 +244,10 @@ export default function GerenciaViajes() {
                         <span>Consolidado</span>
                         <span className="text-muted-foreground text-xs">({vehicleKeys.length} vehículos)</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={handlePrint}>
-                          <Printer className="w-4 h-4 mr-1" />
-                          Imprimir
-                        </Button>
-                        <Button size="sm" onClick={handleFinalizarPeriodo}>
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Finalizar {frecuenciaLabel}
-                        </Button>
-                      </div>
+                      <Button size="sm" variant="outline" onClick={handlePrint}>
+                        <Printer className="w-4 h-4 mr-1" />
+                        Imprimir
+                      </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>

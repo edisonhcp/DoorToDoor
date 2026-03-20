@@ -19,7 +19,7 @@ export default function ConductorRutas() {
   useEffect(() => {
     const load = async () => {
       if (!user?.id) return;
-      const { data } = await fetchConductorViajes(user.id, ["FINALIZADO"]);
+      const { data } = await fetchConductorViajes(user.id, ["FINALIZADO", "EN_RUTA"]);
       setViajes(data);
       if (empresaId) {
         const info = await fetchEmpresaInfo(empresaId);
