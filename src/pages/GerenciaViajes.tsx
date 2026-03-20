@@ -200,18 +200,23 @@ export default function GerenciaViajes() {
                           <span className="text-muted-foreground text-xs">({veh.viajes.length} viajes)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          {isOpen && (
-                            <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleFinalizarPeriodo(veh.placa);
-                              }}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Finalizar {frecuenciaLabel}
-                            </Button>
-                          )}
+                          {isOpen && (() => {
+                            const allFinalized = veh.viajes.length > 0 && veh.viajes.every((v: any) => v.estado === "FINALIZADO");
+                            return (
+                              <Button
+                                size="sm"
+                                disabled={!allFinalized}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleFinalizarPeriodo(veh.placa);
+                                }}
+                                title={!allFinalized ? "Todos los viajes deben estar finalizados" : ""}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Finalizar {frecuenciaLabel}
+                              </Button>
+                            );
+                          })()}
                           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </div>
                       </CardTitle>
