@@ -44,7 +44,7 @@ export async function toggleEmpresaSuspend(empresa: any) {
 export async function fetchConsolidadoEmpresas() {
   const { data: empresas } = await supabase
     .from("empresas")
-    .select("id, nombre, tipo_comision, comision_pct, comision_fija, activo")
+    .select("id, nombre, tipo_comision, comision_pct, comision_fija, frecuencia_comision, activo")
     .eq("activo", true)
     .order("nombre");
 
@@ -91,6 +91,7 @@ export async function fetchConsolidadoEmpresas() {
         tipoComision: emp.tipo_comision,
         comisionPct: emp.comision_pct,
         comisionFija: emp.comision_fija,
+        frecuenciaComision: emp.frecuencia_comision,
         totalVehiculos: totalVehiculos || 0,
         totalViajes,
         totalIngresos,
