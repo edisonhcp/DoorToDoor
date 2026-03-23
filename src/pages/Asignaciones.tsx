@@ -59,7 +59,7 @@ export default function Asignaciones() {
   const [cantidadPasajeros, setCantidadPasajeros] = useState("");
   const [valorPasajeros, setValorPasajeros] = useState("");
   const [valorEncomienda, setValorEncomienda] = useState("");
-
+  const [fechaSalida, setFechaSalida] = useState<Date | undefined>(undefined);
   const clearForm = () => {
     setSelectedVehiculo("");
     setDestino("");
@@ -68,6 +68,7 @@ export default function Asignaciones() {
     setCantidadPasajeros("");
     setValorPasajeros("");
     setValorEncomienda("");
+    setFechaSalida(undefined);
     setEditingId(null);
   };
 
