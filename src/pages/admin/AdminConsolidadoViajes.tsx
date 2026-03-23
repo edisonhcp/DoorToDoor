@@ -12,6 +12,12 @@ import { Input } from "@/components/ui/input";
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
+const FRECUENCIA_LABEL: Record<string, string> = {
+  SEMANAL: "Semanal",
+  QUINCENAL: "Quincenal",
+  MENSUAL: "Mensual",
+};
+
 function formatComision(emp: any) {
   if (emp.tipoComision === "PORCENTAJE") return `${((emp.comisionPct || 0) * 100).toFixed(0)}%`;
   if (emp.tipoComision === "FIJO") return `$${(emp.comisionFija || 0).toFixed(2)}`;
@@ -88,6 +94,7 @@ export default function AdminConsolidadoViajes() {
                                 <TableHead>Compañía</TableHead>
                                 <TableHead className="text-center">Vehículos</TableHead>
                                 <TableHead className="text-center">Forma de Cobro</TableHead>
+                                <TableHead className="text-center">Periodo</TableHead>
                                 <TableHead className="text-right">Total Compañía</TableHead>
                                 <TableHead className="text-right">Total Ingresos</TableHead>
                               </TableRow>
@@ -98,6 +105,7 @@ export default function AdminConsolidadoViajes() {
                                 <TableCell className="font-medium">{emp.nombre}</TableCell>
                                 <TableCell className="text-center">{emp.totalVehiculos}</TableCell>
                                 <TableCell className="text-center">{formatComision(emp)}</TableCell>
+                                <TableCell className="text-center">{FRECUENCIA_LABEL[emp.frecuenciaComision] || emp.frecuenciaComision}</TableCell>
                                 <TableCell className="text-right font-semibold">${emp.totalComision.toFixed(2)}</TableCell>
                                 <TableCell className="text-right font-semibold">${emp.totalIngresos.toFixed(2)}</TableCell>
                               </TableRow>
@@ -124,6 +132,7 @@ export default function AdminConsolidadoViajes() {
                             <TableHead>Compañía</TableHead>
                             <TableHead className="text-center">Vehículos</TableHead>
                             <TableHead className="text-center">Forma de Cobro</TableHead>
+                            <TableHead className="text-center">Periodo</TableHead>
                             <TableHead className="text-right">Total Compañía</TableHead>
                             <TableHead className="text-right">Total Ingresos</TableHead>
                           </TableRow>
@@ -135,6 +144,7 @@ export default function AdminConsolidadoViajes() {
                               <TableCell className="font-medium">{emp.nombre}</TableCell>
                               <TableCell className="text-center">{emp.totalVehiculos}</TableCell>
                               <TableCell className="text-center">{formatComision(emp)}</TableCell>
+                              <TableCell className="text-center">{FRECUENCIA_LABEL[emp.frecuenciaComision] || emp.frecuenciaComision}</TableCell>
                               <TableCell className="text-right">${emp.totalComision.toFixed(2)}</TableCell>
                               <TableCell className="text-right">${emp.totalIngresos.toFixed(2)}</TableCell>
                             </TableRow>
@@ -142,7 +152,7 @@ export default function AdminConsolidadoViajes() {
                         </TableBody>
                         <TableFooter>
                           <TableRow>
-                            <TableCell colSpan={4} className="font-bold">TOTAL GENERAL</TableCell>
+                            <TableCell colSpan={5} className="font-bold">TOTAL GENERAL</TableCell>
                             <TableCell className="text-right font-bold">
                               ${filtered.reduce((s, e) => s + e.totalComision, 0).toFixed(2)}
                             </TableCell>
