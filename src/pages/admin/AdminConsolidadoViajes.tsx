@@ -97,7 +97,7 @@ export default function AdminConsolidadoViajes() {
                                 <TableCell>{idx + 1}</TableCell>
                                 <TableCell className="font-medium">{emp.nombre}</TableCell>
                                 <TableCell className="text-center">{emp.totalVehiculos}</TableCell>
-                                <TableCell className="text-center">{TIPO_COMISION_LABEL[emp.tipoComision] || emp.tipoComision}</TableCell>
+                                <TableCell className="text-center">{formatComision(emp)}</TableCell>
                                 <TableCell className="text-right font-semibold">${emp.totalComision.toFixed(2)}</TableCell>
                                 <TableCell className="text-right font-semibold">${emp.totalIngresos.toFixed(2)}</TableCell>
                               </TableRow>
@@ -134,7 +134,7 @@ export default function AdminConsolidadoViajes() {
                               <TableCell>{idx + 1}</TableCell>
                               <TableCell className="font-medium">{emp.nombre}</TableCell>
                               <TableCell className="text-center">{emp.totalVehiculos}</TableCell>
-                              <TableCell className="text-center">{TIPO_COMISION_LABEL[emp.tipoComision] || emp.tipoComision}</TableCell>
+                              <TableCell className="text-center">{formatComision(emp)}</TableCell>
                               <TableCell className="text-right">${emp.totalComision.toFixed(2)}</TableCell>
                               <TableCell className="text-right">${emp.totalIngresos.toFixed(2)}</TableCell>
                             </TableRow>
