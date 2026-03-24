@@ -32,19 +32,27 @@ export async function fetchVehiculosDisponibles(empresaId: string) {
     .eq("empresa_id", empresaId)
     .eq("estado", "ACTIVA");
 
-  // Filter out vehicles that already have an active viaje (ASIGNADO or EN_RUTA)
+  // Get the latest viaje per asignacion to know the last fecha_salida+hora_salida
   const { data: viajesActivos } = await supabase
     .from("viajes")
-    .select("asignacion_id")
+    .select("asignacion_id, fecha_salida, hora_salida, estado")
     .eq("empresa_id", empresaId)
-    .in("estado", ["ASIGNADO", "EN_RUTA"]);
+    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
+    .order("fecha_salida", { ascending: false });
 
-  const asignacionesConViajeActivo = new Set(
-    (viajesActivos || []).map((v: any) => v.asignacion_id)
-  );
+  // Build a map: asignacion_id -> latest viaje info
+  const ultimoViajePorAsignacion: Record<string, { fecha_salida: string; hora_salida: string | null }> = {};
+  for (const v of (viajesActivos || []) as any[]) {
+    if (v.asignacion_id && !ultimoViajePorAsignacion[v.asignacion_id]) {
+      ultimoViajePorAsignacion[v.asignacion_id] = {
+        fecha_salida: v.fecha_salida,
+        hora_salida: v.hora_salida,
+      };
+    }
+  }
 
   return (asignaciones || [])
-    .filter((a: any) => !asignacionesConViajeActivo.has(a.id) && a.vehiculos)
+    .filter((a: any) => a.vehiculos)
     .map((a: any) => ({
       id: a.id,
       vehiculo_id: a.vehiculo_id,
@@ -54,6 +62,7 @@ export async function fetchVehiculosDisponibles(empresaId: string) {
       modelo: a.vehiculos?.modelo,
       capacidad: a.vehiculos?.capacidad,
       conductor_nombre: `${a.conductores?.nombres || ""} ${a.conductores?.apellidos || ""}`.trim(),
+      ultimo_viaje: ultimoViajePorAsignacion[a.id] || null,
     }));
 }
 

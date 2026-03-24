@@ -347,6 +347,12 @@ export default function Asignaciones() {
                                 <MapPin className="w-3 h-3" />
                                 {a.origen} → {a.destino}
                               </span>
+                              {a.fecha_salida && (
+                                <span className="flex items-center gap-1">
+                                  <CalendarIcon className="w-3 h-3" />
+                                  {format(new Date(a.fecha_salida), "dd/MM/yyyy")}
+                                </span>
+                              )}
                               {a.hora_salida && (
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
