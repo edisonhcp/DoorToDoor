@@ -41,12 +41,13 @@ export async function fetchVehiculosDisponibles(empresaId: string) {
     .order("fecha_salida", { ascending: false });
 
   // Build a map: asignacion_id -> latest viaje info
-  const ultimoViajePorAsignacion: Record<string, { fecha_salida: string; hora_salida: string | null }> = {};
+  const ultimoViajePorAsignacion: Record<string, { fecha_salida: string; hora_salida: string | null; estado: string }> = {};
   for (const v of (viajesActivos || []) as any[]) {
     if (v.asignacion_id && !ultimoViajePorAsignacion[v.asignacion_id]) {
       ultimoViajePorAsignacion[v.asignacion_id] = {
         fecha_salida: v.fecha_salida,
         hora_salida: v.hora_salida,
+        estado: v.estado,
       };
     }
   }
