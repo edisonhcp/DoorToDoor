@@ -348,7 +348,15 @@ export default function Asignaciones() {
                 <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
               ))}
             </div>
-          ) : asignaciones.length === 0 ? (
+          ) : (() => {
+            const filteredAsignaciones = asignaciones.filter(a => {
+              if (a.estado === "FINALIZADO" && (a as any).fecha_llegada) {
+                const finalizadoTime = new Date((a as any).fecha_llegada).getTime();
+                if (Date.now() - finalizadoTime > 24 * 60 * 60 * 1000) return false;
+              }
+              return true;
+            });
+            return filteredAsignaciones.length === 0 ? (
             <Card className="border-0 shadow-sm">
               <CardContent className="py-12 text-center">
                 <Route className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
@@ -357,9 +365,10 @@ export default function Asignaciones() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {asignaciones.map((a) => {
+              {filteredAsignaciones.map((a) => {
                 const badge = estadoBadge[a.estado] || { label: a.estado, variant: "secondary" as const };
-                const canEdit = a.estado === "ASIGNADO" || a.estado === "EN_RUTA";
+                const isFinalized24h = a.estado === "FINALIZADO" && (a as any).fecha_llegada && (Date.now() - new Date((a as any).fecha_llegada).getTime() > 24 * 60 * 60 * 1000);
+                const canEdit = !isFinalized24h;
                 return (
                   <Card key={a.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${editingId === a.id ? "ring-2 ring-amber-500" : ""}`}>
                     <CardContent className="p-5">
