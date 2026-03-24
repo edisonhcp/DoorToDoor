@@ -96,3 +96,42 @@ export async function refreshAssignments() {
     asignacionesActivas: active.length,
   };
 }
+
+// City alias mapping for fuzzy matching
+const CITY_ALIASES: Record<string, string[]> = {
+  STO: ["SANTO", "STO", "STO DGO", "SANTO DOMINGO", "SDO"],
+  QTO: ["UIO", "QUITO", "QUIO", "QTO", "QUIT"],
+  MTA: ["MANTA", "MNT", "MAN", "MTA"],
+  GYE: ["GUA", "GYQL", "GUAYAS", "QUIL", "GYQ", "GYE", "GUAYAQUIL"],
+};
+
+export function matchCity(destino: string): string {
+  const norm = destino.trim().toUpperCase();
+  for (const [key, aliases] of Object.entries(CITY_ALIASES)) {
+    if (aliases.some(a => norm === a || norm.includes(a))) return key;
+  }
+  return norm;
+}
+
+export async function fetchViajesActivosConVehiculo(empresaId: string) {
+  const { data, error } = await supabase
+    .from("viajes")
+    .select(`
+      id, destino, estado,
+      asignacion_id,
+      asignaciones!viajes_asignacion_id_fkey (
+        vehiculo_id,
+        vehiculos!asignaciones_vehiculo_id_fkey ( placa, marca, modelo )
+      )
+    `)
+    .eq("empresa_id", empresaId)
+    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any);
+
+  if (error) return [];
+  return (data || []).map((v: any) => ({
+    id: v.id,
+    destino: v.destino,
+    estado: v.estado,
+    vehiculo: v.asignaciones?.vehiculos || null,
+  }));
+}
