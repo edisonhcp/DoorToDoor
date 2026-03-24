@@ -118,7 +118,7 @@ export async function fetchAsignacionesActivas(empresaId: string) {
   const { data, error } = await supabase
     .from("viajes")
     .select(`
-      id, destino, origen, hora_salida, cantidad_pasajeros, estado, fecha_salida,
+      id, destino, origen, hora_salida, cantidad_pasajeros, estado, fecha_salida, created_at,
       asignacion_id,
       ingresos_viaje(pasajeros_monto, encomiendas_monto),
       asignaciones(
