@@ -114,24 +114,98 @@ export function matchCity(destino: string): string {
 }
 
 export async function fetchViajesActivosConVehiculo(empresaId: string) {
+  // Get the latest FINALIZADO viaje per vehicle to determine current location
+  // Also get ASIGNADO/EN_RUTA viajes to show pending departures
   const { data, error } = await supabase
     .from("viajes")
     .select(`
-      id, destino, estado,
+      id, destino, estado, fecha_llegada, fecha_salida,
       asignacion_id,
       asignaciones!viajes_asignacion_id_fkey (
         vehiculo_id,
-        vehiculos!asignaciones_vehiculo_id_fkey ( placa, marca, modelo )
+        vehiculos!asignaciones_vehiculo_id_fkey ( id, placa, marca, modelo )
       )
     `)
     .eq("empresa_id", empresaId)
-    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any);
+    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
+    .order("fecha_llegada", { ascending: false });
 
   if (error) return [];
   return (data || []).map((v: any) => ({
     id: v.id,
     destino: v.destino,
     estado: v.estado,
+    fecha_llegada: v.fecha_llegada,
+    fecha_salida: v.fecha_salida,
     vehiculo: v.asignaciones?.vehiculos || null,
   }));
+}
+
+export interface VehiculoDespacho {
+  vehiculoId: string;
+  placa: string;
+  marca: string;
+  modelo: string;
+  ciudadActual: string;
+  fechaLlegada: string | null;
+  estadoRuta: string | null; // ASIGNADO, EN_RUTA if has pending route
+  destinoPendiente: string | null;
+}
+
+export function buildDespachoBoard(viajes: any[]): Record<string, VehiculoDespacho[]> {
+  // For each vehicle, find its current city (last FINALIZADO destination)
+  // and whether it has a pending route (ASIGNADO or EN_RUTA)
+  const vehiculoMap: Record<string, VehiculoDespacho> = {};
+
+  // First pass: find last FINALIZADO per vehicle (data is ordered by fecha_llegada desc)
+  for (const v of viajes) {
+    if (!v.vehiculo?.id) continue;
+    const vid = v.vehiculo.id;
+    if (v.estado === "FINALIZADO" && !vehiculoMap[vid]) {
+      vehiculoMap[vid] = {
+        vehiculoId: vid,
+        placa: v.vehiculo.placa,
+        marca: v.vehiculo.marca,
+        modelo: v.vehiculo.modelo,
+        ciudadActual: matchCity(v.destino),
+        fechaLlegada: v.fecha_llegada,
+        estadoRuta: null,
+        destinoPendiente: null,
+      };
+    }
+  }
+
+  // Second pass: check for pending routes (ASIGNADO / EN_RUTA)
+  for (const v of viajes) {
+    if (!v.vehiculo?.id) continue;
+    const vid = v.vehiculo.id;
+    if (v.estado === "ASIGNADO" || v.estado === "EN_RUTA") {
+      if (vehiculoMap[vid]) {
+        vehiculoMap[vid].estadoRuta = v.estado;
+        vehiculoMap[vid].destinoPendiente = matchCity(v.destino);
+      }
+    }
+  }
+
+  // Group by ciudadActual, sorted by fechaLlegada asc (first arrived = first turn)
+  const grouped: Record<string, VehiculoDespacho[]> = {};
+  const fixedCities = ["STO", "QTO", "MTA", "GYE"];
+  fixedCities.forEach(c => { grouped[c] = []; });
+
+  for (const veh of Object.values(vehiculoMap)) {
+    const city = veh.ciudadActual;
+    if (!grouped[city]) grouped[city] = [];
+    grouped[city].push(veh);
+  }
+
+  // Sort each city by fechaLlegada ascending (FIFO)
+  for (const city of Object.keys(grouped)) {
+    grouped[city].sort((a, b) => {
+      if (!a.fechaLlegada) return 1;
+      if (!b.fechaLlegada) return -1;
+      return new Date(a.fechaLlegada).getTime() - new Date(b.fechaLlegada).getTime();
+    });
+  }
+
+  return grouped;
 }
