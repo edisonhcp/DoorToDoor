@@ -232,11 +232,22 @@ export default function Asignaciones() {
                       <SelectValue placeholder="Seleccionar vehículo..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {vehiculosDisponibles.map((v) => (
-                        <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
-                          {v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})
-                        </SelectItem>
-                      ))}
+                      {vehiculosDisponibles.map((v) => {
+                        const estadoLabel = v.ultimo_viaje?.estado === "ASIGNADO" ? "Asignado"
+                          : v.ultimo_viaje?.estado === "EN_RUTA" ? "Ruta Iniciada"
+                          : v.ultimo_viaje?.estado === "FINALIZADO" ? "Ruta Finalizada"
+                          : "Disponible";
+                        const estadoColor = v.ultimo_viaje?.estado === "EN_RUTA" ? "text-orange-600"
+                          : v.ultimo_viaje?.estado === "ASIGNADO" ? "text-blue-600"
+                          : v.ultimo_viaje?.estado === "FINALIZADO" ? "text-green-600"
+                          : "text-muted-foreground";
+                        return (
+                          <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
+                            <span>{v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})</span>
+                            <span className={`ml-2 text-xs font-medium ${estadoColor}`}>• {estadoLabel}</span>
+                          </SelectItem>
+                        );
+                      })}
                       {/* If editing, show current vehicle option too */}
                       {editingId && !vehiculosDisponibles.find(v => v.vehiculo_id === selectedVehiculo) && selectedVehiculo && (
                         <SelectItem value={selectedVehiculo} disabled>
