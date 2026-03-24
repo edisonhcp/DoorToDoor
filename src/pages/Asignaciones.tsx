@@ -342,7 +342,28 @@ export default function Asignaciones() {
 
         {/* Active assignments list */}
         <motion.div variants={item}>
-          <h2 className="text-xl font-display font-semibold text-foreground mb-4">Rutas Asignadas</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-display font-semibold text-foreground">Rutas Asignadas</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              disabled={!asignaciones.some(a => a.estado === "FINALIZADO")}
+              onClick={async () => {
+                if (!empresaId) return;
+                const { error, count } = await finalizarDia(empresaId);
+                if (error) {
+                  toast({ title: "Error al finalizar día", description: error.message, variant: "destructive" });
+                } else {
+                  toast({ title: "Día finalizado", description: `${count} ruta(s) cerrada(s) exitosamente` });
+                  loadData();
+                }
+              }}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Finalizar Día
+            </Button>
+          </div>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
