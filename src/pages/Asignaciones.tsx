@@ -457,7 +457,8 @@ export default function Asignaciones() {
                 );
               })}
             </div>
-          )}
+          );
+          })()}
         </motion.div>
       </motion.div>
     </DashboardLayout>
