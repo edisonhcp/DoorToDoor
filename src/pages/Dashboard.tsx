@@ -18,7 +18,7 @@ import {
 import { fetchConductorData, deleteConductorAccount } from "@/services/conductoresService";
 import { deletePropietarioAccount } from "@/services/propietariosService";
 import { fetchPropietarioVehiculos, deleteVehiculo } from "@/services/vehiculosService";
-import { fetchDashboardStats, fetchEmpresaNombre, fetchEmpresaInfo, type DashboardStats } from "@/services/dashboardService";
+import { fetchDashboardStats, fetchEmpresaNombre, fetchEmpresaInfo, fetchViajesActivosConVehiculo, matchCity, type DashboardStats } from "@/services/dashboardService";
 import { fetchRutasConductor, iniciarRuta, finalizarRuta, type RutaAsignada } from "@/services/asignacionesRutaService";
 
 const container = {
@@ -458,6 +458,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [empresaNombre, setEmpresaNombre] = useState("");
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
+  const [viajesActivos, setViajesActivos] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -470,6 +471,8 @@ export default function Dashboard() {
         setEmpresaNombre(await fetchEmpresaNombre(empresaId));
         const info = await fetchEmpresaInfo(empresaId);
         setEmpresaInfo(info);
+        const viajes = await fetchViajesActivosConVehiculo(empresaId);
+        setViajesActivos(viajes);
       }
 
       setLoading(false);
@@ -596,37 +599,75 @@ export default function Dashboard() {
         </div>
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <motion.div variants={item}>
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-lg">Estado de Viajes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border">
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-5 h-5 text-muted-foreground" />
-                      <span className="font-medium text-foreground">Borradores</span>
-                    </div>
-                    <Badge variant="secondary" className="font-display font-bold text-base px-3">
-                      {loading ? "—" : stats.viajesBorrador}
-                    </Badge>
+        {/* Vehículos por Destino */}
+        <motion.div variants={item}>
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Vehículos por Destino</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                // Group viajes by matched city
+                const grouped: Record<string, { vehiculo: any; estado: string }[]> = {};
+                viajesActivos.forEach((v) => {
+                  if (!v.vehiculo) return;
+                  const city = matchCity(v.destino);
+                  if (!grouped[city]) grouped[city] = [];
+                  // Avoid duplicate vehicles in same city
+                  if (!grouped[city].some(g => g.vehiculo.placa === v.vehiculo.placa)) {
+                    grouped[city].push({ vehiculo: v.vehiculo, estado: v.estado });
+                  }
+                });
+                const fixedCities = ["STO", "QTO", "MTA", "GYE"];
+                const otherCities = Object.keys(grouped).filter(c => !fixedCities.includes(c)).sort();
+                const allCities = [...fixedCities, ...otherCities];
+                const maxRows = Math.max(1, ...allCities.map(c => (grouped[c] || []).length));
+
+                return allCities.length === 0 && viajesActivos.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No hay viajes activos</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          {allCities.map(city => (
+                            <th key={city} className="px-3 py-2 text-center font-display font-bold text-foreground bg-muted/50 min-w-[120px]">
+                              {city}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.from({ length: maxRows }).map((_, rowIdx) => (
+                          <tr key={rowIdx} className="border-b border-border/50">
+                            {allCities.map(city => {
+                              const item = (grouped[city] || [])[rowIdx];
+                              return (
+                                <td key={city} className="px-3 py-2 text-center align-top">
+                                  {item ? (
+                                    <div className="space-y-0.5">
+                                      <p className="font-medium text-foreground text-xs">
+                                        {item.vehiculo.marca} {item.vehiculo.modelo}
+                                      </p>
+                                      <p className="text-muted-foreground text-[11px]">{item.vehiculo.placa}</p>
+                                      <Badge variant={item.estado === "EN_RUTA" ? "default" : item.estado === "FINALIZADO" ? "secondary" : "outline"} className="text-[10px]">
+                                        {item.estado === "EN_RUTA" ? "En Ruta" : item.estado === "FINALIZADO" ? "Finalizado" : "Asignado"}
+                                      </Badge>
+                                    </div>
+                                  ) : null}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-primary" />
-                      <span className="font-medium text-foreground">Cerrados</span>
-                    </div>
-                    <Badge variant="secondary" className="font-display font-bold text-base px-3">
-                      {loading ? "—" : stats.viajesCerrados}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
     </DashboardLayout>
   );
