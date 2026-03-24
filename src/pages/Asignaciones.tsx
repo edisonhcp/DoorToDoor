@@ -143,6 +143,28 @@ export default function Asignaciones() {
       const vehiculoData = vehiculosDisponibles.find((v) => v.vehiculo_id === selectedVehiculo);
       if (!vehiculoData) return;
 
+      // Validate date/time is after the last assignment for this vehicle
+      if (vehiculoData.ultimo_viaje) {
+        const ultimaFecha = new Date(vehiculoData.ultimo_viaje.fecha_salida);
+        const nuevaFecha = fechaSalida || new Date();
+        
+        // Compare dates first
+        const ultimaDateOnly = new Date(ultimaFecha.getFullYear(), ultimaFecha.getMonth(), ultimaFecha.getDate());
+        const nuevaDateOnly = new Date(nuevaFecha.getFullYear(), nuevaFecha.getMonth(), nuevaFecha.getDate());
+        
+        if (nuevaDateOnly < ultimaDateOnly) {
+          toast({ title: "Fecha no permitida", description: "La fecha de salida debe ser posterior a la última ruta asignada para este vehículo", variant: "destructive" });
+          return;
+        }
+        
+        if (nuevaDateOnly.getTime() === ultimaDateOnly.getTime() && horaSalida && vehiculoData.ultimo_viaje.hora_salida) {
+          if (horaSalida <= vehiculoData.ultimo_viaje.hora_salida) {
+            toast({ title: "Hora no permitida", description: "La hora de salida debe ser posterior a la última ruta asignada para este vehículo", variant: "destructive" });
+            return;
+          }
+        }
+      }
+
       setSubmitting(true);
       const { error } = await crearAsignacionRuta({
         asignacion_id: vehiculoData.id,
