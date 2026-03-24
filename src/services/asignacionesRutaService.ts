@@ -8,7 +8,6 @@ export interface RutaAsignada {
   cantidad_pasajeros: number;
   estado: string;
   fecha_salida: string;
-  created_at: string;
   asignacion_id: string | null;
   ingresos?: {
     pasajeros_monto: number;
@@ -118,7 +117,7 @@ export async function fetchAsignacionesActivas(empresaId: string) {
   const { data, error } = await supabase
     .from("viajes")
     .select(`
-      id, destino, origen, hora_salida, cantidad_pasajeros, estado, fecha_salida, created_at,
+      id, destino, origen, hora_salida, cantidad_pasajeros, estado, fecha_salida,
       asignacion_id,
       ingresos_viaje(pasajeros_monto, encomiendas_monto),
       asignaciones(
@@ -127,7 +126,7 @@ export async function fetchAsignacionesActivas(empresaId: string) {
       )
     `)
     .eq("empresa_id", empresaId)
-    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO", "CERRADO"] as any)
+    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
     .order("created_at", { ascending: false });
 
   return {
@@ -242,24 +241,4 @@ export async function editarAsignacionRuta(params: {
   if (ingresosError) return { error: ingresosError };
 
   return { error: null };
-}
-
-export async function finalizarDia(empresaId: string) {
-  // Get all FINALIZADO viajes for this empresa
-  const { data: viajes, error: fetchError } = await supabase
-    .from("viajes")
-    .select("id")
-    .eq("empresa_id", empresaId)
-    .eq("estado", "FINALIZADO" as any);
-
-  if (fetchError) return { error: fetchError };
-  if (!viajes || viajes.length === 0) return { error: null, count: 0 };
-
-  const ids = viajes.map((v: any) => v.id);
-  const { error } = await supabase
-    .from("viajes")
-    .update({ estado: "CERRADO" as any })
-    .in("id", ids);
-
-  return { error, count: ids.length };
 }

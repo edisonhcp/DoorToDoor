@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Route, Truck, Plus, Clock, MapPin, Users, DollarSign, Package, Pencil, X, CalendarIcon, Copy, CheckCircle2 } from "lucide-react";
+import { Route, Truck, Plus, Clock, MapPin, Users, DollarSign, Package, Pencil, X, CalendarIcon, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,6 @@ import {
   crearAsignacionRuta,
   fetchAsignacionesActivas,
   editarAsignacionRuta,
-  finalizarDia,
   type RutaAsignada,
 } from "@/services/asignacionesRutaService";
 
@@ -38,7 +37,6 @@ const estadoBadge: Record<string, { label: string; variant: "default" | "seconda
   ASIGNADO: { label: "Asignado", variant: "secondary" },
   EN_RUTA: { label: "Ruta Iniciada", variant: "default" },
   FINALIZADO: { label: "Ruta Finalizada", variant: "outline" },
-  CERRADO: { label: "Cerrado", variant: "destructive" },
 };
 
 export default function Asignaciones() {
@@ -343,28 +341,7 @@ export default function Asignaciones() {
 
         {/* Active assignments list */}
         <motion.div variants={item}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-display font-semibold text-foreground">Rutas Asignadas</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1"
-              disabled={!asignaciones.some(a => a.estado === "FINALIZADO")}
-              onClick={async () => {
-                if (!empresaId) return;
-                const { error, count } = await finalizarDia(empresaId);
-                if (error) {
-                  toast({ title: "Error al finalizar día", description: error.message, variant: "destructive" });
-                } else {
-                  toast({ title: "Día finalizado", description: `${count} ruta(s) cerrada(s) exitosamente` });
-                  loadData();
-                }
-              }}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              Finalizar Día
-            </Button>
-          </div>
+          <h2 className="text-xl font-display font-semibold text-foreground mb-4">Rutas Asignadas</h2>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -381,9 +358,8 @@ export default function Asignaciones() {
           ) : (
             <div className="space-y-3">
               {asignaciones.map((a) => {
-               const badge = estadoBadge[a.estado] || { label: a.estado, variant: "secondary" as const };
-                const hoursElapsed = (Date.now() - new Date(a.created_at).getTime()) / (1000 * 60 * 60);
-                const canEdit = (a.estado === "ASIGNADO" || a.estado === "EN_RUTA") && hoursElapsed <= 24;
+                const badge = estadoBadge[a.estado] || { label: a.estado, variant: "secondary" as const };
+                const canEdit = a.estado === "ASIGNADO" || a.estado === "EN_RUTA";
                 return (
                   <Card key={a.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${editingId === a.id ? "ring-2 ring-amber-500" : ""}`}>
                     <CardContent className="p-5">
