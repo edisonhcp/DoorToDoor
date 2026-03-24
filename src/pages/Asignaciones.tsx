@@ -235,7 +235,7 @@ export default function Asignaciones() {
                       {vehiculosDisponibles.map((v) => {
                         const estadoLabel = v.ultimo_viaje?.estado === "ASIGNADO" ? "Asignado"
                           : v.ultimo_viaje?.estado === "EN_RUTA" ? "Ruta Iniciada"
-                          : v.ultimo_viaje?.estado === "FINALIZADO" ? "Ruta Finalizada"
+                          : v.ultimo_viaje?.estado === "FINALIZADO" ? `Ruta Finalizada → ${v.ultimo_viaje?.destino || ""}`
                           : "Disponible";
                         const estadoColor = v.ultimo_viaje?.estado === "EN_RUTA" ? "text-orange-600"
                           : v.ultimo_viaje?.estado === "ASIGNADO" ? "text-blue-600"

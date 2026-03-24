@@ -35,19 +35,20 @@ export async function fetchVehiculosDisponibles(empresaId: string) {
   // Get the latest viaje per asignacion to know the last fecha_salida+hora_salida
   const { data: viajesActivos } = await supabase
     .from("viajes")
-    .select("asignacion_id, fecha_salida, hora_salida, estado")
+    .select("asignacion_id, fecha_salida, hora_salida, estado, destino")
     .eq("empresa_id", empresaId)
     .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
     .order("fecha_salida", { ascending: false });
 
   // Build a map: asignacion_id -> latest viaje info
-  const ultimoViajePorAsignacion: Record<string, { fecha_salida: string; hora_salida: string | null; estado: string }> = {};
+  const ultimoViajePorAsignacion: Record<string, { fecha_salida: string; hora_salida: string | null; estado: string; destino: string }> = {};
   for (const v of (viajesActivos || []) as any[]) {
     if (v.asignacion_id && !ultimoViajePorAsignacion[v.asignacion_id]) {
       ultimoViajePorAsignacion[v.asignacion_id] = {
         fecha_salida: v.fecha_salida,
         hora_salida: v.hora_salida,
         estado: v.estado,
+        destino: v.destino,
       };
     }
   }
