@@ -414,17 +414,34 @@ export default function Asignaciones() {
                             </div>
                           </div>
                         </div>
-                        {canEdit && (
+                        <div className="flex gap-2 shrink-0">
+                          {canEdit && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => handleEdit(a)}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                              Editar
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
-                            className="gap-1 shrink-0"
-                            onClick={() => handleEdit(a)}
+                            className="gap-1"
+                            onClick={() => {
+                              const fechaStr = a.fecha_salida ? format(new Date(a.fecha_salida), "dd/MM/yyyy") : "—";
+                              const horaStr = a.hora_salida || "—";
+                              const texto = `FECHA Y HORA: ${fechaStr} ${horaStr}\nRUTA: ${a.origen} → ${a.destino}\nCANTIDAD DE PASAJEROS: ${a.cantidad_pasajeros}\nPRECIO TOTAL: $${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\nTOTAL ENCOMIENDA: $${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
+                              navigator.clipboard.writeText(texto);
+                              toast({ title: "Copiado al portapapeles", description: "Información lista para pegar en WhatsApp" });
+                            }}
                           >
-                            <Pencil className="w-3.5 h-3.5" />
-                            Editar
+                            <Copy className="w-3.5 h-3.5" />
+                            Copiar a WhatsApp
                           </Button>
-                        )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
