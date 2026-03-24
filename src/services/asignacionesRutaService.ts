@@ -127,7 +127,7 @@ export async function fetchAsignacionesActivas(empresaId: string) {
       )
     `)
     .eq("empresa_id", empresaId)
-    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
+    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO", "CERRADO"] as any)
     .order("created_at", { ascending: false });
 
   return {

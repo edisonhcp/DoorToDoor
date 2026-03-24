@@ -38,6 +38,7 @@ const estadoBadge: Record<string, { label: string; variant: "default" | "seconda
   ASIGNADO: { label: "Asignado", variant: "secondary" },
   EN_RUTA: { label: "Ruta Iniciada", variant: "default" },
   FINALIZADO: { label: "Ruta Finalizada", variant: "outline" },
+  CERRADO: { label: "Cerrado", variant: "destructive" },
 };
 
 export default function Asignaciones() {
