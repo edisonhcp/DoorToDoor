@@ -121,36 +121,17 @@ export async function fetchViajesConDetalle(empresaId: string) {
     .in("estado", ["FINALIZADO", "EN_RUTA", "CERRADO"] as any)
     .order("fecha_salida", { ascending: false });
 
-  // Fetch alimentacion configs for all vehiculos
-  const vehiculoIds = [...new Set((data || []).map((v: any) => v.asignaciones?.vehiculo_id).filter(Boolean))];
-  let alimMap: Record<string, any> = {};
-  if (vehiculoIds.length > 0) {
-    const { data: alims } = await supabase
-      .from("vehiculo_alimentacion")
-      .select("*")
-      .in("vehiculo_id", vehiculoIds);
-    if (alims) {
-      alims.forEach((a: any) => { alimMap[a.vehiculo_id] = a; });
-    }
-  }
-
   return {
-    data: (data || []).map((v: any) => {
-      const vehId = v.asignaciones?.vehiculo_id;
-      const alim = vehId ? alimMap[vehId] : null;
-      return {
-        ...v,
-        vehiculo: v.asignaciones?.vehiculos,
-        conductor: v.asignaciones?.conductores,
-        propietario_nombre: v.asignaciones?.vehiculos?.propietarios
-          ? `${v.asignaciones.vehiculos.propietarios.nombres} ${v.asignaciones.vehiculos.propietarios.apellidos}`
-          : "—",
-        ingresos: v.ingresos_viaje,
-        egresos: v.egresos_viaje,
-        valor_comida: alim?.valor_comida ?? 3,
-        alimentacion_habilitada: alim?.alimentacion_habilitada ?? true,
-      };
-    }),
+    data: (data || []).map((v: any) => ({
+      ...v,
+      vehiculo: v.asignaciones?.vehiculos,
+      conductor: v.asignaciones?.conductores,
+      propietario_nombre: v.asignaciones?.vehiculos?.propietarios
+        ? `${v.asignaciones.vehiculos.propietarios.nombres} ${v.asignaciones.vehiculos.propietarios.apellidos}`
+        : "—",
+      ingresos: v.ingresos_viaje,
+      egresos: v.egresos_viaje,
+    })),
     error,
   };
 }
@@ -195,18 +176,6 @@ export async function fetchViajesPropietario(userId: string) {
     .in("estado", ["FINALIZADO", "EN_RUTA"] as any)
     .order("fecha_salida", { ascending: false });
 
-  // Fetch alimentacion configs
-  let alimMap: Record<string, any> = {};
-  if (vehiculoIds.length > 0) {
-    const { data: alims } = await supabase
-      .from("vehiculo_alimentacion")
-      .select("*")
-      .in("vehiculo_id", vehiculoIds);
-    if (alims) {
-      alims.forEach((a: any) => { alimMap[a.vehiculo_id] = a; });
-    }
-  }
-
   const asignacionMap = Object.fromEntries(
     asignaciones.map((a: any) => [a.id, { vehiculo: a.vehiculos, conductor: a.conductores, vehiculo_id: a.vehiculo_id }])
   );
@@ -214,14 +183,12 @@ export async function fetchViajesPropietario(userId: string) {
   return {
     data: (viajes || []).map((v: any) => {
       const asig = asignacionMap[v.asignacion_id];
-      const alim = asig?.vehiculo_id ? alimMap[asig.vehiculo_id] : null;
       return {
         ...v,
         vehiculo: asig?.vehiculo,
         conductor: asig?.conductor,
         ingresos: v.ingresos_viaje,
         egresos: v.egresos_viaje,
-        valor_comida: alim?.valor_comida ?? 3,
       };
     }),
     error,
