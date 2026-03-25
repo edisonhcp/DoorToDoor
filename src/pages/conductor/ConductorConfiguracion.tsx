@@ -272,7 +272,7 @@ export default function ConductorConfiguracion() {
             </div>
             <div className="space-y-2">
               <Label>Fecha de Nacimiento</Label>
-              <Input type="date" value={form.fecha_nacimiento} onChange={e => update("fecha_nacimiento", e.target.value)} />
+              <Input type="date" value={form.fecha_nacimiento} max={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().split("T")[0]} onChange={e => update("fecha_nacimiento", e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Tipo de Licencia</Label>

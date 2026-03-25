@@ -228,7 +228,7 @@ export default function PropietarioConfiguracion() {
             </div>
             <div className="space-y-2">
               <Label>Fecha de Nacimiento</Label>
-              <Input type="date" value={form.fecha_nacimiento} onChange={e => update("fecha_nacimiento", e.target.value)} />
+              <Input type="date" value={form.fecha_nacimiento} max={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().split("T")[0]} onChange={e => update("fecha_nacimiento", e.target.value)} />
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label>Correo Electrónico</Label>

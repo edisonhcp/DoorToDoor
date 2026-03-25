@@ -114,26 +114,33 @@ export function matchCity(destino: string): string {
 }
 
 export async function fetchViajesActivosConVehiculo(empresaId: string) {
-  // Get the latest FINALIZADO viaje per vehicle to determine current location
-  // Also get ASIGNADO/EN_RUTA viajes to show pending departures
-  const { data, error } = await supabase
-    .from("viajes")
-    .select(`
-      id, destino, estado, fecha_llegada, fecha_salida,
-      asignacion_id,
-      asignaciones!viajes_asignacion_id_fkey (
-        vehiculo_id,
-        conductor_id,
-        vehiculos!asignaciones_vehiculo_id_fkey ( id, placa, marca, modelo ),
-        conductores!asignaciones_conductor_id_fkey ( id, nombres, apellidos )
-      )
-    `)
-    .eq("empresa_id", empresaId)
-    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
-    .order("fecha_llegada", { ascending: false });
+  // Get viajes and current active assignments to show correct conductor
+  const [viajesRes, asigRes] = await Promise.all([
+    supabase
+      .from("viajes")
+      .select(`
+        id, destino, estado, fecha_llegada, fecha_salida,
+        asignacion_id,
+        asignaciones!viajes_asignacion_id_fkey (
+          vehiculo_id,
+          conductor_id,
+          vehiculos!asignaciones_vehiculo_id_fkey ( id, placa, marca, modelo ),
+          conductores!asignaciones_conductor_id_fkey ( id, nombres, apellidos )
+        )
+      `)
+      .eq("empresa_id", empresaId)
+      .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
+      .order("fecha_llegada", { ascending: false }),
+    supabase
+      .from("asignaciones")
+      .select("vehiculo_id, conductor_id, conductores!asignaciones_conductor_id_fkey ( id, nombres, apellidos )")
+      .eq("empresa_id", empresaId)
+      .eq("estado", "ACTIVA"),
+  ]);
 
-  if (error) return [];
-  return (data || []).map((v: any) => ({
+  if (viajesRes.error) return { viajes: [], activeAssignments: [] };
+
+  const viajes = (viajesRes.data || []).map((v: any) => ({
     id: v.id,
     destino: v.destino,
     estado: v.estado,
@@ -142,6 +149,17 @@ export async function fetchViajesActivosConVehiculo(empresaId: string) {
     vehiculo: v.asignaciones?.vehiculos || null,
     conductor: v.asignaciones?.conductores || null,
   }));
+
+  // Map vehiculo_id -> current conductor from active assignments
+  const activeAssignments: Record<string, { nombres: string; apellidos: string }> = {};
+  for (const a of (asigRes.data || [])) {
+    const cond = (a as any).conductores;
+    if (cond && (a as any).vehiculo_id) {
+      activeAssignments[(a as any).vehiculo_id] = { nombres: cond.nombres, apellidos: cond.apellidos };
+    }
+  }
+
+  return { viajes, activeAssignments };
 }
 
 export interface VehiculoDespacho {
@@ -156,7 +174,7 @@ export interface VehiculoDespacho {
   destinoPendiente: string | null;
 }
 
-export function buildDespachoBoard(viajes: any[]): Record<string, VehiculoDespacho[]> {
+export function buildDespachoBoard(viajes: any[], activeAssignments?: Record<string, { nombres: string; apellidos: string }>): Record<string, VehiculoDespacho[]> {
   // For each vehicle, find its current city (last FINALIZADO destination)
   // and whether it has a pending route (ASIGNADO or EN_RUTA)
   const vehiculoMap: Record<string, VehiculoDespacho> = {};
@@ -166,12 +184,17 @@ export function buildDespachoBoard(viajes: any[]): Record<string, VehiculoDespac
     if (!v.vehiculo?.id) continue;
     const vid = v.vehiculo.id;
     if (v.estado === "FINALIZADO" && !vehiculoMap[vid]) {
+      // Use current active assignment conductor, fallback to trip's conductor
+      const activeCond = activeAssignments?.[vid];
+      const conductorNombre = activeCond
+        ? `${activeCond.nombres} ${activeCond.apellidos}`
+        : (v.conductor ? `${v.conductor.nombres} ${v.conductor.apellidos}` : null);
       vehiculoMap[vid] = {
         vehiculoId: vid,
         placa: v.vehiculo.placa,
         marca: v.vehiculo.marca,
         modelo: v.vehiculo.modelo,
-        conductorNombre: v.conductor ? `${v.conductor.nombres} ${v.conductor.apellidos}` : null,
+        conductorNombre,
         ciudadActual: matchCity(v.destino),
         fechaLlegada: v.fecha_llegada,
         estadoRuta: null,
