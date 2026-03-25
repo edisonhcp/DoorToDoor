@@ -170,7 +170,7 @@ export async function fetchViajesPropietario(userId: string) {
       id, destino, origen, hora_salida, cantidad_pasajeros, estado, fecha_salida, fecha_llegada,
       asignacion_id, created_at,
       ingresos_viaje(pasajeros_monto, encomiendas_monto, total_ingreso),
-      egresos_viaje(peaje, hotel, pago_conductor, combustible, varios, total_egreso, desayuno, almuerzo, merienda)
+      egresos_viaje(peaje, hotel, pago_conductor, combustible, varios, total_egreso, desayuno, almuerzo, merienda, alimentacion)
     `)
     .in("asignacion_id", asignacionIds)
     .in("estado", ["FINALIZADO", "EN_RUTA"] as any)
