@@ -288,7 +288,7 @@ export async function fetchConductorViajes(userId: string, estadoFilter?: string
       id, destino, origen, hora_salida, cantidad_pasajeros, estado, fecha_salida, fecha_llegada,
       asignacion_id, created_at,
       ingresos_viaje(pasajeros_monto, encomiendas_monto, total_ingreso),
-      egresos_viaje(id, peaje, hotel, pago_conductor, combustible, varios, total_egreso, desayuno, almuerzo, merienda, combustible_foto_url, varios_foto_url, varios_texto)
+      egresos_viaje(id, peaje, hotel, pago_conductor, combustible, varios, total_egreso, desayuno, almuerzo, merienda, alimentacion, combustible_foto_url, varios_foto_url, varios_texto)
     `)
     .in("asignacion_id", asignacionIds);
 
