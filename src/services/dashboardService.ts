@@ -188,6 +188,10 @@ export function buildDespachoBoard(viajes: any[]): Record<string, VehiculoDespac
       if (vehiculoMap[vid]) {
         vehiculoMap[vid].estadoRuta = v.estado;
         vehiculoMap[vid].destinoPendiente = matchCity(v.destino);
+        // Si está EN_RUTA, mover el vehículo a la columna de la ciudad destino
+        if (v.estado === "EN_RUTA") {
+          vehiculoMap[vid].ciudadActual = matchCity(v.destino);
+        }
       }
     }
   }
