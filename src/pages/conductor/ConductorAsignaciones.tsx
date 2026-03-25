@@ -54,14 +54,53 @@ export default function ConductorAsignaciones() {
   const [variosFile, setVariosFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; viajeId: string; resumen: any } | null>(null);
+  const [alimentacionMap, setAlimentacionMap] = useState<Record<string, VehiculoAlimentacion>>({});
 
   const loadData = async () => {
     if (!user?.id) return;
     const { data, empresaId: eid } = await fetchConductorViajes(user.id, ["ASIGNADO", "EN_RUTA", "FINALIZADO"]);
     setViajes(data);
     setEmpresaId(eid);
+
+    // Fetch alimentacion config for all vehicles
+    const vehiculoIds = [...new Set(data.map((v: any) => v.vehiculo?.id).filter(Boolean))] as string[];
+    // We need vehiculo_id from asignaciones - let's get it from the viaje data
+    const asignacionVehiculoIds: string[] = [];
+    for (const viaje of data) {
+      if (viaje.vehiculo) {
+        // vehiculo doesn't have id directly, need to get from asignacion
+      }
+    }
+    // Actually, the vehiculo from fetchConductorViajes comes from asignaciones -> vehiculos
+    // We need to get vehiculo IDs. Let's fetch from supabase directly
+    if (data.length > 0) {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const asignacionIds = [...new Set(data.map((v: any) => v.asignacion_id).filter(Boolean))];
+      if (asignacionIds.length > 0) {
+        const { data: asigs } = await supabase
+          .from("asignaciones")
+          .select("id, vehiculo_id")
+          .in("id", asignacionIds);
+        if (asigs) {
+          const vehIds = [...new Set(asigs.map(a => a.vehiculo_id))];
+          const { data: configs } = await fetchAlimentacionByVehiculos(vehIds);
+          const map: Record<string, VehiculoAlimentacion> = {};
+          // Map by vehiculo_id, but we need to map viaje -> vehiculo_id
+          const asigToVeh: Record<string, string> = {};
+          asigs.forEach(a => { asigToVeh[a.id] = a.vehiculo_id; });
+          configs.forEach(c => { map[c.vehiculo_id] = c; });
+          // Store both maps
+          setAlimentacionMap(map);
+          // Also store asig->veh mapping
+          setAsigVehMap(asigToVeh);
+        }
+      }
+    }
+
     setLoading(false);
   };
+
+  const [asigVehMap, setAsigVehMap] = useState<Record<string, string>>({});
 
   useEffect(() => { loadData(); }, [user]);
 
