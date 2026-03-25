@@ -212,7 +212,7 @@ export default function RegistroInvitacion() {
                       <div><Label>RUC</Label><Input value={datosEmpresa.ruc} onChange={e => setDatosEmpresa({ ...datosEmpresa, ruc: e.target.value })} required /></div>
                       <div><Label>Ciudad</Label><Input value={datosEmpresa.ciudad} onChange={e => setDatosEmpresa({ ...datosEmpresa, ciudad: e.target.value })} required /></div>
                       <div className="col-span-2"><Label>Dirección</Label><Input value={datosEmpresa.direccion} onChange={e => setDatosEmpresa({ ...datosEmpresa, direccion: e.target.value })} required /></div>
-                      <div><Label>Celular de la compañía</Label><Input value={datosEmpresa.celular_empresa} onChange={e => setDatosEmpresa({ ...datosEmpresa, celular_empresa: e.target.value })} required /></div>
+                      <div><Label>Celular de la compañía</Label><Input value={datosEmpresa.celular_empresa} onChange={e => setDatosEmpresa({ ...datosEmpresa, celular_empresa: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
                       <div><Label>Nombres del representante</Label><Input value={datosEmpresa.propietario_nombre} onChange={e => setDatosEmpresa({ ...datosEmpresa, propietario_nombre: e.target.value })} required /></div>
                       <div><Label>Apellidos del representante</Label><Input value={datosEmpresa.propietario_apellidos} onChange={e => setDatosEmpresa({ ...datosEmpresa, propietario_apellidos: e.target.value })} required /></div>
                     </div>
@@ -291,8 +291,8 @@ export default function RegistroInvitacion() {
                     <div className="grid grid-cols-2 gap-3">
                       <div><Label>Nombres</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
                       <div><Label>Apellidos</Label><Input value={datos.apellidos} onChange={e => setDatos({ ...datos, apellidos: e.target.value })} required /></div>
-                      <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value })} required /></div>
-                      <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
+                      <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
+                      <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
                       <div className="col-span-2"><Label>Domicilio</Label><Input value={datos.domicilio} onChange={e => setDatos({ ...datos, domicilio: e.target.value })} /></div>
                       <div><Label>Tipo de licencia</Label><Input value={datos.tipo_licencia} onChange={e => setDatos({ ...datos, tipo_licencia: e.target.value })} /></div>
                       <div className="space-y-2">
@@ -320,8 +320,8 @@ export default function RegistroInvitacion() {
                     <div className="grid grid-cols-2 gap-3">
                       <div><Label>Nombres</Label><Input value={datos.nombres} onChange={e => setDatos({ ...datos, nombres: e.target.value })} required /></div>
                       <div><Label>Apellidos</Label><Input value={datos.apellidos} onChange={e => setDatos({ ...datos, apellidos: e.target.value })} required /></div>
-                      <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value })} required /></div>
-                      <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value })} required /></div>
+                      <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
+                      <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
                       <div className="col-span-2"><Label>Dirección</Label><Input value={datos.direccion} onChange={e => setDatos({ ...datos, direccion: e.target.value })} /></div>
                       <div className="space-y-2">
                         <Label>Estado civil</Label>

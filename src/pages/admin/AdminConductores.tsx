@@ -125,6 +125,7 @@ export default function AdminConductores() {
                               <TableHead>Apellidos</TableHead>
                               <TableHead>Identificación</TableHead>
                               <TableHead>Celular</TableHead>
+                              <TableHead>Correo</TableHead>
                               <TableHead>Licencia</TableHead>
                               <TableHead>Vehículo</TableHead>
                               <TableHead>Propietario</TableHead>
@@ -138,6 +139,7 @@ export default function AdminConductores() {
                                 <TableCell>{c.apellidos}</TableCell>
                                 <TableCell>{c.identificacion}</TableCell>
                                 <TableCell>{c.celular}</TableCell>
+                                <TableCell className="text-xs">{c.email}</TableCell>
                                 <TableCell>{c.tipo_licencia}</TableCell>
                                 <TableCell>
                                   {c.vehiculo_placa ? (

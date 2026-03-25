@@ -208,11 +208,11 @@ export default function PropietarioConfiguracion() {
             </div>
             <div className="space-y-2">
               <Label>Identificación</Label>
-              <Input value={form.identificacion} onChange={e => update("identificacion", e.target.value)} />
+              <Input value={form.identificacion} onChange={e => update("identificacion", e.target.value.replace(/\D/g, "").slice(0, 10))} maxLength={10} inputMode="numeric" pattern="[0-9]*" />
             </div>
             <div className="space-y-2">
               <Label>Celular</Label>
-              <Input value={form.celular} onChange={e => update("celular", e.target.value)} />
+              <Input value={form.celular} onChange={e => update("celular", e.target.value.replace(/\D/g, "").slice(0, 10))} maxLength={10} inputMode="numeric" pattern="[0-9]*" />
             </div>
             <div className="space-y-2">
               <Label>Dirección</Label>
