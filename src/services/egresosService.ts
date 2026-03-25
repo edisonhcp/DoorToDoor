@@ -42,6 +42,7 @@ export async function upsertEgresos(params: {
   combustible_foto_url?: string | null;
   varios_foto_url?: string | null;
   varios_texto?: string | null;
+  alimentacion?: number;
 }) {
   const { data: existing } = await supabase
     .from("egresos_viaje")
@@ -49,12 +50,14 @@ export async function upsertEgresos(params: {
     .eq("viaje_id", params.viaje_id)
     .maybeSingle();
 
+  const alimentacion = params.alimentacion || 0;
   const totalEgreso =
     (params.peaje || 0) +
     (params.hotel || 0) +
     (params.pago_conductor || 0) +
     (params.combustible || 0) +
-    (params.varios || 0);
+    (params.varios || 0) +
+    alimentacion;
 
   const payload: any = {
     viaje_id: params.viaje_id,
@@ -64,6 +67,7 @@ export async function upsertEgresos(params: {
     pago_conductor: params.pago_conductor || 0,
     combustible: params.combustible || 0,
     varios: params.varios || 0,
+    alimentacion,
     total_egreso: totalEgreso,
     desayuno: params.desayuno || false,
     almuerzo: params.almuerzo || false,
