@@ -21,6 +21,15 @@ function getNextSunday(dateStr: string): string {
   return d.toISOString().split("T")[0];
 }
 
+function calcAlim(eg: any, valorComida: number = 3): number {
+  if (!eg) return 0;
+  let c = 0;
+  if (eg.desayuno) c++;
+  if (eg.almuerzo) c++;
+  if (eg.merienda) c++;
+  return c * valorComida;
+}
+
 function ConsolidadoTable({ vehicleMap, vehicleKeys, empresaInfo }: { vehicleMap: Record<string, any>; vehicleKeys: string[]; empresaInfo: any }) {
   let latestSunday = "";
   vehicleKeys.forEach((key) => {
@@ -40,7 +49,7 @@ function ConsolidadoTable({ vehicleMap, vehicleKeys, empresaInfo }: { vehicleMap
     const totalEgreso = veh.viajes.reduce((s: number, v: any) => {
       const eg = v.egresos;
       if (!eg) return s;
-      const alim = Number(eg.alimentacion || 0);
+      const alim = calcAlim(eg, v.valor_comida);
       return s + Number(eg.peaje || 0) + Number(eg.hotel || 0) + Number(eg.combustible || 0) + Number(eg.varios || 0) + Number(eg.pago_conductor || 0) + alim;
     }, 0);
     const totalCompania = tipoComision === "PORCENTAJE"
