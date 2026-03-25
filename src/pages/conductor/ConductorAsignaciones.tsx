@@ -210,6 +210,7 @@ export default function ConductorAsignaciones() {
             {viajes.map((v) => {
               const badge = estadoBadge[v.estado] || { label: v.estado, variant: "secondary" as const };
               const isEditing = editingEgresos === v.id;
+              const alimConfig = getAlimConfig(v);
 
               return (
                 <motion.div key={v.id} variants={item}>
