@@ -307,7 +307,7 @@ export async function fetchConductorViajes(userId: string, estadoFilter?: string
 
   const { data: asignaciones } = await supabase
     .from("asignaciones")
-    .select("id, vehiculos(placa, marca, modelo)")
+    .select("id, vehiculo_id, vehiculos(placa, marca, modelo)")
     .eq("conductor_id", profile.conductor_id);
 
   if (!asignaciones || asignaciones.length === 0) return { data: [], empresaId: profile.empresa_id, error: null };
@@ -330,17 +330,35 @@ export async function fetchConductorViajes(userId: string, estadoFilter?: string
 
   const { data: viajes, error } = await query.order("created_at", { ascending: false });
 
+  // Fetch alimentacion configs
+  const vehiculoIds = [...new Set(asignaciones.map((a: any) => a.vehiculo_id).filter(Boolean))];
+  let alimMap: Record<string, any> = {};
+  if (vehiculoIds.length > 0) {
+    const { data: alims } = await supabase
+      .from("vehiculo_alimentacion")
+      .select("*")
+      .in("vehiculo_id", vehiculoIds);
+    if (alims) {
+      alims.forEach((a: any) => { alimMap[a.vehiculo_id] = a; });
+    }
+  }
+
   const asignacionMap = Object.fromEntries(
-    asignaciones.map((a: any) => [a.id, a.vehiculos])
+    asignaciones.map((a: any) => [a.id, { vehiculo: a.vehiculos, vehiculo_id: a.vehiculo_id }])
   );
 
   return {
-    data: (viajes || []).map((v: any) => ({
-      ...v,
-      vehiculo: asignacionMap[v.asignacion_id],
-      ingresos: v.ingresos_viaje,
-      egresos: v.egresos_viaje,
-    })),
+    data: (viajes || []).map((v: any) => {
+      const asig = asignacionMap[v.asignacion_id];
+      const alim = asig?.vehiculo_id ? alimMap[asig.vehiculo_id] : null;
+      return {
+        ...v,
+        vehiculo: asig?.vehiculo,
+        ingresos: v.ingresos_viaje,
+        egresos: v.egresos_viaje,
+        valor_comida: alim?.valor_comida ?? 3,
+      };
+    }),
     empresaId: profile.empresa_id,
     error,
   };
