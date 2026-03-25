@@ -124,10 +124,16 @@ export default function ConductorAsignaciones() {
   };
 
   const handlePreSaveEgresos = (viajeId: string) => {
+    const viaje = viajes.find(v => v.id === viajeId);
+    const alimConfig = viaje ? getAlimConfig(viaje) : null;
+    const valorComida = alimConfig?.valor_comida ?? 3;
+
     const alimentacionItems = [];
     if (egresoForm.desayuno) alimentacionItems.push("Desayuno");
     if (egresoForm.almuerzo) alimentacionItems.push("Almuerzo");
     if (egresoForm.merienda) alimentacionItems.push("Merienda");
+
+    const alimentacionTotal = alimentacionItems.length * valorComida;
 
     const resumen = {
       peaje: parseFloat(egresoForm.peaje) || 0,
@@ -135,11 +141,12 @@ export default function ConductorAsignaciones() {
       pago_conductor: parseFloat(egresoForm.pago_conductor) || 0,
       combustible: parseFloat(egresoForm.combustible) || 0,
       varios: parseFloat(egresoForm.varios) || 0,
-      alimentacion: alimentacionItems.join(", ") || "Ninguna",
+      alimentacion: alimentacionItems.length > 0 ? `${alimentacionItems.join(", ")} ($${alimentacionTotal.toFixed(2)})` : "Ninguna",
+      alimentacion_total: alimentacionTotal,
       varios_texto: egresoForm.varios_texto || "",
       total: (parseFloat(egresoForm.peaje) || 0) + (parseFloat(egresoForm.hotel) || 0) +
         (parseFloat(egresoForm.pago_conductor) || 0) + (parseFloat(egresoForm.combustible) || 0) +
-        (parseFloat(egresoForm.varios) || 0),
+        (parseFloat(egresoForm.varios) || 0) + alimentacionTotal,
     };
     setConfirmDialog({ open: true, viajeId, resumen });
   };
@@ -172,6 +179,7 @@ export default function ConductorAsignaciones() {
       almuerzo: egresoForm.almuerzo,
       merienda: egresoForm.merienda,
       varios_texto: egresoForm.varios_texto || null,
+      alimentacion: confirmDialog.resumen.alimentacion_total || 0,
       ...(combustible_foto_url !== undefined && { combustible_foto_url }),
       ...(varios_foto_url !== undefined && { varios_foto_url }),
     });
