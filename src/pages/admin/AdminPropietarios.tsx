@@ -112,6 +112,7 @@ export default function AdminPropietarios() {
                               <TableHead>Apellidos</TableHead>
                               <TableHead>Identificación</TableHead>
                               <TableHead>Celular</TableHead>
+                              <TableHead>Correo</TableHead>
                               <TableHead>Vehículos</TableHead>
                               <TableHead>Estado</TableHead>
                             </TableRow>
@@ -123,6 +124,7 @@ export default function AdminPropietarios() {
                                 <TableCell>{p.apellidos}</TableCell>
                                 <TableCell>{p.identificacion}</TableCell>
                                 <TableCell>{p.celular}</TableCell>
+                                <TableCell className="text-xs">{p.email}</TableCell>
                                 <TableCell>
                                   <div className="divide-y divide-border">
                                     {p.vehiculos && p.vehiculos.length > 0

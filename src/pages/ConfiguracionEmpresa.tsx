@@ -171,7 +171,7 @@ export default function ConfiguracionEmpresa() {
             </div>
             <div className="space-y-2">
               <Label>Celular</Label>
-              <Input value={form.celular} onChange={(e) => update("celular", e.target.value)} />
+              <Input value={form.celular} onChange={(e) => update("celular", e.target.value.replace(/\D/g, "").slice(0, 10))} maxLength={10} inputMode="numeric" pattern="[0-9]*" />
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
