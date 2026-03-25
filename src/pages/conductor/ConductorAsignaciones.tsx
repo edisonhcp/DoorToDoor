@@ -17,6 +17,7 @@ import {
   uploadRecibo,
 } from "@/services/egresosService";
 import { iniciarRuta, finalizarRuta } from "@/services/asignacionesRutaService";
+import { fetchAlimentacionByVehiculos, VehiculoAlimentacion } from "@/services/alimentacionService";
 import {
   AlertDialog,
   AlertDialogAction,
