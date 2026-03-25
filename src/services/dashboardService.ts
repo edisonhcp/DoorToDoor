@@ -184,12 +184,17 @@ export function buildDespachoBoard(viajes: any[], activeAssignments?: Record<str
     if (!v.vehiculo?.id) continue;
     const vid = v.vehiculo.id;
     if (v.estado === "FINALIZADO" && !vehiculoMap[vid]) {
+      // Use current active assignment conductor, fallback to trip's conductor
+      const activeCond = activeAssignments?.[vid];
+      const conductorNombre = activeCond
+        ? `${activeCond.nombres} ${activeCond.apellidos}`
+        : (v.conductor ? `${v.conductor.nombres} ${v.conductor.apellidos}` : null);
       vehiculoMap[vid] = {
         vehiculoId: vid,
         placa: v.vehiculo.placa,
         marca: v.vehiculo.marca,
         modelo: v.vehiculo.modelo,
-        conductorNombre: v.conductor ? `${v.conductor.nombres} ${v.conductor.apellidos}` : null,
+        conductorNombre,
         ciudadActual: matchCity(v.destino),
         fechaLlegada: v.fecha_llegada,
         estadoRuta: null,
