@@ -43,6 +43,17 @@ export default function PropietarioConfiguracion() {
   const [vehiculoFotoFile, setVehiculoFotoFile] = useState<File | null>(null);
   const [savingVehiculo, setSavingVehiculo] = useState(false);
 
+  // Alimentación config
+  const [alimentacionVehiculo, setAlimentacionVehiculo] = useState<any | null>(null);
+  const [alimentacionForm, setAlimentacionForm] = useState({
+    valor_comida: "3",
+    desayuno_habilitado: true,
+    almuerzo_habilitado: true,
+    merienda_habilitado: true,
+    alimentacion_habilitada: true,
+  });
+  const [savingAlimentacion, setSavingAlimentacion] = useState(false);
+
   useEffect(() => {
     if (!user?.id || !profile?.propietario_id) return;
     const pid = profile.propietario_id;
