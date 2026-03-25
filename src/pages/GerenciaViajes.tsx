@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const ALIMENTACION_COSTO = 3.00;
+const ALIMENTACION_COSTO_DEFAULT = 3.00;
 
 function getNextSunday(dateStr: string): string {
   const d = new Date(dateStr);
@@ -23,13 +23,13 @@ function getNextSunday(dateStr: string): string {
   return d.toISOString().split("T")[0];
 }
 
-function calcAlim(eg: any): number {
+function calcAlim(eg: any, valorComida: number = ALIMENTACION_COSTO_DEFAULT): number {
   if (!eg) return 0;
   let c = 0;
   if (eg.desayuno) c++;
   if (eg.almuerzo) c++;
   if (eg.merienda) c++;
-  return c * ALIMENTACION_COSTO;
+  return c * valorComida;
 }
 
 function ConsolidadoTable({ vehicleMap, vehicleKeys, empresaInfo }: { vehicleMap: Record<string, any>; vehicleKeys: string[]; empresaInfo: any }) {
