@@ -308,7 +308,7 @@ export default function RegistroInvitacion() {
                         </Select>
                       </div>
                       <div><Label>Nacionalidad</Label><Input value={datos.nacionalidad} onChange={e => setDatos({ ...datos, nacionalidad: e.target.value })} /></div>
-                      <div><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
+                      <div><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} max={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().split("T")[0]} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
                       <div className="col-span-2"><Label>Fecha caducidad licencia</Label><Input type="date" value={datos.fecha_caducidad_licencia} onChange={e => setDatos({ ...datos, fecha_caducidad_licencia: e.target.value })} /></div>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ export default function RegistroInvitacion() {
                         </Select>
                       </div>
                       <div><Label>Nacionalidad</Label><Input value={datos.nacionalidad} onChange={e => setDatos({ ...datos, nacionalidad: e.target.value })} /></div>
-                      <div className="col-span-2"><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
+                      <div className="col-span-2"><Label>Fecha nacimiento</Label><Input type="date" value={datos.fecha_nacimiento} max={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().split("T")[0]} onChange={e => setDatos({ ...datos, fecha_nacimiento: e.target.value })} /></div>
                     </div>
                   </div>
                 )}
