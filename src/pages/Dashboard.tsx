@@ -608,53 +608,56 @@ export default function Dashboard() {
                 Tablero de Despacho
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               {(() => {
                 const board = buildDespachoBoard(viajesActivos);
                 const fixedCities = ["STO", "QTO", "MTA", "GYE"];
                 const otherCities = Object.keys(board).filter(c => !fixedCities.includes(c) && board[c].length > 0).sort();
                 const allCities = [...fixedCities, ...otherCities];
                 const hasAny = allCities.some(c => (board[c] || []).length > 0);
+                const maxRows = Math.max(...allCities.map(c => (board[c] || []).length), 1);
 
                 return !hasAny ? (
                   <p className="text-sm text-muted-foreground text-center py-6">No hay vehículos con rutas finalizadas</p>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
-                    {allCities.map(city => {
-                      const vehicles = board[city] || [];
-                      return (
-                        <div key={city} className="border border-border rounded-lg overflow-hidden">
-                          <div className="bg-muted/60 px-3 py-2 text-center border-b border-border">
-                            <span className="font-display font-bold text-foreground text-sm">{city}</span>
-                            <span className="text-muted-foreground text-xs ml-1.5">({vehicles.length})</span>
-                          </div>
-                          <div className="divide-y divide-border/50">
-                            {vehicles.length === 0 ? (
-                              <p className="text-xs text-muted-foreground text-center py-4">—</p>
-                            ) : (
-                              vehicles.map((veh, idx) => (
-                                <div key={veh.vehiculoId} className={`px-3 py-2 ${veh.estadoRuta ? "bg-primary/5" : ""}`}>
-                                  <div className="flex items-start gap-2">
-                                    <span className="text-xs font-bold text-primary shrink-0 mt-0.5">{idx + 1}.</span>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-foreground text-xs truncate">
-                                        {veh.marca} {veh.modelo}
-                                      </p>
-                                      <p className="text-muted-foreground text-[11px]">{veh.placa}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-xs">
+                      <thead>
+                        <tr>
+                          <th className="border border-border bg-muted/80 px-2 py-2 text-center font-bold text-foreground w-8">#</th>
+                          {allCities.map(city => (
+                            <th key={city} className="border border-border bg-muted/80 px-3 py-2 text-center font-bold text-foreground min-w-[140px]">
+                              {city} <span className="font-normal text-muted-foreground">({(board[city] || []).length})</span>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.from({ length: maxRows }).map((_, rowIdx) => (
+                          <tr key={rowIdx}>
+                            <td className="border border-border bg-muted/40 px-2 py-1.5 text-center font-bold text-muted-foreground">{rowIdx + 1}</td>
+                            {allCities.map(city => {
+                              const veh = (board[city] || [])[rowIdx];
+                              return (
+                                <td key={city} className={`border border-border px-2 py-1.5 text-center ${veh?.estadoRuta ? "bg-primary/5" : ""}`}>
+                                  {veh ? (
+                                    <div>
+                                      <p className="font-semibold text-foreground truncate">{veh.conductorNombre || "—"}</p>
+                                      <p className="text-muted-foreground">{veh.marca} · {veh.placa}</p>
                                       {veh.estadoRuta && (
-                                        <Badge variant={veh.estadoRuta === "EN_RUTA" ? "default" : "outline"} className="text-[9px] mt-1">
-                                          {veh.estadoRuta === "EN_RUTA" ? `En Ruta → ${veh.destinoPendiente}` : `Asignado → ${veh.destinoPendiente}`}
+                                        <Badge variant={veh.estadoRuta === "EN_RUTA" ? "default" : "outline"} className="text-[9px] mt-0.5">
+                                          {veh.estadoRuta === "EN_RUTA" ? `Ruta → ${veh.destinoPendiente}` : `Asig → ${veh.destinoPendiente}`}
                                         </Badge>
                                       )}
                                     </div>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                                  ) : null}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 );
               })()}
