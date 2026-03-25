@@ -460,11 +460,13 @@ export default function Dashboard() {
   const [empresaNombre, setEmpresaNombre] = useState("");
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
   const [viajesActivos, setViajesActivos] = useState<any[]>([]);
+  const [activeAssignmentsMap, setActiveAssignmentsMap] = useState<Record<string, { nombres: string; apellidos: string }>>({});
 
   const loadDespacho = useCallback(async () => {
     if (role !== "GERENCIA" || !empresaId) return;
-    const viajes = await fetchViajesActivosConVehiculo(empresaId);
+    const { viajes, activeAssignments } = await fetchViajesActivosConVehiculo(empresaId);
     setViajesActivos(viajes);
+    setActiveAssignmentsMap(activeAssignments as any);
   }, [role, empresaId]);
 
   useEffect(() => {
@@ -628,7 +630,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-0">
               {(() => {
-                const board = buildDespachoBoard(viajesActivos);
+                const board = buildDespachoBoard(viajesActivos, activeAssignmentsMap);
                 const fixedCities = ["STO", "QTO", "MTA", "GYE"];
                 const otherCities = Object.keys(board).filter(c => !fixedCities.includes(c) && board[c].length > 0).sort();
                 const allCities = [...fixedCities, ...otherCities];
