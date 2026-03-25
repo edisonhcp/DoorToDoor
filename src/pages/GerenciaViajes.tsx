@@ -51,7 +51,7 @@ function ConsolidadoTable({ vehicleMap, vehicleKeys, empresaInfo }: { vehicleMap
     const totalEgreso = veh.viajes.reduce((s: number, v: any) => {
       const eg = v.egresos;
       if (!eg) return s;
-      const alim = calcAlim(eg);
+      const alim = calcAlim(eg, v.valor_comida);
       return s + Number(eg.peaje || 0) + Number(eg.hotel || 0) + Number(eg.combustible || 0) + Number(eg.varios || 0) + Number(eg.pago_conductor || 0) + alim;
     }, 0);
     const totalCompania = tipoComision === "PORCENTAJE"
