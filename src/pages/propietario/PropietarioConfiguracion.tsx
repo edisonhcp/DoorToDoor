@@ -160,6 +160,49 @@ export default function PropietarioConfiguracion() {
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
+  const openAlimentacion = async (v: any) => {
+    setAlimentacionVehiculo(v);
+    const { data } = await fetchAlimentacionConfig(v.id);
+    if (data) {
+      setAlimentacionForm({
+        valor_comida: String(data.valor_comida),
+        desayuno_habilitado: data.desayuno_habilitado,
+        almuerzo_habilitado: data.almuerzo_habilitado,
+        merienda_habilitado: data.merienda_habilitado,
+        alimentacion_habilitada: data.alimentacion_habilitada,
+      });
+    } else {
+      setAlimentacionForm({
+        valor_comida: "3",
+        desayuno_habilitado: true,
+        almuerzo_habilitado: true,
+        merienda_habilitado: true,
+        alimentacion_habilitada: true,
+      });
+    }
+  };
+
+  const handleSaveAlimentacion = async () => {
+    if (!alimentacionVehiculo || !empresaId) return;
+    setSavingAlimentacion(true);
+    const { error } = await upsertAlimentacionConfig({
+      vehiculo_id: alimentacionVehiculo.id,
+      empresa_id: empresaId,
+      valor_comida: parseFloat(alimentacionForm.valor_comida) || 3,
+      desayuno_habilitado: alimentacionForm.desayuno_habilitado,
+      almuerzo_habilitado: alimentacionForm.almuerzo_habilitado,
+      merienda_habilitado: alimentacionForm.merienda_habilitado,
+      alimentacion_habilitada: alimentacionForm.alimentacion_habilitada,
+    });
+    setSavingAlimentacion(false);
+    if (error) {
+      toast({ title: "Error al guardar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Configuración de alimentación guardada" });
+      setAlimentacionVehiculo(null);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
