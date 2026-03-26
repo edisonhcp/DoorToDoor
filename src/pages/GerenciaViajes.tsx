@@ -49,7 +49,7 @@ function ConsolidadoTable({ vehicleMap, vehicleKeys, empresaInfo }: { vehicleMap
 
   const rows = vehicleKeys.map((key, idx) => {
     const veh = vehicleMap[key];
-    const finalizados = veh.viajes.filter((v: any) => v.estado === "FINALIZADO" || v.estado === "CERRADO");
+    const finalizados = veh.viajes.filter((v: any) => v.estado === "FINALIZADO");
     const totalIngreso = finalizados.reduce((s: number, v: any) => s + Number(v.ingresos?.total_ingreso || 0), 0);
     const totalEgreso = finalizados.reduce((s: number, v: any) => {
       const eg = v.egresos;
