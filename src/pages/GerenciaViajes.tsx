@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bus, ChevronDown, ChevronUp, LayoutList, Printer, User, CheckCircle } from "lucide-react";
+import { Bus, ChevronDown, ChevronUp, LayoutList, Printer, User, CheckCircle, AlertTriangle } from "lucide-react";
 import { PrintHeader } from "@/components/PrintHeader";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
