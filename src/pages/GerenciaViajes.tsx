@@ -233,10 +233,7 @@ export default function GerenciaViajes() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (hasEnRuta) {
-                                      toast.info("Tienes rutas pendientes por finalizar. Las rutas que no estén finalizadas se registrarán en el siguiente corte. Contáctate con tu conductor.", { duration: 6000 });
-                                    }
-                                    handleFinalizarPeriodo(veh.placa);
+                                    setFinalizarAlert({ placa: veh.placa, hasEnRuta });
                                   }}
                                 >
                                   <CheckCircle className="w-4 h-4 mr-1" />
