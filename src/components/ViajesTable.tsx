@@ -52,7 +52,7 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
 
   // Calculate totals - only sum FINALIZADO trips
   const totals = viajes.reduce((acc, v) => {
-    if (v.estado !== "FINALIZADO") return acc;
+    if (v.estado !== "FINALIZADO" && v.estado !== "CERRADO") return acc;
     const ing = v.ingresos;
     const eg = v.egresos;
     const alim = calcAlimentacion(eg, v.valor_comida);
