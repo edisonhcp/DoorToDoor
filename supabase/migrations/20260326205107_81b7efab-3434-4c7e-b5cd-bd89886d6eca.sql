@@ -1,0 +1,1 @@
+ALTER TABLE public.empresas ADD COLUMN ciudad_real text NOT NULL DEFAULT '';

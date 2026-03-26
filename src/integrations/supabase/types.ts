@@ -345,6 +345,7 @@ export type Database = {
           activo: boolean
           celular: string
           ciudad: string
+          ciudad_real: string
           comision_fija: number
           comision_pct: number
           created_at: string
@@ -363,6 +364,7 @@ export type Database = {
           activo?: boolean
           celular: string
           ciudad: string
+          ciudad_real?: string
           comision_fija?: number
           comision_pct?: number
           created_at?: string
@@ -381,6 +383,7 @@ export type Database = {
           activo?: boolean
           celular?: string
           ciudad?: string
+          ciudad_real?: string
           comision_fija?: number
           comision_pct?: number
           created_at?: string
