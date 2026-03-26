@@ -233,8 +233,8 @@ export default function Asignaciones() {
                     </SelectTrigger>
                     <SelectContent>
                       {vehiculosDisponibles.map((v) => {
-                        const estadoLabel = v.ultimo_viaje?.estado === "ASIGNADO" ? "Asignado"
-                          : v.ultimo_viaje?.estado === "EN_RUTA" ? "Ruta Iniciada"
+                        const estadoLabel = v.ultimo_viaje?.estado === "ASIGNADO" ? `Asignado → ${v.ultimo_viaje?.destino || ""}`
+                          : v.ultimo_viaje?.estado === "EN_RUTA" ? `Ruta Iniciada → ${v.ultimo_viaje?.destino || ""}`
                           : v.ultimo_viaje?.estado === "FINALIZADO" ? `Ruta Finalizada → ${v.ultimo_viaje?.destino || ""}`
                           : "Disponible";
                         const estadoColor = v.ultimo_viaje?.estado === "EN_RUTA" ? "text-orange-600"
