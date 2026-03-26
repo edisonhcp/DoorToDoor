@@ -9,6 +9,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { fetchEmpresaInfo, updateEmpresaInfo, uploadEmpresaLogo } from "@/services/dashboardService";
+import { PROVINCIAS_ECUADOR } from "@/constants/provinciasEcuador";
 
 export default function ConfiguracionEmpresa() {
   const { empresaId } = useAuth();
@@ -162,8 +163,17 @@ export default function ConfiguracionEmpresa() {
               <Input value={form.ruc} onChange={(e) => update("ruc", e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Ciudad</Label>
-              <Input value={form.ciudad} onChange={(e) => update("ciudad", e.target.value)} />
+              <Label>Provincia</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={form.ciudad}
+                onChange={(e) => update("ciudad", e.target.value)}
+              >
+                <option value="">Seleccione una provincia</option>
+                {PROVINCIAS_ECUADOR.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label>Dirección</Label>

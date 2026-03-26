@@ -31,6 +31,7 @@ import {
   fetchGlobalStats, updateEmpresa, deleteEmpresa, toggleEmpresaSuspend, fetchEmpresaDetail
 } from "@/services/empresasService";
 import { generateInvitation } from "@/services/invitacionesService";
+import { PROVINCIAS_ECUADOR } from "@/constants/provinciasEcuador";
 
 interface EmpresaRow {
   id: string;
@@ -366,6 +367,7 @@ export default function SuperAdminPanel() {
                       <TableHead>Nombre</TableHead>
                       <TableHead>Propietario</TableHead>
                       <TableHead>RUC / C.I.</TableHead>
+                      <TableHead>Provincia</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Celular</TableHead>
                       <TableHead>Comisión</TableHead>
@@ -384,6 +386,7 @@ export default function SuperAdminPanel() {
                         <TableCell className="font-medium">{empresa.nombre}</TableCell>
                         <TableCell>{empresa.propietario_nombre} {empresa.propietario_apellidos}</TableCell>
                         <TableCell>{empresa.ruc}</TableCell>
+                        <TableCell>{empresa.ciudad}</TableCell>
                         <TableCell className="text-xs">{empresa.email}</TableCell>
                         <TableCell>{empresa.celular}</TableCell>
                         <TableCell className="text-xs">
@@ -445,7 +448,7 @@ export default function SuperAdminPanel() {
             <div className="grid grid-cols-2 gap-3 py-4">
               <div className="col-span-2"><Label>Nombre</Label><Input value={editingEmpresa.nombre} onChange={e => setEditingEmpresa({ ...editingEmpresa, nombre: e.target.value })} /></div>
               <div><Label>RUC</Label><Input value={editingEmpresa.ruc} onChange={e => setEditingEmpresa({ ...editingEmpresa, ruc: e.target.value })} /></div>
-              <div><Label>Ciudad</Label><Input value={editingEmpresa.ciudad} onChange={e => setEditingEmpresa({ ...editingEmpresa, ciudad: e.target.value })} /></div>
+              <div><Label>Provincia</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" value={editingEmpresa.ciudad} onChange={e => setEditingEmpresa({ ...editingEmpresa, ciudad: e.target.value })}><option value="">Seleccione</option>{PROVINCIAS_ECUADOR.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
               <div className="col-span-2"><Label>Dirección</Label><Input value={editingEmpresa.direccion} onChange={e => setEditingEmpresa({ ...editingEmpresa, direccion: e.target.value })} /></div>
               <div><Label>Celular</Label><Input value={editingEmpresa.celular} onChange={e => setEditingEmpresa({ ...editingEmpresa, celular: e.target.value })} /></div>
               <div><Label>Email</Label><Input value={editingEmpresa.email} onChange={e => setEditingEmpresa({ ...editingEmpresa, email: e.target.value })} /></div>
