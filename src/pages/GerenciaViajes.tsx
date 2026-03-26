@@ -124,6 +124,7 @@ export default function GerenciaViajes() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [printingVehicle, setPrintingVehicle] = useState<string | null>(null);
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
+  const [finalizarAlert, setFinalizarAlert] = useState<{ placa: string; hasEnRuta: boolean } | null>(null);
 
   useEffect(() => {
     const load = async () => {
