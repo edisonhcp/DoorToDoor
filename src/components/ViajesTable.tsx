@@ -50,8 +50,9 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
     catch { return d; }
   };
 
-  // Calculate totals
+  // Calculate totals - only sum FINALIZADO trips
   const totals = viajes.reduce((acc, v) => {
+    if (v.estado !== "FINALIZADO") return acc;
     const ing = v.ingresos;
     const eg = v.egresos;
     const alim = calcAlimentacion(eg, v.valor_comida);
@@ -194,8 +195,8 @@ export function ViajesTable({ viajes, showEgresos = true, showConductorColumn = 
                           </TableCell>
                           <TableCell className="text-xs text-right font-medium">{rowTotalEgreso.toFixed(2)}</TableCell>
                           <TableCell className="text-xs text-center">
-                            <Badge variant={v.estado === "FINALIZADO" ? "default" : v.estado === "EN_RUTA" ? "secondary" : "outline"} className="text-[10px]">
-                              {v.estado === "FINALIZADO" ? "Finalizado" : v.estado === "EN_RUTA" ? "En Ruta" : v.estado || "—"}
+                            <Badge variant={v.estado === "FINALIZADO" || v.estado === "CERRADO" ? "default" : v.estado === "EN_RUTA" ? "secondary" : "outline"} className="text-[10px]">
+                              {v.estado === "FINALIZADO" || v.estado === "CERRADO" ? "Finalizado" : v.estado === "EN_RUTA" ? "En Ruta" : v.estado || "—"}
                             </Badge>
                           </TableCell>
                         </>
