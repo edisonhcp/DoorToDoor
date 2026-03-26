@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Search, Ban, CheckCircle2, Trash2, MoreVertical, Unlink } from "lucide-react";
+import { Users, Search, Ban, CheckCircle2, Trash2, MoreVertical, Unlink, UtensilsCrossed } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { fetchConductores, toggleConductorEstado, deleteConductor, unassignConductor } from "@/services/conductoresService";
 import { fetchVehiculosDisponiblesParaConductor, assignConductorToVehiculo } from "@/services/vehiculosService";
+import { fetchAlimentacionByVehiculos, VehiculoAlimentacion } from "@/services/alimentacionService";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -33,6 +34,7 @@ export default function AgencyConductores() {
   const { toast } = useToast();
   const [conductores, setConductores] = useState<any[]>([]);
   const [vehiculosDisponibles, setVehiculosDisponibles] = useState<any[]>([]);
+  const [alimMap, setAlimMap] = useState<Record<string, VehiculoAlimentacion>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [deleteAlert, setDeleteAlert] = useState<any>(null);
@@ -44,6 +46,18 @@ export default function AgencyConductores() {
     ]);
     setConductores(conds);
     setVehiculosDisponibles(vehs);
+
+    // Fetch alimentacion configs for assigned vehicles
+    const vehiculoIds = conds
+      .filter((c: any) => c.vehiculo?.id)
+      .map((c: any) => c.vehiculo.id);
+    if (vehiculoIds.length > 0) {
+      const { data: alims } = await fetchAlimentacionByVehiculos(vehiculoIds);
+      const map: Record<string, VehiculoAlimentacion> = {};
+      alims.forEach((a) => { map[a.vehiculo_id] = a; });
+      setAlimMap(map);
+    }
+
     setLoading(false);
   };
 
@@ -123,6 +137,7 @@ export default function AgencyConductores() {
                       <TableHead>Email</TableHead>
                       <TableHead>Licencia</TableHead>
                       <TableHead>Vehículo Asignado</TableHead>
+                      <TableHead>Config. Alimentación</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
@@ -173,6 +188,22 @@ export default function AgencyConductores() {
                               </SelectContent>
                             </Select>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                            if (!c.vehiculo?.id) return <span className="text-xs text-muted-foreground">—</span>;
+                            const alim = alimMap[c.vehiculo.id];
+                            if (!alim) return <span className="text-xs text-muted-foreground">—</span>;
+                            if (!alim.alimentacion_habilitada) return <span className="text-xs text-destructive font-medium">No alimentación</span>;
+                            return (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-xs font-semibold text-foreground">${alim.valor_comida}</span>
+                                {alim.desayuno_habilitado && <span className="w-3 h-3 rounded-full bg-yellow-400 inline-block" title="Desayuno" />}
+                                {alim.almuerzo_habilitado && <span className="w-3 h-3 rounded-full bg-yellow-400 inline-block" title="Almuerzo" />}
+                                {alim.merienda_habilitado && <span className="w-3 h-3 rounded-full bg-yellow-400 inline-block" title="Merienda" />}
+                              </div>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
                           <Badge variant={c.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{c.estado}</Badge>
