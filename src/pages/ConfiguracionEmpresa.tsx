@@ -23,6 +23,7 @@ export default function ConfiguracionEmpresa() {
     nombre: "",
     ruc: "",
     ciudad: "",
+    ciudad_real: "",
     direccion: "",
     celular: "",
     email: "",
@@ -42,6 +43,7 @@ export default function ConfiguracionEmpresa() {
           nombre: data.nombre || "",
           ruc: data.ruc || "",
           ciudad: data.ciudad || "",
+          ciudad_real: data.ciudad_real || "",
           direccion: data.direccion || "",
           celular: data.celular || "",
           email: data.email || "",
@@ -83,6 +85,7 @@ export default function ConfiguracionEmpresa() {
       nombre: form.nombre,
       ruc: form.ruc,
       ciudad: form.ciudad,
+      ciudad_real: form.ciudad_real,
       direccion: form.direccion,
       celular: form.celular,
       email: form.email,
@@ -174,6 +177,10 @@ export default function ConfiguracionEmpresa() {
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Ciudad</Label>
+              <Input value={form.ciudad_real} onChange={(e) => update("ciudad_real", e.target.value)} placeholder="Ej: Quito" />
             </div>
             <div className="space-y-2">
               <Label>Dirección</Label>
