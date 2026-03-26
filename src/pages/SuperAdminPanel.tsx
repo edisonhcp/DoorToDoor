@@ -388,7 +388,7 @@ export default function SuperAdminPanel() {
                         <TableCell>{empresa.propietario_nombre} {empresa.propietario_apellidos}</TableCell>
                         <TableCell>{empresa.ruc}</TableCell>
                         <TableCell>{empresa.ciudad}</TableCell>
-                        <TableCell>{empresa.direccion}</TableCell>
+                        <TableCell className="text-xs">{empresa.direccion}</TableCell>
                         <TableCell className="text-xs">{empresa.email}</TableCell>
                         <TableCell>{empresa.celular}</TableCell>
                         <TableCell className="text-xs">
