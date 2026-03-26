@@ -30,6 +30,7 @@ interface DatosEmpresa {
   nombre_empresa: string;
   ruc: string;
   ciudad: string;
+  ciudad_real: string;
   direccion: string;
   celular_empresa: string;
   propietario_nombre: string;
@@ -47,7 +48,7 @@ const emptyDatos: DatosExtra = {
 };
 
 const emptyEmpresa: DatosEmpresa = {
-  nombre_empresa: "", ruc: "", ciudad: "", direccion: "",
+  nombre_empresa: "", ruc: "", ciudad: "", ciudad_real: "", direccion: "",
   celular_empresa: "", propietario_nombre: "", propietario_apellidos: "",
   tipo_comision: "PORCENTAJE", comision_pct: "10", comision_fija: "0",
   frecuencia_comision: "SEMANAL",
@@ -212,6 +213,7 @@ export default function RegistroInvitacion() {
                       <div className="col-span-2"><Label>Nombre de la compañía</Label><Input value={datosEmpresa.nombre_empresa} onChange={e => setDatosEmpresa({ ...datosEmpresa, nombre_empresa: e.target.value })} required /></div>
                       <div><Label>RUC</Label><Input value={datosEmpresa.ruc} onChange={e => setDatosEmpresa({ ...datosEmpresa, ruc: e.target.value })} required /></div>
                       <div><Label>Provincia</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" value={datosEmpresa.ciudad} onChange={e => setDatosEmpresa({ ...datosEmpresa, ciudad: e.target.value })} required><option value="">Seleccione una provincia</option>{PROVINCIAS_ECUADOR.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                      <div><Label>Ciudad</Label><Input value={datosEmpresa.ciudad_real} onChange={e => setDatosEmpresa({ ...datosEmpresa, ciudad_real: e.target.value })} placeholder="Ej: Quito" required /></div>
                       <div className="col-span-2"><Label>Dirección</Label><Input value={datosEmpresa.direccion} onChange={e => setDatosEmpresa({ ...datosEmpresa, direccion: e.target.value })} required /></div>
                       <div><Label>Celular de la compañía</Label><Input value={datosEmpresa.celular_empresa} onChange={e => setDatosEmpresa({ ...datosEmpresa, celular_empresa: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
                       <div><Label>Nombres del representante</Label><Input value={datosEmpresa.propietario_nombre} onChange={e => setDatosEmpresa({ ...datosEmpresa, propietario_nombre: e.target.value })} required /></div>

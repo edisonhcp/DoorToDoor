@@ -66,6 +66,7 @@ Deno.serve(async (req) => {
           nombre: datos_extra.nombre_empresa || 'Sin nombre',
           ruc: datos_extra.ruc || '0000000000000',
           ciudad: datos_extra.ciudad || '',
+          ciudad_real: datos_extra.ciudad_real || '',
           direccion: datos_extra.direccion || '',
           celular: datos_extra.celular_empresa || '',
           email: datos_extra.email_empresa || email,
