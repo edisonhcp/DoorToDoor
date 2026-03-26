@@ -41,7 +41,7 @@ export async function toggleEmpresaSuspend(empresa: any) {
   return { error };
 }
 
-export async function fetchConsolidadoEmpresas() {
+export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
   const { data: empresas } = await supabase
     .from("empresas")
     .select("id, nombre, tipo_comision, comision_pct, comision_fija, frecuencia_comision, activo")
@@ -57,16 +57,23 @@ export async function fetchConsolidadoEmpresas() {
         .select("id", { count: "exact", head: true })
         .eq("empresa_id", emp.id);
 
-      const { data: viajes } = await supabase
+      let viajesQuery = supabase
         .from("viajes")
-        .select("id, asignacion_id, ingresos_viaje(total_ingreso)")
+        .select("id, asignacion_id, fecha_salida, ingresos_viaje(total_ingreso)")
         .eq("empresa_id", emp.id)
         .eq("estado", "FINALIZADO" as any);
+
+      if (mes !== undefined && anio !== undefined) {
+        const startDate = new Date(anio, mes, 1).toISOString();
+        const endDate = new Date(anio, mes + 1, 1).toISOString();
+        viajesQuery = viajesQuery.gte("fecha_salida", startDate).lt("fecha_salida", endDate);
+      }
+
+      const { data: viajes } = await viajesQuery;
 
       const totalViajes = viajes?.length || 0;
       const totalIngresos = (viajes || []).reduce((s: number, v: any) => s + Number(v.ingresos_viaje?.total_ingreso || 0), 0);
 
-      // Group by vehicle (via asignacion_id) to calculate commission per vehicle
       const vehicleMap: Record<string, number> = {};
       (viajes || []).forEach((v: any) => {
         const key = v.asignacion_id || v.id;
