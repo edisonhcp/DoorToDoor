@@ -192,9 +192,15 @@ export default function PropietarioVehiculos() {
                 <Card key={v.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${v.estado === "INHABILITADO" ? "border border-destructive/30 bg-destructive/5" : ""}`}>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${v.estado === "INHABILITADO" ? "bg-destructive/10" : "bg-primary/10"}`}>
-                        <Truck className={`w-5 h-5 ${v.estado === "INHABILITADO" ? "text-destructive" : "text-primary"}`} />
-                      </div>
+                      {v.foto_url ? (
+                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-border">
+                          <img src={v.foto_url} alt={v.placa} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${v.estado === "INHABILITADO" ? "bg-destructive/10" : "bg-primary/10"}`}>
+                          <Truck className={`w-5 h-5 ${v.estado === "INHABILITADO" ? "text-destructive" : "text-primary"}`} />
+                        </div>
+                      )}
                       <div className="flex flex-col items-end gap-1">
                         <Badge variant={v.estado === "HABILITADO" ? "default" : "destructive"}>{v.estado}</Badge>
                         <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => openAlimentacion(v)}>
