@@ -35,22 +35,31 @@ export function PrintHeader({ reportTitle, subtitle, vehicleInfo, periodInfo }: 
 
   return (
     <div className="print-header hidden print:block mb-6">
+      {/* Logo centered 30mm x 30mm */}
+      {empresa.logo_url && (
+        <div className="flex justify-center mb-2">
+          <img
+            src={empresa.logo_url}
+            alt="Logo"
+            className="object-contain rounded"
+            style={{ width: "30mm", height: "30mm" }}
+          />
+        </div>
+      )}
+
+      {/* Company name centered, 14pt Arial bold */}
+      <div className="text-center mb-3">
+        <h2 style={{ fontSize: "14pt", fontFamily: "Arial, sans-serif", fontWeight: "bold" }}>
+          {empresa.nombre}
+        </h2>
+      </div>
+
+      {/* Rest of header info */}
       <div className="flex items-start justify-between border-b-2 border-foreground pb-3 mb-3">
-        {/* Logo + Company Info */}
-        <div className="flex items-start gap-4">
-          {empresa.logo_url && (
-            <img
-              src={empresa.logo_url}
-              alt="Logo"
-              className="w-16 h-16 object-contain rounded"
-            />
-          )}
-          <div>
-            <h2 className="text-lg font-bold">{empresa.nombre}</h2>
-            <p className="text-xs text-muted-foreground">RUC: {empresa.ruc}</p>
-            <p className="text-xs text-muted-foreground">{empresa.direccion}, {empresa.ciudad}</p>
-            <p className="text-xs text-muted-foreground">Tel: {empresa.celular} · {empresa.email}</p>
-          </div>
+        <div>
+          <p className="text-xs text-muted-foreground">RUC: {empresa.ruc}</p>
+          <p className="text-xs text-muted-foreground">{empresa.direccion}, {empresa.ciudad}</p>
+          <p className="text-xs text-muted-foreground">Tel: {empresa.celular} · {empresa.email}</p>
         </div>
 
         {/* Report title + date */}
