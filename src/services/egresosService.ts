@@ -328,7 +328,7 @@ export async function fetchConductorViajes(userId: string, estadoFilter?: string
     query = query.in("estado", estadoFilter as any);
   }
 
-  const { data: viajes, error } = await query.order("created_at", { ascending: false });
+  const { data: viajes, error } = await query.order("fecha_salida", { ascending: false });
 
   // Fetch alimentacion configs
   const vehiculoIds = [...new Set(asignaciones.map((a: any) => a.vehiculo_id).filter(Boolean))];
