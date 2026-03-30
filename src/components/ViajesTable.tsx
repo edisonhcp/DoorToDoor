@@ -45,8 +45,8 @@ interface ViajesTableProps {
 }
 
 export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConductorColumn = true, showSummary = true, comisionPct = 0.10, comisionFija = 0, tipoComision = "PORCENTAJE", frecuenciaComision = "SEMANAL" }: ViajesTableProps) {
-  // Sort viajes by fecha_salida descending (most recent first)
-  const viajes = [...rawViajes].sort((a, b) => new Date(b.fecha_salida).getTime() - new Date(a.fecha_salida).getTime());
+  // Sort viajes by fecha_salida ascending (oldest first, newest at bottom)
+  const viajes = [...rawViajes].sort((a, b) => new Date(a.fecha_salida).getTime() - new Date(b.fecha_salida).getTime());
   const formatDate = (d: string) => {
     try { return new Date(d).toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" }); }
     catch { return d; }
