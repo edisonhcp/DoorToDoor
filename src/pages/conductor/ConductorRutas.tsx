@@ -55,10 +55,11 @@ function getPeriodsForMonth(year: number, month: number, frecuencia: string): Pe
       const bStart = new Date(current);
       bStart.setHours(0, 0, 0, 0);
       const bEnd = new Date(current);
-      bEnd.setDate(bEnd.getDate() + 13); // 2 weeks = 14 days
+      bEnd.setDate(bEnd.getDate() + 13);
       bEnd.setHours(23, 59, 59, 999);
       
-      if (bEnd >= firstDay && bStart <= lastDay) {
+      // Only show period in the month where it starts
+      if (bStart.getMonth() === month && bStart.getFullYear() === year) {
         const sDay = bStart.getDate();
         const sMonth = bStart.getMonth();
         const eDay = bEnd.getDate();
@@ -71,6 +72,8 @@ function getPeriodsForMonth(year: number, month: number, frecuencia: string): Pe
         }
         periods.push({ label, start: bStart, end: bEnd });
         biweekNum++;
+      } else if (bEnd >= firstDay && bStart < firstDay) {
+        // Period starts in previous month but overlaps — skip, it belongs to previous month
       }
       current.setDate(current.getDate() + 14);
     }
