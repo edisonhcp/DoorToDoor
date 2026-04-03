@@ -42,44 +42,44 @@ function getPeriodsForMonth(year: number, month: number, frecuencia: string): Pe
     periods.push({ label: `Quincena 1 (1-15)`, start: new Date(year, month, 1), end: mid });
     periods.push({ label: `Quincena 2 (16-${endOfMonth.getDate()})`, start: new Date(year, month, 16), end: endOfMonth });
   } else {
-    // SEMANAL
+    // SEMANAL - Lunes a Domingo
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
-    // Find first Sunday of the month or start from day 1
+    // Find the Monday on or before the 1st of the month
     let current = new Date(firstDay);
-    // Go to the Sunday on or before the 1st
-    const dayOfWeek = current.getDay();
-    if (dayOfWeek !== 0) {
-      current.setDate(current.getDate() - dayOfWeek);
+    const dow = current.getDay(); // 0=Sun, 1=Mon...
+    // Go back to Monday: if Sunday go back 6, else go back (dow-1)
+    if (dow === 0) {
+      current.setDate(current.getDate() - 6);
+    } else if (dow !== 1) {
+      current.setDate(current.getDate() - (dow - 1));
     }
     
     let weekNum = 1;
     while (current <= lastDay) {
       const weekStart = new Date(current);
+      weekStart.setHours(0, 0, 0, 0);
       const weekEnd = new Date(current);
       weekEnd.setDate(weekEnd.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
       
-      // Only include weeks that overlap with this month
+      // Only include weeks that have at least one day in this month
       if (weekEnd >= firstDay && weekStart <= lastDay) {
-        const startDay = weekStart < firstDay ? 1 : weekStart.getDate();
-        const endDay = weekEnd > lastDay ? lastDay.getDate() : weekEnd.getDate();
-        const startMonth = weekStart < firstDay ? month : weekStart.getMonth();
-        const endMonth = weekEnd > lastDay ? month : weekEnd.getMonth();
+        const sDay = weekStart.getDate();
+        const sMonth = weekStart.getMonth();
+        const eDay = weekEnd.getDate();
+        const eMonth = weekEnd.getMonth();
         
         let label = `Semana ${weekNum}`;
-        if (startMonth === endMonth) {
-          label += ` (${startDay}-${endDay})`;
+        if (sMonth === eMonth) {
+          label += ` (${sDay}-${eDay} ${MONTH_NAMES[sMonth].substring(0, 3)})`;
         } else {
-          label += ` (${startDay}/${startMonth + 1}-${endDay}/${endMonth + 1})`;
+          label += ` (${sDay} ${MONTH_NAMES[sMonth].substring(0, 3)}-${eDay} ${MONTH_NAMES[eMonth].substring(0, 3)})`;
         }
         
-        periods.push({
-          label,
-          start: weekStart < firstDay ? firstDay : weekStart,
-          end: weekEnd > lastDay ? new Date(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate(), 23, 59, 59, 999) : weekEnd,
-        });
+        // Keep full week range even if it crosses month boundaries
+        periods.push({ label, start: weekStart, end: weekEnd });
         weekNum++;
       }
       
@@ -112,15 +112,16 @@ function getCurrentPeriod(frecuencia: string): { start: Date; end: Date } {
       };
     }
   } else {
-    // SEMANAL - Sunday to Saturday
-    const dayOfWeek = now.getDay();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - dayOfWeek);
-    sunday.setHours(0, 0, 0, 0);
-    const saturday = new Date(sunday);
-    saturday.setDate(sunday.getDate() + 6);
-    saturday.setHours(23, 59, 59, 999);
-    return { start: sunday, end: saturday };
+    // SEMANAL - Monday to Sunday
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon...
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    return { start: monday, end: sunday };
   }
 }
 
