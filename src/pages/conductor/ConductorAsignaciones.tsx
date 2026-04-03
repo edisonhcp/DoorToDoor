@@ -48,12 +48,13 @@ function getCutoffDate(frecuencia: string): Date {
   const now = new Date();
   
   if (frecuencia === "SEMANAL") {
-    // Period cuts on Sunday. Find the most recent Sunday.
-    const day = now.getDay(); // 0=Sunday
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - day);
-    sunday.setHours(0, 0, 0, 0);
-    return sunday;
+    // Weeks run Monday-Sunday. Find the most recent Monday.
+    const day = now.getDay(); // 0=Sun, 1=Mon...
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
   } else if (frecuencia === "QUINCENAL") {
     // Cut on 1st and 16th of each month
     const day = now.getDate();
