@@ -1,0 +1,1 @@
+ALTER TYPE public.frecuencia_comision ADD VALUE 'BISEMANAL';
