@@ -215,7 +215,7 @@ export default function ConductorRutas() {
         const [year, month] = key.split("-").map(Number);
         return { year, month, key };
       })
-      .sort((a, b) => b.year - a.year || b.month - a.month);
+      .sort((a, b) => a.year - b.year || a.month - b.month);
   }, [allViajes]);
 
   // Filter viajes by selected period
