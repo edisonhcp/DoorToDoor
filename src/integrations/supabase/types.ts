@@ -1071,7 +1071,7 @@ export type Database = {
         | "ASIGNADO"
         | "EN_RUTA"
         | "FINALIZADO"
-      frecuencia_comision: "SEMANAL" | "QUINCENAL" | "MENSUAL"
+      frecuencia_comision: "SEMANAL" | "QUINCENAL" | "MENSUAL" | "BISEMANAL"
       invitacion_rol: "CONDUCTOR" | "PROPIETARIO" | "GERENCIA"
       tipo_comision_empresa: "PORCENTAJE" | "FIJO" | "MIXTO"
     }
@@ -1230,7 +1230,7 @@ export const Constants = {
         "EN_RUTA",
         "FINALIZADO",
       ],
-      frecuencia_comision: ["SEMANAL", "QUINCENAL", "MENSUAL"],
+      frecuencia_comision: ["SEMANAL", "QUINCENAL", "MENSUAL", "BISEMANAL"],
       invitacion_rol: ["CONDUCTOR", "PROPIETARIO", "GERENCIA"],
       tipo_comision_empresa: ["PORCENTAJE", "FIJO", "MIXTO"],
     },

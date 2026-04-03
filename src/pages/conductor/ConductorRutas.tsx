@@ -41,20 +41,48 @@ function getPeriodsForMonth(year: number, month: number, frecuencia: string): Pe
     const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
     periods.push({ label: `Quincena 1 (1-15)`, start: new Date(year, month, 1), end: mid });
     periods.push({ label: `Quincena 2 (16-${endOfMonth.getDate()})`, start: new Date(year, month, 16), end: endOfMonth });
+  } else if (frecuencia === "BISEMANAL") {
+    // Every 2 weeks (Monday to Sunday), group pairs of weeks
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    let current = new Date(firstDay);
+    const dow = current.getDay();
+    if (dow === 0) { current.setDate(current.getDate() - 6); }
+    else if (dow !== 1) { current.setDate(current.getDate() - (dow - 1)); }
+    
+    let biweekNum = 1;
+    while (current <= lastDay) {
+      const bStart = new Date(current);
+      bStart.setHours(0, 0, 0, 0);
+      const bEnd = new Date(current);
+      bEnd.setDate(bEnd.getDate() + 13); // 2 weeks = 14 days
+      bEnd.setHours(23, 59, 59, 999);
+      
+      if (bEnd >= firstDay && bStart <= lastDay) {
+        const sDay = bStart.getDate();
+        const sMonth = bStart.getMonth();
+        const eDay = bEnd.getDate();
+        const eMonth = bEnd.getMonth();
+        let label = `Bisemana ${biweekNum}`;
+        if (sMonth === eMonth) {
+          label += ` (${sDay}-${eDay} ${MONTH_NAMES[sMonth].substring(0, 3)})`;
+        } else {
+          label += ` (${sDay} ${MONTH_NAMES[sMonth].substring(0, 3)}-${eDay} ${MONTH_NAMES[eMonth].substring(0, 3)})`;
+        }
+        periods.push({ label, start: bStart, end: bEnd });
+        biweekNum++;
+      }
+      current.setDate(current.getDate() + 14);
+    }
   } else {
     // SEMANAL - Lunes a Domingo
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
-    // Find the Monday on or before the 1st of the month
     let current = new Date(firstDay);
-    const dow = current.getDay(); // 0=Sun, 1=Mon...
-    // Go back to Monday: if Sunday go back 6, else go back (dow-1)
-    if (dow === 0) {
-      current.setDate(current.getDate() - 6);
-    } else if (dow !== 1) {
-      current.setDate(current.getDate() - (dow - 1));
-    }
+    const dow = current.getDay();
+    if (dow === 0) { current.setDate(current.getDate() - 6); }
+    else if (dow !== 1) { current.setDate(current.getDate() - (dow - 1)); }
     
     let weekNum = 1;
     while (current <= lastDay) {
@@ -64,25 +92,20 @@ function getPeriodsForMonth(year: number, month: number, frecuencia: string): Pe
       weekEnd.setDate(weekEnd.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
       
-      // Only include weeks that have at least one day in this month
       if (weekEnd >= firstDay && weekStart <= lastDay) {
         const sDay = weekStart.getDate();
         const sMonth = weekStart.getMonth();
         const eDay = weekEnd.getDate();
         const eMonth = weekEnd.getMonth();
-        
         let label = `Semana ${weekNum}`;
         if (sMonth === eMonth) {
           label += ` (${sDay}-${eDay} ${MONTH_NAMES[sMonth].substring(0, 3)})`;
         } else {
           label += ` (${sDay} ${MONTH_NAMES[sMonth].substring(0, 3)}-${eDay} ${MONTH_NAMES[eMonth].substring(0, 3)})`;
         }
-        
-        // Keep full week range even if it crosses month boundaries
         periods.push({ label, start: weekStart, end: weekEnd });
         weekNum++;
       }
-      
       current.setDate(current.getDate() + 7);
     }
   }
@@ -111,6 +134,21 @@ function getCurrentPeriod(frecuencia: string): { start: Date; end: Date } {
         end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
       };
     }
+  } else if (frecuencia === "BISEMANAL") {
+    // Every 2 weeks Monday-Sunday. Find the biweek containing today.
+    const dayOfWeek = now.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const thisMonday = new Date(now);
+    thisMonday.setDate(now.getDate() + diffToMonday);
+    thisMonday.setHours(0, 0, 0, 0);
+    // Use epoch-based calculation: weeks since a reference Monday
+    const refMonday = new Date(2024, 0, 1); // Jan 1 2024 is a Monday
+    const weeksSinceRef = Math.floor((thisMonday.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    const isEvenWeek = weeksSinceRef % 2 === 0;
+    const biweekStart = isEvenWeek ? thisMonday : new Date(thisMonday.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const biweekEnd = new Date(biweekStart.getTime() + 13 * 24 * 60 * 60 * 1000);
+    biweekEnd.setHours(23, 59, 59, 999);
+    return { start: biweekStart, end: biweekEnd };
   } else {
     // SEMANAL - Monday to Sunday
     const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon...
@@ -198,6 +236,7 @@ export default function ConductorRutas() {
 
   const frecuenciaLabel: Record<string, string> = {
     SEMANAL: "Semanal",
+    BISEMANAL: "Bisemanal",
     QUINCENAL: "Quincenal",
     MENSUAL: "Mensual",
   };

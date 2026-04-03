@@ -264,6 +264,7 @@ export default function ConfiguracionEmpresa() {
               <div className="flex gap-2">
                 {[
                   { value: "SEMANAL", label: "Semanal" },
+                  { value: "BISEMANAL", label: "Bisemanal" },
                   { value: "QUINCENAL", label: "Quincenal" },
                   { value: "MENSUAL", label: "Mensual" },
                 ].map((opt) => (

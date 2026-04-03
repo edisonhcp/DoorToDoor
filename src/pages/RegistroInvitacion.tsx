@@ -271,15 +271,15 @@ export default function RegistroInvitacion() {
 
                       <div className="space-y-2">
                         <Label>¿Con qué frecuencia recibe la comisión?</Label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {(["SEMANAL", "QUINCENAL", "MENSUAL"] as const).map(freq => (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {(["SEMANAL", "BISEMANAL", "QUINCENAL", "MENSUAL"] as const).map(freq => (
                             <button
                               key={freq}
                               type="button"
                               onClick={() => setDatosEmpresa({ ...datosEmpresa, frecuencia_comision: freq })}
                               className={`p-2.5 rounded-lg border-2 text-center text-sm font-medium transition-colors ${datosEmpresa.frecuencia_comision === freq ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground"}`}
                             >
-                              {freq.charAt(0) + freq.slice(1).toLowerCase()}
+                              {freq === "BISEMANAL" ? "Bisemanal" : freq.charAt(0) + freq.slice(1).toLowerCase()}
                             </button>
                           ))}
                         </div>

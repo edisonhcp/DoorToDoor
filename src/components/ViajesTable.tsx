@@ -82,6 +82,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
 
   const frecuenciaLabel: Record<string, string> = {
     SEMANAL: "Semanal",
+    BISEMANAL: "Bisemanal",
     QUINCENAL: "Quincenal", 
     MENSUAL: "Mensual",
   };
