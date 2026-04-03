@@ -113,6 +113,7 @@ const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
 const FRECUENCIA_LABELS: Record<string, string> = {
   SEMANAL: "Semana",
+  BISEMANAL: "Bisemana",
   QUINCENAL: "Quincena",
   MENSUAL: "Mes",
 };

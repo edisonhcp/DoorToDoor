@@ -55,6 +55,17 @@ function getCutoffDate(frecuencia: string): Date {
     monday.setDate(now.getDate() + diffToMonday);
     monday.setHours(0, 0, 0, 0);
     return monday;
+  } else if (frecuencia === "BISEMANAL") {
+    // Every 2 weeks Monday-Sunday
+    const day = now.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const thisMonday = new Date(now);
+    thisMonday.setDate(now.getDate() + diffToMonday);
+    thisMonday.setHours(0, 0, 0, 0);
+    const refMonday = new Date(2024, 0, 1);
+    const weeksSinceRef = Math.floor((thisMonday.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    const isEvenWeek = weeksSinceRef % 2 === 0;
+    return isEvenWeek ? thisMonday : new Date(thisMonday.getTime() - 7 * 24 * 60 * 60 * 1000);
   } else if (frecuencia === "QUINCENAL") {
     // Cut on 1st and 16th of each month
     const day = now.getDate();

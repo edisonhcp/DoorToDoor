@@ -236,6 +236,7 @@ export default function ConductorRutas() {
 
   const frecuenciaLabel: Record<string, string> = {
     SEMANAL: "Semanal",
+    BISEMANAL: "Bisemanal",
     QUINCENAL: "Quincenal",
     MENSUAL: "Mensual",
   };
