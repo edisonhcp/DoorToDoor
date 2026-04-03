@@ -18,6 +18,7 @@ import {
 } from "@/services/egresosService";
 import { iniciarRuta, finalizarRuta } from "@/services/asignacionesRutaService";
 import { fetchAlimentacionByVehiculos, VehiculoAlimentacion } from "@/services/alimentacionService";
+import { fetchEmpresaInfo } from "@/services/dashboardService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,11 +39,57 @@ const estadoBadge: Record<string, { label: string; variant: "default" | "seconda
   FINALIZADO: { label: "Ruta Finalizada", variant: "outline" },
 };
 
+/**
+ * Calculate the cut-off date based on frecuencia_comision.
+ * Returns the start of the current period (week starting Sunday, biweekly, or monthly).
+ * After 24h past the cut-off, finalized trips from the previous period are hidden.
+ */
+function getCutoffDate(frecuencia: string): Date {
+  const now = new Date();
+  
+  if (frecuencia === "SEMANAL") {
+    // Period cuts on Sunday. Find the most recent Sunday.
+    const day = now.getDay(); // 0=Sunday
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - day);
+    sunday.setHours(0, 0, 0, 0);
+    return sunday;
+  } else if (frecuencia === "QUINCENAL") {
+    // Cut on 1st and 16th of each month
+    const day = now.getDate();
+    const cutoff = new Date(now.getFullYear(), now.getMonth(), day >= 16 ? 16 : 1);
+    cutoff.setHours(0, 0, 0, 0);
+    return cutoff;
+  } else {
+    // MENSUAL - cut on 1st of each month
+    const cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+    cutoff.setHours(0, 0, 0, 0);
+    return cutoff;
+  }
+}
+
+function shouldHideFinalizadoViaje(viaje: any, frecuencia: string): boolean {
+  if (viaje.estado !== "FINALIZADO") return false;
+  
+  const cutoffDate = getCutoffDate(frecuencia);
+  // Add 24 hours grace period after the cutoff
+  const cutoffPlus24h = new Date(cutoffDate.getTime() + 24 * 60 * 60 * 1000);
+  const now = new Date();
+  
+  // If we're past 24h after the cutoff, hide FINALIZADO trips from before the cutoff
+  if (now >= cutoffPlus24h) {
+    const fechaSalida = new Date(viaje.fecha_salida);
+    return fechaSalida < cutoffDate;
+  }
+  
+  return false;
+}
+
 export default function ConductorAsignaciones() {
-  const { role, user } = useAuth();
+  const { role, user, empresaId } = useAuth();
   const { toast } = useToast();
   const [viajes, setViajes] = useState<any[]>([]);
-  const [empresaId, setEmpresaId] = useState<string | null>(null);
+  const [empresaIdLocal, setEmpresaIdLocal] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingEgresos, setEditingEgresos] = useState<string | null>(null);
   const [egresoForm, setEgresoForm] = useState({
@@ -56,12 +103,21 @@ export default function ConductorAsignaciones() {
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; viajeId: string; resumen: any } | null>(null);
   const [alimentacionMap, setAlimentacionMap] = useState<Record<string, VehiculoAlimentacion>>({});
   const [asigVehMap, setAsigVehMap] = useState<Record<string, string>>({});
+  const [frecuenciaComision, setFrecuenciaComision] = useState<string>("SEMANAL");
 
   const loadData = async () => {
     if (!user?.id) return;
     const { data, empresaId: eid } = await fetchConductorViajes(user.id, ["ASIGNADO", "EN_RUTA", "FINALIZADO"]);
     setViajes(data);
-    setEmpresaId(eid);
+    setEmpresaIdLocal(eid);
+
+    // Fetch empresa config for frecuencia_comision
+    if (eid || empresaId) {
+      const info = await fetchEmpresaInfo((eid || empresaId)!);
+      if (info?.frecuencia_comision) {
+        setFrecuenciaComision(info.frecuencia_comision);
+      }
+    }
 
     const asignacionIds = [...new Set(data.map((v: any) => v.asignacion_id).filter(Boolean))];
     if (asignacionIds.length > 0) {
@@ -92,6 +148,9 @@ export default function ConductorAsignaciones() {
   };
 
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
+
+  // Filter out FINALIZADO trips that should be hidden based on cutoff + 24h
+  const filteredViajes = viajes.filter(v => !shouldHideFinalizadoViaje(v, frecuenciaComision));
 
   const handleIniciarRuta = async (viajeId: string) => {
     const { error } = await iniciarRuta(viajeId);
@@ -152,7 +211,7 @@ export default function ConductorAsignaciones() {
   };
 
   const handleConfirmSaveEgresos = async () => {
-    if (!confirmDialog || !empresaId) return;
+    if (!confirmDialog || !empresaIdLocal) return;
     const viajeId = confirmDialog.viajeId;
     setConfirmDialog(null);
     setSaving(true);
@@ -169,7 +228,7 @@ export default function ConductorAsignaciones() {
 
     const { error } = await upsertEgresos({
       viaje_id: viajeId,
-      empresa_id: empresaId,
+      empresa_id: empresaIdLocal,
       peaje: parseFloat(egresoForm.peaje) || 0,
       hotel: parseFloat(egresoForm.hotel) || 0,
       pago_conductor: parseFloat(egresoForm.pago_conductor) || 0,
@@ -206,7 +265,7 @@ export default function ConductorAsignaciones() {
           <div className="space-y-3">
             {[1, 2].map(i => <div key={i} className="h-32 rounded-xl bg-muted animate-pulse" />)}
           </div>
-        ) : viajes.length === 0 ? (
+        ) : filteredViajes.length === 0 ? (
           <Card className="border-0 shadow-sm">
             <CardContent className="py-12 text-center">
               <Route className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
@@ -215,7 +274,7 @@ export default function ConductorAsignaciones() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {viajes.map((v) => {
+            {filteredViajes.map((v) => {
               const badge = estadoBadge[v.estado] || { label: v.estado, variant: "secondary" as const };
               const isEditing = editingEgresos === v.id;
               const alimConfig = getAlimConfig(v);
