@@ -495,30 +495,6 @@ export default function GerenciaViajes() {
         )}
       </motion.div>
 
-      <AlertDialog open={!!finalizarAlert} onOpenChange={() => setFinalizarAlert(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              {finalizarAlert?.hasEnRuta && <AlertTriangle className="w-5 h-5 text-yellow-500" />}
-              Finalizar {frecuenciaLabel}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm">
-              {finalizarAlert?.hasEnRuta
-                ? "Tienes rutas pendientes por finalizar. Las rutas que no estén finalizadas se registrarán en el siguiente corte. Contáctate con tu conductor."
-                : `¿Deseas finalizar el corte de ${frecuenciaLabel.toLowerCase()} para el vehículo ${finalizarAlert?.placa}?`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              if (finalizarAlert) handleFinalizarPeriodo(finalizarAlert.placa);
-              setFinalizarAlert(null);
-            }}>
-              Finalizar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </DashboardLayout>
   );
 }
