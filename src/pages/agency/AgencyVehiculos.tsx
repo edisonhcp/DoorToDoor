@@ -66,7 +66,12 @@ export default function AgencyVehiculos() {
     if (deleteAlert.en_ruta) { toast({ title: "En ruta", description: enRutaMsg, variant: "destructive" }); setDeleteAlert(null); return; }
     const { error } = await deleteVehiculo(deleteAlert);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Vehículo eliminado" }); loadData(); }
+    else {
+      if (empresaId) {
+        insertAuditLog({ empresa_id: empresaId, accion: "VEHICULO_ELIMINADO", user_id: user?.id, rol: "GERENCIA", antes: { placa: deleteAlert.placa, marca: deleteAlert.marca, modelo: deleteAlert.modelo } });
+      }
+      toast({ title: "Vehículo eliminado" }); loadData();
+    }
     setDeleteAlert(null);
   };
 
