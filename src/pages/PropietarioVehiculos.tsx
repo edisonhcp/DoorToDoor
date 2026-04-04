@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Truck, Plus, Search, AlertTriangle, MessageCircle, Users, UtensilsCrossed } from "lucide-react";
+import { Truck, Plus, Search, AlertTriangle, MessageCircle, Users, UtensilsCrossed, Phone, Mail, MapPin, CreditCard, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,7 @@ export default function PropietarioVehiculos() {
     alimentacion_habilitada: true,
   });
   const [savingAlimentacion, setSavingAlimentacion] = useState(false);
+  const [conductorDetalle, setConductorDetalle] = useState<any | null>(null);
 
   const loadData = async () => {
     if (!user?.id) return;
@@ -212,7 +213,10 @@ export default function PropietarioVehiculos() {
                     <p className="text-sm text-muted-foreground">{v.marca} {v.modelo} {v.anio || ""}</p>
                     <p className="text-xs text-muted-foreground mt-1">{v.color} · {v.tipo} · Cap: {v.capacidad}</p>
                     {v.conductor && (
-                      <div className="mt-2 p-2 rounded-lg bg-muted/50 border border-border">
+                      <div
+                        className="mt-2 p-2 rounded-lg bg-muted/50 border border-border cursor-pointer hover:bg-muted transition-colors"
+                        onClick={() => setConductorDetalle(v.conductor)}
+                      >
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Users className="w-3 h-3" />
                           Conductor: <span className="font-medium text-foreground">{v.conductor.nombres} {v.conductor.apellidos}</span>
@@ -344,6 +348,60 @@ export default function PropietarioVehiculos() {
               {savingAlimentacion ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog detalle conductor */}
+      <Dialog open={!!conductorDetalle} onOpenChange={open => { if (!open) setConductorDetalle(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl flex items-center gap-2">
+              <Users className="w-5 h-5" /> Información del Conductor
+            </DialogTitle>
+          </DialogHeader>
+          {conductorDetalle && (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-4">
+                {conductorDetalle.foto_url ? (
+                  <img src={conductorDetalle.foto_url} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="w-8 h-8 text-primary" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-foreground">{conductorDetalle.nombres} {conductorDetalle.apellidos}</h3>
+                  <p className="text-xs text-muted-foreground">{conductorDetalle.nacionalidad}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CreditCard className="w-4 h-4 shrink-0" />
+                  <span>Cédula: <span className="text-foreground">{conductorDetalle.identificacion}</span></span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="w-4 h-4 shrink-0" />
+                  <span>{conductorDetalle.celular}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="w-4 h-4 shrink-0" />
+                  <span>{conductorDetalle.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="w-4 h-4 shrink-0" />
+                  <span>{conductorDetalle.domicilio}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Shield className="w-4 h-4 shrink-0" />
+                  <span>Licencia: <span className="text-foreground">{conductorDetalle.tipo_licencia}</span></span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Vence: {conductorDetalle.fecha_caducidad_licencia ? new Date(conductorDetalle.fecha_caducidad_licencia).toLocaleDateString("es-EC") : "—"}
+                </p>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </DashboardLayout>
