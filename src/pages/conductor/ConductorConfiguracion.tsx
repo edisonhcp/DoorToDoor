@@ -172,7 +172,7 @@ export default function ConductorConfiguracion() {
               onClick={() => frontalRef.current?.click()}
             >
               {frontalPreview ? (
-                <img src={frontalPreview} alt="Frontal" className="w-full h-full object-cover" />
+                <StorageImage src={frontalPreview} alt="Frontal" className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center">
                   <Upload className="w-6 h-6 mx-auto text-muted-foreground" />
