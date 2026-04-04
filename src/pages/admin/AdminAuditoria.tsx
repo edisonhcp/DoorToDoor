@@ -103,7 +103,7 @@ export default function AdminAuditoria() {
                 <Filter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">Filtros</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas las agencias" />
@@ -128,25 +128,17 @@ export default function AdminAuditoria() {
                   </SelectContent>
                 </Select>
 
-                <Input
-                  type="date"
-                  value={filterDesde}
-                  onChange={e => setFilterDesde(e.target.value)}
-                  placeholder="Desde"
-                />
-                <Input
-                  type="date"
-                  value={filterHasta}
-                  onChange={e => setFilterHasta(e.target.value)}
-                  placeholder="Hasta"
-                />
-
-                <div className="flex gap-2">
-                  <Button onClick={handleApplyFilters} className="flex-1 gap-1">
-                    <Search className="w-4 h-4" /> Buscar
-                  </Button>
-                  <Button variant="outline" onClick={handleClearFilters}>Limpiar</Button>
-                </div>
+                <Select value={filterMes} onValueChange={setFilterMes}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos los meses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los meses</SelectItem>
+                    {mesesDisponibles.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
