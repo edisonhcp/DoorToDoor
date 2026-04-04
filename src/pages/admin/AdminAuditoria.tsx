@@ -70,7 +70,7 @@ export default function AdminAuditoria() {
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
-  const accionesDisponibles = Object.keys(ACCION_LABELS);
+  
 
   // Generate last 12 months for the month picker
   const mesesDisponibles = Array.from({ length: 12 }, (_, i) => {
