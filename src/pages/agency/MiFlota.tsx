@@ -86,7 +86,7 @@ export default function MiFlota() {
 
   useEffect(() => { loadData(); }, []);
 
-  if (role !== "GERENCIA") return <Navigate to="/dashboard" replace />;
+  
 
   // Filtered data
   const filteredPropietarios = useMemo(() => {
