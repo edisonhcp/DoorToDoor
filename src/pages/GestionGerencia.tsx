@@ -284,27 +284,54 @@ export default function GestionGerencia() {
   // Aggregate by vehicle
   const tableRows = useMemo(() => {
     if (!empresaConfig) return [];
-    const vehMap = new Map<string, { placa: string; marca: string; modelo: string; propNombres: string; propApellidos: string; propId: string; totalIngreso: number }>();
-    
+
+    // Determine which periods to evaluate
+    const periodsToEval = selectedPeriodKey === "__all__"
+      ? availablePeriods
+      : availablePeriods.filter(p => p.key === selectedPeriodKey);
+
+    // Build per-vehicle per-period income map
+    const vehInfo = new Map<string, { placa: string; marca: string; modelo: string; propNombres: string; propApellidos: string; propId: string }>();
+    const vehPeriodIncome = new Map<string, Map<string, number>>(); // vehicleKey -> periodKey -> income
+
     for (const v of filteredViajes) {
-      if (!vehMap.has(v.placa)) {
-        vehMap.set(v.placa, {
+      if (!vehInfo.has(v.placa)) {
+        vehInfo.set(v.placa, {
           placa: v.placa, marca: v.marca, modelo: v.modelo,
           propNombres: v.propietarioNombres, propApellidos: v.propietarioApellidos,
-          propId: v.propietarioIdentificacion, totalIngreso: 0,
+          propId: v.propietarioIdentificacion,
         });
       }
-      vehMap.get(v.placa)!.totalIngreso += v.totalIngreso;
+      if (!vehPeriodIncome.has(v.placa)) vehPeriodIncome.set(v.placa, new Map());
+      const vDate = new Date(v.fecha_salida);
+      for (const period of periodsToEval) {
+        if (vDate >= period.start && vDate <= period.end) {
+          const pm = vehPeriodIncome.get(v.placa)!;
+          pm.set(period.key, (pm.get(period.key) || 0) + v.totalIngreso);
+          break;
+        }
+      }
     }
 
-    return Array.from(vehMap.values()).map(entry => {
+    return Array.from(vehInfo.entries()).map(([placa, info]) => {
+      const periodMap = vehPeriodIncome.get(placa) || new Map<string, number>();
+      let totalIngreso = 0;
       let comision = 0;
-      if (empresaConfig.tipo_comision === "PORCENTAJE") comision = entry.totalIngreso * empresaConfig.comision_pct;
-      else if (empresaConfig.tipo_comision === "FIJO") comision = empresaConfig.comision_fija;
-      else comision = entry.totalIngreso * empresaConfig.comision_pct + empresaConfig.comision_fija;
-      return { ...entry, comision };
+
+      periodMap.forEach((periodIngreso) => {
+        totalIngreso += periodIngreso;
+        if (empresaConfig.tipo_comision === "PORCENTAJE") {
+          comision += periodIngreso * empresaConfig.comision_pct;
+        } else if (empresaConfig.tipo_comision === "FIJO") {
+          comision += empresaConfig.comision_fija;
+        } else {
+          comision += periodIngreso * empresaConfig.comision_pct + empresaConfig.comision_fija;
+        }
+      });
+
+      return { ...info, totalIngreso, comision };
     }).sort((a, b) => a.placa.localeCompare(b.placa));
-  }, [filteredViajes, empresaConfig]);
+  }, [filteredViajes, empresaConfig, availablePeriods, selectedPeriodKey]);
 
   const totalGanancia = tableRows.reduce((s, r) => s + r.comision, 0);
 
