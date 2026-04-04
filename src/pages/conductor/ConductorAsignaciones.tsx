@@ -40,61 +40,15 @@ const estadoBadge: Record<string, { label: string; variant: "default" | "seconda
 };
 
 /**
- * Calculate the cut-off date based on frecuencia_comision.
- * Returns the start of the current period (week starting Sunday, biweekly, or monthly).
- * After 24h past the cut-off, finalized trips from the previous period are hidden.
+ * Hide FINALIZADO trips 24 hours after fecha_llegada.
  */
-function getCutoffDate(frecuencia: string): Date {
-  const now = new Date();
-  
-  if (frecuencia === "SEMANAL") {
-    // Weeks run Monday-Sunday. Find the most recent Monday.
-    const day = now.getDay(); // 0=Sun, 1=Mon...
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMonday);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  } else if (frecuencia === "BISEMANAL") {
-    // Every 2 weeks Monday-Sunday
-    const day = now.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const thisMonday = new Date(now);
-    thisMonday.setDate(now.getDate() + diffToMonday);
-    thisMonday.setHours(0, 0, 0, 0);
-    const refMonday = new Date(2024, 0, 1);
-    const weeksSinceRef = Math.floor((thisMonday.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    const isEvenWeek = weeksSinceRef % 2 === 0;
-    return isEvenWeek ? thisMonday : new Date(thisMonday.getTime() - 7 * 24 * 60 * 60 * 1000);
-  } else if (frecuencia === "QUINCENAL") {
-    // Cut on 1st and 16th of each month
-    const day = now.getDate();
-    const cutoff = new Date(now.getFullYear(), now.getMonth(), day >= 16 ? 16 : 1);
-    cutoff.setHours(0, 0, 0, 0);
-    return cutoff;
-  } else {
-    // MENSUAL - cut on 1st of each month
-    const cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
-    cutoff.setHours(0, 0, 0, 0);
-    return cutoff;
-  }
-}
 
-function shouldHideFinalizadoViaje(viaje: any, frecuencia: string): boolean {
+function shouldHideFinalizadoViaje(viaje: any): boolean {
   if (viaje.estado !== "FINALIZADO") return false;
-  
-  const cutoffDate = getCutoffDate(frecuencia);
-  // Add 24 hours grace period after the cutoff
-  const cutoffPlus24h = new Date(cutoffDate.getTime() + 24 * 60 * 60 * 1000);
+  const fechaLlegada = viaje.fecha_llegada ? new Date(viaje.fecha_llegada) : null;
+  if (!fechaLlegada) return false;
   const now = new Date();
-  
-  // If we're past 24h after the cutoff, hide FINALIZADO trips from before the cutoff
-  if (now >= cutoffPlus24h) {
-    const fechaSalida = new Date(viaje.fecha_salida);
-    return fechaSalida < cutoffDate;
-  }
-  
-  return false;
+  return now.getTime() - fechaLlegada.getTime() > 24 * 60 * 60 * 1000;
 }
 
 export default function ConductorAsignaciones() {
@@ -162,7 +116,7 @@ export default function ConductorAsignaciones() {
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
 
   // Filter out FINALIZADO trips that should be hidden based on cutoff + 24h
-  const filteredViajes = viajes.filter(v => !shouldHideFinalizadoViaje(v, frecuenciaComision));
+  const filteredViajes = viajes.filter(v => !shouldHideFinalizadoViaje(v));
 
   const handleIniciarRuta = async (viajeId: string) => {
     const { error } = await iniciarRuta(viajeId);

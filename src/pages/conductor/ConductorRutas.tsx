@@ -101,7 +101,7 @@ export default function ConductorRutas() {
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [selectedPeriodKey, setSelectedPeriodKey] = useState<string>("__all__");
-  const [selectedVehiculos, setSelectedVehiculos] = useState<string[]>([]);
+  
 
   const frecuencia = empresaInfo?.frecuencia_comision || "SEMANAL";
 
@@ -127,16 +127,6 @@ export default function ConductorRutas() {
     }
   }, [empresaInfo]);
 
-  // Available vehicles
-  const availableVehiculos = useMemo(() => {
-    const map = new Map<string, { placa: string; marca: string; modelo: string }>();
-    allViajes.forEach(v => {
-      if (v.vehiculo?.placa && !map.has(v.vehiculo.placa)) {
-        map.set(v.vehiculo.placa, v.vehiculo);
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => a.placa.localeCompare(b.placa));
-  }, [allViajes]);
 
   // Available months
   const availableMonths = useMemo(() => {
@@ -189,11 +179,8 @@ export default function ConductorRutas() {
         });
       }
     }
-    if (selectedVehiculos.length > 0) {
-      result = result.filter(v => v.vehiculo?.placa && selectedVehiculos.includes(v.vehiculo.placa));
-    }
     return result;
-  }, [allViajes, selectedMonths, selectedPeriodKey, selectedVehiculos, availablePeriods]);
+  }, [allViajes, selectedMonths, selectedPeriodKey, availablePeriods]);
 
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
 
@@ -204,11 +191,6 @@ export default function ConductorRutas() {
     setSelectedPeriodKey("__all__");
   };
 
-  const toggleVehiculo = (placa: string) => {
-    setSelectedVehiculos(prev =>
-      prev.includes(placa) ? prev.filter(k => k !== placa) : [...prev, placa]
-    );
-  };
 
   const frecuenciaLabel: Record<string, string> = {
     SEMANAL: "Semanal",
@@ -223,11 +205,6 @@ export default function ConductorRutas() {
       ? selectedMonths.map(k => { const [y, m] = k.split("-").map(Number); return `${MONTH_NAMES[m].substring(0, 3)} ${y}`; }).join(", ")
       : `${selectedMonths.length} meses`;
 
-  const selectedVehiculosLabel = selectedVehiculos.length === 0
-    ? "Todos los vehículos"
-    : selectedVehiculos.length <= 2
-      ? selectedVehiculos.join(", ")
-      : `${selectedVehiculos.length} vehículos`;
 
   return (
     <DashboardLayout>
@@ -248,7 +225,7 @@ export default function ConductorRutas() {
                   <Filter className="w-4 h-4 text-primary" />
                   <span className="text-sm font-semibold text-foreground">Filtros</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Meses */}
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Meses</label>
@@ -288,36 +265,6 @@ export default function ConductorRutas() {
                     </Select>
                   </div>
 
-                  {/* Vehículos */}
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Vehículos</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-sm font-normal h-10">
-                          {selectedVehiculosLabel}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 max-h-64 overflow-y-auto" align="start">
-                        <label className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm text-muted-foreground">
-                          <Checkbox
-                            checked={selectedVehiculos.length === 0}
-                            onCheckedChange={() => setSelectedVehiculos([])}
-                          />
-                          Todos
-                        </label>
-                        {availableVehiculos.map(v => (
-                          <label key={v.placa} className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm">
-                            <Checkbox
-                              checked={selectedVehiculos.includes(v.placa)}
-                              onCheckedChange={() => toggleVehiculo(v.placa)}
-                            />
-                            <span className="font-medium">{v.placa}</span>
-                            <span className="text-muted-foreground text-xs">{v.marca} {v.modelo}</span>
-                          </label>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
                 </div>
               </CardContent>
             </Card>
