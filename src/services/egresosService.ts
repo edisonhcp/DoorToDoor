@@ -97,8 +97,9 @@ export async function uploadRecibo(file: File, folder: string): Promise<string |
     .from("recibos")
     .upload(fileName, file);
   if (error) return null;
-  const { data } = supabase.storage.from("recibos").getPublicUrl(fileName);
-  return data.publicUrl;
+  // Store the path-style URL for consistency
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  return `${supabaseUrl}/storage/v1/object/public/recibos/${fileName}`;
 }
 
 // Fetch all viajes with ingresos and egresos for a given empresa (FINALIZADO)

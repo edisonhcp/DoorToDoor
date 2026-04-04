@@ -75,8 +75,8 @@ export default function ConductorConfiguracion() {
     const path = `${conductorId}/${folder}_${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("conductor-docs").upload(path, file, { upsert: true });
     if (error) return null;
-    const { data } = supabase.storage.from("conductor-docs").getPublicUrl(path);
-    return data.publicUrl;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/storage/v1/object/public/conductor-docs/${path}`;
   };
 
   const handleFileChange = (
