@@ -205,11 +205,6 @@ export default function ConductorRutas() {
       ? selectedMonths.map(k => { const [y, m] = k.split("-").map(Number); return `${MONTH_NAMES[m].substring(0, 3)} ${y}`; }).join(", ")
       : `${selectedMonths.length} meses`;
 
-  const selectedVehiculosLabel = selectedVehiculos.length === 0
-    ? "Todos los vehículos"
-    : selectedVehiculos.length <= 2
-      ? selectedVehiculos.join(", ")
-      : `${selectedVehiculos.length} vehículos`;
 
   return (
     <DashboardLayout>
