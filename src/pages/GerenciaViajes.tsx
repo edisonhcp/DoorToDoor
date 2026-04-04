@@ -274,7 +274,7 @@ export default function GerenciaViajes() {
       .sort((a, b) => b.year - a.year || b.month - a.month);
   })();
 
-  // Filter viajes by selected months
+  // Filter viajes by selected months and vehicles
   const filteredViajes = (() => {
     let result = viajes;
     if (selectedMonths.length > 0) {
@@ -286,6 +286,12 @@ export default function GerenciaViajes() {
           const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
           return d >= start && d <= end;
         });
+      });
+    }
+    if (selectedVehiculos.length > 0) {
+      result = result.filter(v => {
+        const placa = v.vehiculo?.placa || "sin-vehiculo";
+        return selectedVehiculos.includes(placa);
       });
     }
     return result;
@@ -311,23 +317,6 @@ export default function GerenciaViajes() {
   });
   const consolidadoVehicleKeys = Object.keys(consolidadoVehicleMap).sort();
 
-  // Group by vehicle
-  const vehicleMap: Record<string, { placa: string; marca: string; modelo: string; propietario: string; viajes: any[] }> = {};
-  filteredViajes.forEach((v) => {
-    const placa = v.vehiculo?.placa || "sin-vehiculo";
-    const key = placa;
-    if (!vehicleMap[key]) {
-      vehicleMap[key] = {
-        placa: v.vehiculo?.placa || "—",
-        marca: v.vehiculo?.marca || "",
-        modelo: v.vehiculo?.modelo || "",
-        propietario: v.propietario_nombre || "—",
-        viajes: [],
-      };
-    }
-    vehicleMap[key].viajes.push(v);
-  });
-
   // All vehicle keys from unfiltered viajes (for the vehicle filter)
   const allVehicleKeysUnfiltered = (() => {
     const keys = new Set<string>();
@@ -346,11 +335,6 @@ export default function GerenciaViajes() {
       allVehicleInfo[placa] = { placa: v.vehiculo?.placa || "—", marca: v.vehiculo?.marca || "", modelo: v.vehiculo?.modelo || "" };
     }
   });
-
-  const allVehicleKeys = Object.keys(vehicleMap).sort();
-  const filteredVehicleKeys = selectedVehiculos.length > 0
-    ? allVehicleKeys.filter(k => selectedVehiculos.includes(k))
-    : allVehicleKeys;
 
   const handleFinalizarPeriodo = (placa: string) => {
     toast.success(`Corte de ${frecuenciaLabel.toLowerCase()} realizado para vehículo ${placa}`);
