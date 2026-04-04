@@ -364,7 +364,7 @@ export default function PropietarioVehiculos() {
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-4">
                 {conductorDetalle.foto_url ? (
-                  <img src={conductorDetalle.foto_url} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
+                  <StorageImage src={conductorDetalle.foto_url} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                     <Users className="w-8 h-8 text-primary" />
