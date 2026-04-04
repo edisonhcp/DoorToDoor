@@ -19,7 +19,7 @@ import { PROVINCIAS_ECUADOR } from "@/constants/provinciasEcuador";
 import { fetchSolicitudPendiente, crearSolicitudBaja } from "@/services/solicitudesBajaService";
 
 export default function ConfiguracionEmpresa() {
-  const { empresaId, userId } = useAuth();
+  const { empresaId, user: authUser } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
