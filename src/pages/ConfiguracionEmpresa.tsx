@@ -71,6 +71,26 @@ export default function ConfiguracionEmpresa() {
     });
   }, [empresaId]);
 
+  useEffect(() => {
+    if (!empresaId) return;
+    fetchSolicitudPendiente(empresaId).then(setSolicitudPendiente);
+  }, [empresaId]);
+
+  const handleSolicitarBaja = async () => {
+    if (!empresaId || !authUser) return;
+    setBajaSending(true);
+    const { error } = await crearSolicitudBaja(empresaId, authUser.id, bajaMotivo);
+    setBajaSending(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Solicitud enviada", description: "El administrador revisará tu solicitud" });
+      setBajaDialogOpen(false);
+      setBajaMotivo("");
+      fetchSolicitudPendiente(empresaId).then(setSolicitudPendiente);
+    }
+  };
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
