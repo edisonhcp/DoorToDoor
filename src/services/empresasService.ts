@@ -116,15 +116,10 @@ export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
 
       let totalComision = 0;
 
-      if (emp.tipo_comision === "PORCENTAJE") {
-        // For percentage, just sum all income and apply rate
-        totalComision = totalIngresos * (emp.comision_pct || 0);
-      } else if (mes !== undefined && anio !== undefined) {
-        // For FIJO/MIXTO: apply commission per vehicle per period with activity
+      if (mes !== undefined && anio !== undefined) {
         const periods = getPeriodsForMonth(anio, mes, emp.frecuencia_comision);
 
         for (const period of periods) {
-          // Find vehicles with activity in this period
           const vehiclePeriodIncome: Record<string, number> = {};
           (viajes || []).forEach((v: any) => {
             const vDate = new Date(v.fecha_salida);
@@ -136,7 +131,9 @@ export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
           });
 
           Object.values(vehiclePeriodIncome).forEach((vehicleIngreso) => {
-            if (emp.tipo_comision === "FIJO") {
+            if (emp.tipo_comision === "PORCENTAJE") {
+              totalComision += vehicleIngreso * (emp.comision_pct || 0);
+            } else if (emp.tipo_comision === "FIJO") {
               totalComision += emp.comision_fija || 0;
             } else if (emp.tipo_comision === "MIXTO") {
               totalComision += vehicleIngreso * (emp.comision_pct || 0) + (emp.comision_fija || 0);
