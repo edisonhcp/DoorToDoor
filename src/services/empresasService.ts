@@ -32,8 +32,12 @@ export async function updateEmpresa(id: string, data: any) {
 }
 
 export async function deleteEmpresa(id: string) {
-  const { error } = await supabase.from("empresas").delete().eq("id", id);
-  return { error };
+  const { data, error } = await supabase.functions.invoke("delete-empresa", {
+    body: { empresa_id: id },
+  });
+  if (error) return { error };
+  if (data?.error) return { error: new Error(data.error) };
+  return { error: null };
 }
 
 export async function toggleEmpresaSuspend(empresa: any) {
