@@ -59,7 +59,7 @@ export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
 
       let viajesQuery = supabase
         .from("viajes")
-        .select("id, asignacion_id, fecha_salida, ingresos_viaje(total_ingreso)")
+        .select("id, asignacion_id, fecha_salida, ingresos_viaje(total_ingreso), asignaciones(vehiculo_id)")
         .eq("empresa_id", emp.id)
         .eq("estado", "FINALIZADO" as any);
 
@@ -74,11 +74,12 @@ export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
       const totalViajes = viajes?.length || 0;
       const totalIngresos = (viajes || []).reduce((s: number, v: any) => s + Number(v.ingresos_viaje?.total_ingreso || 0), 0);
 
+      // Group by vehiculo_id (from asignacion) to correctly apply FIJO commission per vehicle
       const vehicleMap: Record<string, number> = {};
       (viajes || []).forEach((v: any) => {
-        const key = v.asignacion_id || v.id;
-        if (!vehicleMap[key]) vehicleMap[key] = 0;
-        vehicleMap[key] += Number(v.ingresos_viaje?.total_ingreso || 0);
+        const vehiculoId = v.asignaciones?.vehiculo_id || v.asignacion_id || v.id;
+        if (!vehicleMap[vehiculoId]) vehicleMap[vehiculoId] = 0;
+        vehicleMap[vehiculoId] += Number(v.ingresos_viaje?.total_ingreso || 0);
       });
 
       let totalComision = 0;
