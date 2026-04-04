@@ -17,7 +17,6 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 const MONTH_NAMES = [
@@ -94,6 +93,36 @@ function getPeriodsForMonth(year: number, month: number, frecuencia: string): Pe
     }
   }
   return periods;
+}
+
+function getCurrentPeriod(frecuencia: string): { start: Date; end: Date } {
+  const now = new Date();
+  if (frecuencia === "MENSUAL") {
+    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999) };
+  } else if (frecuencia === "QUINCENAL") {
+    const day = now.getDate();
+    if (day <= 15) {
+      return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth(), 15, 23, 59, 59, 999) };
+    } else {
+      return { start: new Date(now.getFullYear(), now.getMonth(), 16), end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999) };
+    }
+  } else if (frecuencia === "BISEMANAL") {
+    const dayOfWeek = now.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const thisMonday = new Date(now); thisMonday.setDate(now.getDate() + diffToMonday); thisMonday.setHours(0, 0, 0, 0);
+    const refMonday = new Date(2024, 0, 1);
+    const weeksSinceRef = Math.floor((thisMonday.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    const isEvenWeek = weeksSinceRef % 2 === 0;
+    const biweekStart = isEvenWeek ? thisMonday : new Date(thisMonday.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const biweekEnd = new Date(biweekStart.getTime() + 13 * 24 * 60 * 60 * 1000); biweekEnd.setHours(23, 59, 59, 999);
+    return { start: biweekStart, end: biweekEnd };
+  } else {
+    const dayOfWeek = now.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(now); monday.setDate(now.getDate() + diffToMonday); monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23, 59, 59, 999);
+    return { start: monday, end: sunday };
+  }
 }
 
 function getNextSunday(dateStr: string): string {
@@ -207,7 +236,7 @@ export default function GerenciaViajes() {
   const [finalizarAlert, setFinalizarAlert] = useState<{ placa: string; hasEnRuta: boolean } | null>(null);
   const [selectedVehiculos, setSelectedVehiculos] = useState<string[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
-  const [selectedPeriodKey, setSelectedPeriodKey] = useState<string>("__all__");
+  
 
   useEffect(() => {
     const load = async () => {
@@ -245,42 +274,42 @@ export default function GerenciaViajes() {
       .sort((a, b) => b.year - a.year || b.month - a.month);
   })();
 
-  // Periods for selected months
-  const availablePeriods = (() => {
-    const periods: PeriodRange[] = [];
-    for (const mk of selectedMonths) {
-      const [year, month] = mk.split("-").map(Number);
-      periods.push(...getPeriodsForMonth(year, month, frecuencia));
-    }
-    const seen = new Set<string>();
-    return periods.filter(p => {
-      if (seen.has(p.key)) return false;
-      seen.add(p.key);
-      return true;
-    }).sort((a, b) => a.start.getTime() - b.start.getTime());
-  })();
-
-  // Filter viajes by period and months
+  // Filter viajes by selected months
   const filteredViajes = (() => {
     let result = viajes;
-    if (selectedPeriodKey === "__all__") {
-      if (selectedMonths.length > 0 && availablePeriods.length > 0) {
-        result = result.filter(v => {
-          const d = new Date(v.fecha_salida);
-          return availablePeriods.some(r => d >= r.start && d <= r.end);
+    if (selectedMonths.length > 0) {
+      result = result.filter(v => {
+        const d = new Date(v.fecha_salida);
+        return selectedMonths.some(mk => {
+          const [year, month] = mk.split("-").map(Number);
+          const start = new Date(year, month, 1);
+          const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
+          return d >= start && d <= end;
         });
-      }
-    } else {
-      const period = availablePeriods.find(p => p.key === selectedPeriodKey);
-      if (period) {
-        result = result.filter(v => {
-          const d = new Date(v.fecha_salida);
-          return d >= period.start && d <= period.end;
-        });
-      }
+      });
     }
     return result;
   })();
+
+  // Current period viajes for Consolidado (independent, all vehicles)
+  const currentPeriod = getCurrentPeriod(frecuencia);
+  const consolidadoVehicleMap: Record<string, { placa: string; marca: string; modelo: string; propietario: string; viajes: any[] }> = {};
+  viajes.forEach((v) => {
+    const d = new Date(v.fecha_salida);
+    if (d < currentPeriod.start || d > currentPeriod.end) return;
+    const placa = v.vehiculo?.placa || "sin-vehiculo";
+    if (!consolidadoVehicleMap[placa]) {
+      consolidadoVehicleMap[placa] = {
+        placa: v.vehiculo?.placa || "—",
+        marca: v.vehiculo?.marca || "",
+        modelo: v.vehiculo?.modelo || "",
+        propietario: v.propietario_nombre || "—",
+        viajes: [],
+      };
+    }
+    consolidadoVehicleMap[placa].viajes.push(v);
+  });
+  const consolidadoVehicleKeys = Object.keys(consolidadoVehicleMap).sort();
 
   // Group by vehicle
   const vehicleMap: Record<string, { placa: string; marca: string; modelo: string; propietario: string; viajes: any[] }> = {};
@@ -331,7 +360,6 @@ export default function GerenciaViajes() {
     setSelectedMonths(prev =>
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
     );
-    setSelectedPeriodKey("__all__");
   };
 
   const toggleVehiculo = (placa: string) => {
@@ -375,7 +403,7 @@ export default function GerenciaViajes() {
                   <Filter className="w-4 h-4 text-primary" />
                   <span className="text-sm font-semibold text-foreground">Filtros</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Meses */}
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Meses</label>
@@ -397,22 +425,6 @@ export default function GerenciaViajes() {
                         ))}
                       </PopoverContent>
                     </Popover>
-                  </div>
-
-                  {/* Período */}
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Período</label>
-                    <Select value={selectedPeriodKey} onValueChange={setSelectedPeriodKey}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Todos los períodos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__all__">Todos los períodos</SelectItem>
-                        {availablePeriods.map(p => (
-                          <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
 
                   {/* Vehículos */}
@@ -535,15 +547,15 @@ export default function GerenciaViajes() {
               );
             })}
 
-            {filteredViajes.length > 0 && (
+            {viajes.length > 0 && (
               <motion.div variants={item} className={printingVehicle ? "print:hidden" : ""}>
                 <Card className="border-primary/30">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center justify-between text-base">
                       <div className="flex items-center gap-2">
                         <LayoutList className="w-5 h-5 text-primary" />
-                        <span>Consolidado</span>
-                        <span className="text-muted-foreground text-xs">({filteredVehicleKeys.length} vehículos)</span>
+                        <span>Consolidado — Período Actual</span>
+                        <span className="text-muted-foreground text-xs">({consolidadoVehicleKeys.length} vehículos)</span>
                       </div>
                       <Button size="sm" variant="outline" onClick={() => window.print()}>
                         <Printer className="w-4 h-4 mr-1" />
@@ -552,7 +564,7 @@ export default function GerenciaViajes() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ConsolidadoTable vehicleMap={vehicleMap} vehicleKeys={filteredVehicleKeys} empresaInfo={empresaInfo} />
+                    <ConsolidadoTable vehicleMap={consolidadoVehicleMap} vehicleKeys={consolidadoVehicleKeys} empresaInfo={empresaInfo} />
                   </CardContent>
                 </Card>
               </motion.div>
