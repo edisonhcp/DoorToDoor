@@ -382,6 +382,60 @@ export default function SuperAdminPanel() {
           <Input placeholder="Buscar por nombre, RUC o ciudad..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
         </motion.div>
 
+        {/* Solicitudes de Baja */}
+        {solicitudes.length > 0 && (
+          <motion.div variants={item}>
+            <Card className="border border-amber-300 shadow-sm bg-amber-50/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bell className="w-5 h-5 text-amber-600" />
+                  <h3 className="font-display font-semibold text-foreground">
+                    Solicitudes de Baja ({solicitudes.length})
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {solicitudes.map((sol: any) => (
+                    <div key={sol.id} className="flex items-center justify-between gap-4 p-3 bg-background rounded-lg border">
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground">{sol.empresas?.nombre || "Compañía"}</p>
+                        {sol.motivo && <p className="text-sm text-muted-foreground truncate">{sol.motivo}</p>}
+                        <p className="text-xs text-muted-foreground">{new Date(sol.created_at).toLocaleDateString("es-ES")}</p>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        {rechazandoId === sol.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              placeholder="Motivo del rechazo..."
+                              value={motivoRechazo}
+                              onChange={(e) => setMotivoRechazo(e.target.value)}
+                              className="w-48 h-8 text-sm"
+                            />
+                            <Button size="sm" variant="destructive" onClick={() => handleRechazarSolicitud(sol.id)}>
+                              Confirmar
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => { setRechazandoId(null); setMotivoRechazo(""); }}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => setRechazandoId(sol.id)}>
+                              Rechazar
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleAprobarSolicitud(sol)}>
+                              Aprobar y Eliminar
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         <motion.div variants={item}>
           {loading ? (
             <div className="h-48 rounded-xl bg-muted animate-pulse" />
