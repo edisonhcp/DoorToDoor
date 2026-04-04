@@ -23,7 +23,6 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Verify caller
     const anonClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!
@@ -56,7 +55,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Deleting empresa in cascade:', empresa_id);
+    console.log('Deleting empresa (cascade auth only):', empresa_id);
 
     // 1. Find all auth users linked to this empresa via profiles
     const { data: profiles } = await adminClient
@@ -67,58 +66,13 @@ Deno.serve(async (req) => {
     const userIds = (profiles || []).map(p => p.user_id);
     console.log(`Found ${userIds.length} users to delete`);
 
-    // 2. Delete all related data (order matters for FK constraints)
-    // Delete viaje-related data first
-    const { data: viajes } = await adminClient
-      .from('viajes')
-      .select('id')
-      .eq('empresa_id', empresa_id);
-    const viajeIds = (viajes || []).map(v => v.id);
-
-    if (viajeIds.length > 0) {
-      await adminClient.from('ingresos_viaje').delete().in('viaje_id', viajeIds);
-      await adminClient.from('egresos_viaje').delete().in('viaje_id', viajeIds);
-      await adminClient.from('viaje_dia_control').delete().in('viaje_id', viajeIds);
-    }
-
-    // Delete viajes
-    await adminClient.from('viajes').delete().eq('empresa_id', empresa_id);
-
-    // Delete dias_operacion
-    await adminClient.from('dias_operacion').delete().eq('empresa_id', empresa_id);
-
-    // Delete semanas
-    await adminClient.from('semanas').delete().eq('empresa_id', empresa_id);
-
-    // Delete asignaciones
-    await adminClient.from('asignaciones').delete().eq('empresa_id', empresa_id);
-
-    // Delete vehiculo config tables
-    await adminClient.from('vehiculo_alimentacion').delete().eq('empresa_id', empresa_id);
-    await adminClient.from('vehiculo_disponibilidad').delete().eq('empresa_id', empresa_id);
-
-    // Delete vehiculos
-    await adminClient.from('vehiculos').delete().eq('empresa_id', empresa_id);
-
-    // Delete conductores
-    await adminClient.from('conductores').delete().eq('empresa_id', empresa_id);
-
-    // Delete propietarios
-    await adminClient.from('propietarios').delete().eq('empresa_id', empresa_id);
-
-    // Delete invitaciones
-    await adminClient.from('invitaciones').delete().eq('empresa_id', empresa_id);
-
-    // Delete audit_logs
-    await adminClient.from('audit_logs').delete().eq('empresa_id', empresa_id);
-
-    // 3. Delete profiles and user_roles for all users
+    // 2. Delete profiles and user_roles for all users
     for (const userId of userIds) {
       await adminClient.from('profiles').delete().eq('user_id', userId);
       await adminClient.from('user_roles').delete().eq('user_id', userId);
     }
 
-    // 4. Delete auth users
+    // 3. Delete auth users (frees emails for re-registration)
     for (const userId of userIds) {
       const { error: delErr } = await adminClient.auth.admin.deleteUser(userId);
       if (delErr) {
@@ -128,7 +82,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 5. Finally delete the empresa
+    // 4. Delete the empresa record
     const { error: empError } = await adminClient.from('empresas').delete().eq('id', empresa_id);
     if (empError) {
       console.error('Error deleting empresa:', empError.message);
@@ -136,6 +90,9 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // NOTE: All operational data (viajes, ingresos, egresos, conductores, vehiculos, etc.)
+    // remains in the database for Super Admin historical reports and auditing.
 
     console.log('Empresa deleted successfully:', empresa_id);
 
