@@ -98,9 +98,42 @@ export default function SuperAdminPanel() {
     setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  const loadSolicitudes = async () => {
+    const data = await fetchSolicitudesPendientes();
+    setSolicitudes(data);
+  };
+
+  useEffect(() => { loadData(); loadSolicitudes(); }, []);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
+
+  const handleAprobarSolicitud = async (solicitud: any) => {
+    const { error: resolveErr } = await resolverSolicitud(solicitud.id, "APROBADA", "SUPER_ADMIN");
+    if (resolveErr) {
+      toast({ title: "Error", description: resolveErr.message, variant: "destructive" });
+      return;
+    }
+    const { error: deleteErr } = await deleteEmpresa(solicitud.empresa_id);
+    if (deleteErr) {
+      toast({ title: "Error al eliminar", description: deleteErr.message, variant: "destructive" });
+    } else {
+      toast({ title: "Solicitud aprobada y compañía eliminada" });
+      loadData();
+    }
+    loadSolicitudes();
+  };
+
+  const handleRechazarSolicitud = async (id: string) => {
+    const { error } = await resolverSolicitud(id, "RECHAZADA", "SUPER_ADMIN", motivoRechazo);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Solicitud rechazada" });
+    }
+    setRechazandoId(null);
+    setMotivoRechazo("");
+    loadSolicitudes();
+  };
 
   const handleViewDetail = async (empresa: EmpresaRow) => {
     setDetailEmpresa(empresa);
