@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Deleting empresa (cascade auth only):', empresa_id);
+    console.log('Deleting empresa:', empresa_id);
 
     // 1. Find all auth users linked to this empresa via profiles
     const { data: profiles } = await adminClient
@@ -82,7 +82,56 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4. Delete the empresa record
+    // 4. Close all active assignments first (FK RESTRICT on asignaciones→conductores/vehiculos)
+    await adminClient.from('asignaciones')
+      .update({ estado: 'CERRADA', fecha_fin: new Date().toISOString() })
+      .eq('empresa_id', empresa_id)
+      .eq('estado', 'ACTIVA');
+
+    // 5. Nullify viajes references to asignaciones (FK SET NULL)
+    // This is handled automatically by the FK, but let's be explicit
+    const { data: asignaciones } = await adminClient
+      .from('asignaciones')
+      .select('id')
+      .eq('empresa_id', empresa_id);
+
+    if (asignaciones && asignaciones.length > 0) {
+      const asigIds = asignaciones.map(a => a.id);
+      await adminClient.from('viajes')
+        .update({ asignacion_id: null })
+        .in('asignacion_id', asigIds);
+    }
+
+    // 6. Delete asignaciones
+    await adminClient.from('asignaciones').delete().eq('empresa_id', empresa_id);
+    console.log('Deleted asignaciones');
+
+    // 7. Delete vehiculo config tables (CASCADE via FK, but explicit for clarity)
+    await adminClient.from('vehiculo_alimentacion').delete().eq('empresa_id', empresa_id);
+    await adminClient.from('vehiculo_disponibilidad').delete().eq('empresa_id', empresa_id);
+
+    // 8. Delete vehiculos (FK RESTRICT on semanas→vehiculos, so delete semanas-related first)
+    // Semanas have FK RESTRICT to vehiculos and propietarios
+    // dias_operacion CASCADE from semanas, so delete semanas first
+    await adminClient.from('semanas').delete().eq('empresa_id', empresa_id);
+    console.log('Deleted semanas');
+
+    // 9. Delete vehiculos
+    await adminClient.from('vehiculos').delete().eq('empresa_id', empresa_id);
+    console.log('Deleted vehiculos');
+
+    // 10. Delete conductores
+    await adminClient.from('conductores').delete().eq('empresa_id', empresa_id);
+    console.log('Deleted conductores');
+
+    // 11. Delete propietarios
+    await adminClient.from('propietarios').delete().eq('empresa_id', empresa_id);
+    console.log('Deleted propietarios');
+
+    // 12. Delete invitaciones (CASCADE via FK, but explicit)
+    await adminClient.from('invitaciones').delete().eq('empresa_id', empresa_id);
+
+    // 13. Delete the empresa record
     const { error: empError } = await adminClient.from('empresas').delete().eq('id', empresa_id);
     if (empError) {
       console.error('Error deleting empresa:', empError.message);
@@ -91,8 +140,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // NOTE: All operational data (viajes, ingresos, egresos, conductores, vehiculos, etc.)
-    // remains in the database for Super Admin historical reports and auditing.
+    // NOTE: viajes, ingresos_viaje, egresos_viaje, audit_logs, viaje_dia_control
+    // remain in the database for Super Admin historical reports and auditing.
 
     console.log('Empresa deleted successfully:', empresa_id);
 
