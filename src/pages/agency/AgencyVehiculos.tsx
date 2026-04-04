@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { fetchVehiculos, toggleVehiculoEstado, deleteVehiculo, fetchConductoresDisponibles, assignConductorToVehiculo } from "@/services/vehiculosService";
 import { unassignConductor } from "@/services/conductoresService";
+import { insertAuditLog } from "@/services/auditService";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
