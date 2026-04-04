@@ -263,7 +263,7 @@ export async function fetchPropietarioAsignaciones(userId: string) {
 
   const { data: viajes } = await supabase
     .from("viajes")
-    .select("id, asignacion_id, estado, origen, destino")
+    .select("id, asignacion_id, estado, origen, destino, fecha_llegada")
     .in("asignacion_id", asignacionIds)
     .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
     .order("created_at", { ascending: false });
