@@ -1,4 +1,5 @@
 import { ReactNode, useState, useEffect } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Truck, Users, Route, ClipboardList,
