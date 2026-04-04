@@ -41,6 +41,46 @@ export async function toggleEmpresaSuspend(empresa: any) {
   return { error };
 }
 
+function getPeriodsForMonth(year: number, month: number, frecuencia: string): { start: Date; end: Date }[] {
+  const periods: { start: Date; end: Date }[] = [];
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  if (frecuencia === "MENSUAL") {
+    periods.push({ start: new Date(year, month, 1), end: new Date(year, month + 1, 0, 23, 59, 59, 999) });
+  } else if (frecuencia === "QUINCENAL") {
+    periods.push({ start: new Date(year, month, 1), end: new Date(year, month, 15, 23, 59, 59, 999) });
+    periods.push({ start: new Date(year, month, 16), end: new Date(year, month + 1, 0, 23, 59, 59, 999) });
+  } else if (frecuencia === "BISEMANAL") {
+    let current = new Date(firstDay);
+    const dow = current.getDay();
+    if (dow === 0) current.setDate(current.getDate() - 6);
+    else if (dow !== 1) current.setDate(current.getDate() - (dow - 1));
+    const refMonday = new Date(2024, 0, 1);
+    const weeksSinceRef = Math.floor((current.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    if (weeksSinceRef % 2 !== 0) current.setDate(current.getDate() - 7);
+    while (current <= lastDay) {
+      const bStart = new Date(current); bStart.setHours(0, 0, 0, 0);
+      const bEnd = new Date(current); bEnd.setDate(bEnd.getDate() + 13); bEnd.setHours(23, 59, 59, 999);
+      if (bEnd >= firstDay && bStart <= lastDay) periods.push({ start: bStart, end: bEnd });
+      current.setDate(current.getDate() + 14);
+    }
+  } else {
+    // SEMANAL
+    let current = new Date(firstDay);
+    const dow = current.getDay();
+    if (dow === 0) current.setDate(current.getDate() - 6);
+    else if (dow !== 1) current.setDate(current.getDate() - (dow - 1));
+    while (current <= lastDay) {
+      const wStart = new Date(current); wStart.setHours(0, 0, 0, 0);
+      const wEnd = new Date(current); wEnd.setDate(wEnd.getDate() + 6); wEnd.setHours(23, 59, 59, 999);
+      if (wEnd >= firstDay && wStart <= lastDay) periods.push({ start: wStart, end: wEnd });
+      current.setDate(current.getDate() + 7);
+    }
+  }
+  return periods;
+}
+
 export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
   const { data: empresas } = await supabase
     .from("empresas")
@@ -74,24 +114,36 @@ export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
       const totalViajes = viajes?.length || 0;
       const totalIngresos = (viajes || []).reduce((s: number, v: any) => s + Number(v.ingresos_viaje?.total_ingreso || 0), 0);
 
-      // Group by vehiculo_id (from asignacion) to correctly apply FIJO commission per vehicle
-      const vehicleMap: Record<string, number> = {};
-      (viajes || []).forEach((v: any) => {
-        const vehiculoId = v.asignaciones?.vehiculo_id || v.asignacion_id || v.id;
-        if (!vehicleMap[vehiculoId]) vehicleMap[vehiculoId] = 0;
-        vehicleMap[vehiculoId] += Number(v.ingresos_viaje?.total_ingreso || 0);
-      });
-
       let totalComision = 0;
-      Object.values(vehicleMap).forEach((vehicleIngreso) => {
-        if (emp.tipo_comision === "PORCENTAJE") {
-          totalComision += vehicleIngreso * (emp.comision_pct || 0);
-        } else if (emp.tipo_comision === "FIJO") {
-          totalComision += emp.comision_fija || 0;
-        } else if (emp.tipo_comision === "MIXTO") {
-          totalComision += vehicleIngreso * (emp.comision_pct || 0) + (emp.comision_fija || 0);
+
+      if (emp.tipo_comision === "PORCENTAJE") {
+        // For percentage, just sum all income and apply rate
+        totalComision = totalIngresos * (emp.comision_pct || 0);
+      } else if (mes !== undefined && anio !== undefined) {
+        // For FIJO/MIXTO: apply commission per vehicle per period with activity
+        const periods = getPeriodsForMonth(anio, mes, emp.frecuencia_comision);
+
+        for (const period of periods) {
+          // Find vehicles with activity in this period
+          const vehiclePeriodIncome: Record<string, number> = {};
+          (viajes || []).forEach((v: any) => {
+            const vDate = new Date(v.fecha_salida);
+            if (vDate >= period.start && vDate <= period.end) {
+              const vehiculoId = v.asignaciones?.vehiculo_id || v.asignacion_id || v.id;
+              if (!vehiclePeriodIncome[vehiculoId]) vehiclePeriodIncome[vehiculoId] = 0;
+              vehiclePeriodIncome[vehiculoId] += Number(v.ingresos_viaje?.total_ingreso || 0);
+            }
+          });
+
+          Object.values(vehiclePeriodIncome).forEach((vehicleIngreso) => {
+            if (emp.tipo_comision === "FIJO") {
+              totalComision += emp.comision_fija || 0;
+            } else if (emp.tipo_comision === "MIXTO") {
+              totalComision += vehicleIngreso * (emp.comision_pct || 0) + (emp.comision_fija || 0);
+            }
+          });
         }
-      });
+      }
 
       return {
         id: emp.id,
