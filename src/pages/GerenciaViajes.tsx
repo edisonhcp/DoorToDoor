@@ -164,11 +164,13 @@ export default function GerenciaViajes() {
     vehicleMap[key].viajes.push(v);
   });
 
-  const vehicleKeys = Object.keys(vehicleMap);
+  const allVehicleKeys = Object.keys(vehicleMap).sort();
+  const filteredVehicleKeys = selectedVehiculos.length > 0
+    ? allVehicleKeys.filter(k => selectedVehiculos.includes(k))
+    : allVehicleKeys;
 
   const handleFinalizarPeriodo = (placa: string) => {
     toast.success(`Corte de ${frecuenciaLabel.toLowerCase()} realizado para vehículo ${placa}`);
-    // TODO: Implement period finalization logic per vehicle
   };
 
   const handlePrint = () => {
@@ -182,9 +184,55 @@ export default function GerenciaViajes() {
         subtitle="Registro completo de rutas con ingresos y egresos"
       />
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item} className="no-print">
-          <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
-          <p className="text-muted-foreground mt-1">Registro completo de rutas con ingresos y egresos</p>
+        <motion.div variants={item} className="no-print flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
+            <p className="text-muted-foreground mt-1">Registro completo de rutas con ingresos y egresos</p>
+          </div>
+          {allVehicleKeys.length > 1 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Truck className="w-4 h-4" />
+                  {selectedVehiculos.length === 0
+                    ? "Todos los vehículos"
+                    : `${selectedVehiculos.length} vehículo${selectedVehiculos.length > 1 ? "s" : ""}`}
+                  <ChevronDown className="w-3.5 h-3.5 ml-1 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="end">
+                <div className="space-y-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs h-7 text-muted-foreground"
+                    onClick={() => setSelectedVehiculos([])}
+                  >
+                    {selectedVehiculos.length === 0 && <Check className="w-3 h-3 mr-2" />}
+                    Todos
+                  </Button>
+                  {allVehicleKeys.map(k => {
+                    const veh = vehicleMap[k];
+                    const checked = selectedVehiculos.includes(k);
+                    return (
+                      <label key={k} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(c) => {
+                            setSelectedVehiculos(prev =>
+                              c ? [...prev, k] : prev.filter(p => p !== k)
+                            );
+                          }}
+                        />
+                        <span className="font-medium">{veh.placa}</span>
+                        <span className="text-muted-foreground">{veh.marca} {veh.modelo}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </motion.div>
 
         {loading ? (
