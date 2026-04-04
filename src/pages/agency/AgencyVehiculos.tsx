@@ -30,7 +30,7 @@ const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { st
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
 export default function AgencyVehiculos() {
-  const { role, empresaId } = useAuth();
+  const { role, empresaId, user } = useAuth();
   const { toast } = useToast();
   const [vehiculos, setVehiculos] = useState<any[]>([]);
   const [conductoresDisponibles, setConductoresDisponibles] = useState<any[]>([]);
