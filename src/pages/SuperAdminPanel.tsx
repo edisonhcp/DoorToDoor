@@ -178,7 +178,11 @@ export default function SuperAdminPanel() {
   const handleToggleSuspend = async (empresa: EmpresaRow) => {
     const { error } = await toggleEmpresaSuspend(empresa);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: empresa.activo ? "Compañía suspendida" : "Compañía reactivada" }); loadData(); }
+    else {
+      const accion = empresa.activo ? "EMPRESA_SUSPENDIDA" : "EMPRESA_REACTIVADA";
+      insertAuditLog({ empresa_id: empresa.id, accion, user_id: user?.id, rol: "SUPER_ADMIN", despues: { nombre: empresa.nombre } });
+      toast({ title: empresa.activo ? "Compañía suspendida" : "Compañía reactivada" }); loadData();
+    }
   };
 
   const handleGenerateLink = async (empresaId?: string) => {
