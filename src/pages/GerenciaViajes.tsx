@@ -470,85 +470,23 @@ export default function GerenciaViajes() {
           <div className="h-48 rounded-xl bg-muted animate-pulse" />
         ) : (
           <>
-            {filteredVehicleKeys.map((key) => {
-              const veh = vehicleMap[key];
-              const isOpen = expanded === key;
-              return (
-                <motion.div key={key} variants={item} className={printingVehicle && printingVehicle !== key ? "print:hidden" : ""}>
-                  <Card
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setExpanded(isOpen ? null : key)}
-                  >
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center justify-between text-base">
-                        <div className="flex items-center gap-2">
-                          <Bus className="w-5 h-5 text-primary" />
-                          <span>{veh.placa}</span>
-                          <span className="text-muted-foreground font-normal text-sm">
-                            {veh.marca} {veh.modelo}
-                          </span>
-                          <span className="text-muted-foreground text-xs flex items-center gap-1">
-                            <User className="w-3 h-3" /> {veh.propietario}
-                          </span>
-                          <span className="text-muted-foreground text-xs">({veh.viajes.length} viajes)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isOpen && (() => {
-                            const hasEnRuta = veh.viajes.some((v: any) => v.estado === "EN_RUTA" || v.estado === "ASIGNADO");
-                            return (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setPrintingVehicle(key);
-                                    setTimeout(() => {
-                                      window.print();
-                                      setPrintingVehicle(null);
-                                    }, 100);
-                                  }}
-                                >
-                                  <Printer className="w-4 h-4 mr-1" />
-                                  Imprimir
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setFinalizarAlert({ placa: veh.placa, hasEnRuta });
-                                  }}
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  Finalizar {frecuenciaLabel}
-                                </Button>
-                              </>
-                            );
-                          })()}
-                          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    {isOpen && (
-                      <CardContent onClick={(e) => e.stopPropagation()}>
-                        <ViajesTable
-                          viajes={veh.viajes}
-                          showEgresos
-                          showConductorColumn
-                          comisionPct={empresaInfo?.comision_pct || 0.10}
-                          comisionFija={empresaInfo?.comision_fija || 0}
-                          tipoComision={empresaInfo?.tipo_comision || "PORCENTAJE"}
-                          frecuenciaComision={empresaInfo?.frecuencia_comision || "SEMANAL"}
-                        />
-                      </CardContent>
-                    )}
-                  </Card>
-                </motion.div>
-              );
-            })}
+            {/* Filtered viajes table */}
+            {allFilteredViajes.length > 0 && (
+              <motion.div variants={item}>
+                <ViajesTable
+                  viajes={allFilteredViajes}
+                  showEgresos
+                  showConductorColumn
+                  comisionPct={empresaInfo?.comision_pct || 0.10}
+                  comisionFija={empresaInfo?.comision_fija || 0}
+                  tipoComision={empresaInfo?.tipo_comision || "PORCENTAJE"}
+                  frecuenciaComision={empresaInfo?.frecuencia_comision || "SEMANAL"}
+                />
+              </motion.div>
+            )}
 
             {viajes.length > 0 && (
-              <motion.div variants={item} className={printingVehicle ? "print:hidden" : ""}>
+              <motion.div variants={item}>
                 <Card className="border-primary/30">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center justify-between text-base">
