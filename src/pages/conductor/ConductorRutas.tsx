@@ -179,11 +179,8 @@ export default function ConductorRutas() {
         });
       }
     }
-    if (selectedVehiculos.length > 0) {
-      result = result.filter(v => v.vehiculo?.placa && selectedVehiculos.includes(v.vehiculo.placa));
-    }
     return result;
-  }, [allViajes, selectedMonths, selectedPeriodKey, selectedVehiculos, availablePeriods]);
+  }, [allViajes, selectedMonths, selectedPeriodKey, availablePeriods]);
 
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
 
