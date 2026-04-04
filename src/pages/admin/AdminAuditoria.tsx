@@ -101,7 +101,7 @@ export default function AdminAuditoria() {
                 <Filter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">Filtros</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas las agencias" />
