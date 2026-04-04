@@ -165,30 +165,52 @@ export async function fetchConsolidadoEmpresas(mes?: number, anio?: number) {
 }
 
 export async function fetchEmpresaDetail(empresaId: string) {
-  const [vRes, cRes, pRes, aRes] = await Promise.all([
-    supabase.from("vehiculos").select("*, propietarios(nombres)").eq("empresa_id", empresaId),
+  const [vRes, cRes, pRes, asigRes] = await Promise.all([
+    supabase.from("vehiculos").select("*").eq("empresa_id", empresaId),
     supabase.from("conductores").select("*").eq("empresa_id", empresaId),
-    supabase.from("propietarios").select("*, vehiculos(placa, marca, modelo, anio, estado)").eq("empresa_id", empresaId),
-    supabase.from("asignaciones").select("conductor_id, vehiculo_id, conductores!fk_asignaciones_conductor(nombres), vehiculos!fk_asignaciones_vehiculo(placa, marca, modelo, anio, propietarios!fk_vehiculos_propietario(nombres))").eq("empresa_id", empresaId).eq("estado", "ACTIVA"),
+    supabase.from("propietarios").select("*").eq("empresa_id", empresaId),
+    supabase.from("asignaciones").select("conductor_id, vehiculo_id").eq("empresa_id", empresaId).eq("estado", "ACTIVA"),
   ]);
-  const asignaciones = aRes.data || [];
 
-  const vehiculos = (vRes.data || []).map((v: any) => {
+  const allVehiculos = vRes.data || [];
+  const allPropietarios = pRes.data || [];
+  const asignaciones = asigRes.data || [];
+
+  const propsById: Record<string, any> = {};
+  allPropietarios.forEach((p: any) => { propsById[p.id] = p; });
+
+  const vehById: Record<string, any> = {};
+  allVehiculos.forEach((v: any) => { vehById[v.id] = v; });
+
+  const vehiculos = allVehiculos.map((v: any) => {
     const asig = asignaciones.find((a: any) => a.vehiculo_id === v.id);
-    return { ...v, conductor_nombre: asig?.conductores?.nombres || null };
+    const conductor = asig ? (cRes.data || []).find((c: any) => c.id === asig.conductor_id) : null;
+    return {
+      ...v,
+      propietarios: propsById[v.propietario_id] ? { nombres: propsById[v.propietario_id].nombres } : null,
+      conductor_nombre: conductor?.nombres || null,
+    };
   });
 
   const conductores = (cRes.data || []).map((c: any) => {
     const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
+    const veh = asig ? vehById[asig.vehiculo_id] : null;
     return {
       ...c,
-      vehiculo_placa: asig?.vehiculos?.placa || null,
-      vehiculo_marca: asig?.vehiculos?.marca || null,
-      vehiculo_modelo: asig?.vehiculos?.modelo || null,
-      vehiculo_anio: asig?.vehiculos?.anio || null,
-      propietario_nombre: asig?.vehiculos?.propietarios?.nombres || null,
+      vehiculo_placa: veh?.placa || null,
+      vehiculo_marca: veh?.marca || null,
+      vehiculo_modelo: veh?.modelo || null,
+      vehiculo_anio: veh?.anio || null,
+      propietario_nombre: veh && propsById[veh.propietario_id] ? propsById[veh.propietario_id].nombres : null,
     };
   });
 
-  return { vehiculos, conductores, propietarios: pRes.data || [] };
+  const propietarios = allPropietarios.map((p: any) => ({
+    ...p,
+    vehiculos: allVehiculos.filter((v: any) => v.propietario_id === p.id).map((v: any) => ({
+      placa: v.placa, marca: v.marca, modelo: v.modelo, anio: v.anio, estado: v.estado,
+    })),
+  }));
+
+  return { vehiculos, conductores, propietarios };
 }

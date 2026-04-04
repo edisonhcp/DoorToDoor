@@ -23,24 +23,34 @@ export default function AdminPropietarios() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("propietarios")
-        .select("*, empresas(nombre), vehiculos(placa, marca, modelo, anio, estado)")
-        .order("created_at", { ascending: false });
+    const fetchData = async () => {
+      const [propRes, empRes, vehRes] = await Promise.all([
+        supabase.from("propietarios").select("*").order("created_at", { ascending: false }),
+        supabase.from("empresas").select("id, nombre"),
+        supabase.from("vehiculos").select("id, placa, marca, modelo, anio, estado, propietario_id"),
+      ]);
+
+      const empresasById: Record<string, string> = {};
+      (empRes.data || []).forEach((e: any) => { empresasById[e.id] = e.nombre; });
+
+      const vehByProp: Record<string, any[]> = {};
+      (vehRes.data || []).forEach((v: any) => {
+        if (!vehByProp[v.propietario_id]) vehByProp[v.propietario_id] = [];
+        vehByProp[v.propietario_id].push(v);
+      });
 
       const map: Record<string, { nombre: string; propietarios: any[] }> = {};
-      (data || []).forEach((p: any) => {
+      (propRes.data || []).forEach((p: any) => {
         const empId = p.empresa_id;
         if (!map[empId]) {
-          map[empId] = { nombre: p.empresas?.nombre || "—", propietarios: [] };
+          map[empId] = { nombre: empresasById[empId] || "—", propietarios: [] };
         }
-        map[empId].propietarios.push(p);
+        map[empId].propietarios.push({ ...p, vehiculos: vehByProp[p.id] || [] });
       });
       setEmpresaMap(map);
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, []);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
