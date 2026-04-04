@@ -265,36 +265,6 @@ export default function ConductorRutas() {
                     </Select>
                   </div>
 
-                  {/* Vehículos */}
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Vehículos</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-sm font-normal h-10">
-                          {selectedVehiculosLabel}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2 max-h-64 overflow-y-auto" align="start">
-                        <label className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm text-muted-foreground">
-                          <Checkbox
-                            checked={selectedVehiculos.length === 0}
-                            onCheckedChange={() => setSelectedVehiculos([])}
-                          />
-                          Todos
-                        </label>
-                        {availableVehiculos.map(v => (
-                          <label key={v.placa} className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm">
-                            <Checkbox
-                              checked={selectedVehiculos.includes(v.placa)}
-                              onCheckedChange={() => toggleVehiculo(v.placa)}
-                            />
-                            <span className="font-medium">{v.placa}</span>
-                            <span className="text-muted-foreground text-xs">{v.marca} {v.modelo}</span>
-                          </label>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
                 </div>
               </CardContent>
             </Card>

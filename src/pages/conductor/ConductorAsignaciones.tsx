@@ -153,7 +153,7 @@ export default function ConductorAsignaciones() {
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
 
   // Filter out FINALIZADO trips that should be hidden based on cutoff + 24h
-  const filteredViajes = viajes.filter(v => !shouldHideFinalizadoViaje(v, frecuenciaComision));
+  const filteredViajes = viajes.filter(v => !shouldHideFinalizadoViaje(v));
 
   const handleIniciarRuta = async (viajeId: string) => {
     const { error } = await iniciarRuta(viajeId);
