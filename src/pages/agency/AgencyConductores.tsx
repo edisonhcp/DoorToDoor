@@ -25,6 +25,7 @@ import {
 import { fetchConductores, toggleConductorEstado, deleteConductor, unassignConductor } from "@/services/conductoresService";
 import { fetchVehiculosDisponiblesParaConductor, assignConductorToVehiculo } from "@/services/vehiculosService";
 import { fetchAlimentacionByVehiculos, VehiculoAlimentacion } from "@/services/alimentacionService";
+import { insertAuditLog } from "@/services/auditService";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
