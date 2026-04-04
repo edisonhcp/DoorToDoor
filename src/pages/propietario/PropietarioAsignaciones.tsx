@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Truck, Route, Users, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { Truck, Users, Printer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { PrintHeader } from "@/components/PrintHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { fetchPropietarioAsignaciones } from "@/services/egresosService";
@@ -16,6 +18,18 @@ const estadoLabels: Record<string, { label: string; variant: "default" | "second
   EN_RUTA: { label: "Ruta Iniciada", variant: "default" },
   FINALIZADO: { label: "Ruta Finalizada", variant: "outline" },
 };
+
+/**
+ * Hide FINALIZADO vehicles 24 hours after the trip's fecha_llegada.
+ */
+function shouldHideFinalizadoVehiculo(v: any): boolean {
+  if (v.estado_ruta !== "FINALIZADO") return false;
+  // The viaje object should have fecha_llegada
+  const fechaLlegada = v.viaje?.fecha_llegada ? new Date(v.viaje.fecha_llegada) : null;
+  if (!fechaLlegada) return false;
+  const now = new Date();
+  return now.getTime() - fechaLlegada.getTime() > 24 * 60 * 60 * 1000;
+}
 
 export default function PropietarioAsignaciones() {
   const { role, user } = useAuth();
@@ -34,28 +48,38 @@ export default function PropietarioAsignaciones() {
 
   if (role !== "PROPIETARIO") return <Navigate to="/dashboard" replace />;
 
+  // Filter out FINALIZADO that should be hidden after 24h
+  const filteredVehiculos = vehiculos.filter(v => !shouldHideFinalizadoVehiculo(v));
+
   return (
     <DashboardLayout>
+      <PrintHeader reportTitle="Asignaciones — Propietario" />
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item}>
-          <h1 className="text-3xl font-display font-bold text-foreground">Asignaciones</h1>
-          <p className="text-muted-foreground mt-1">Estado de rutas asignadas a tus vehículos</p>
+        <motion.div variants={item} className="no-print flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground">Asignaciones</h1>
+            <p className="text-muted-foreground mt-1">Estado de rutas asignadas a tus vehículos</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => window.print()} className="no-print">
+            <Printer className="w-4 h-4 mr-1" />
+            Imprimir
+          </Button>
         </motion.div>
 
         {loading ? (
           <div className="space-y-3">
             {[1, 2].map(i => <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />)}
           </div>
-        ) : vehiculos.length === 0 ? (
+        ) : filteredVehiculos.length === 0 ? (
           <Card className="border-0 shadow-sm">
             <CardContent className="py-12 text-center">
               <Truck className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-              <p className="text-muted-foreground">No tienes vehículos registrados</p>
+              <p className="text-muted-foreground">No tienes vehículos con rutas activas</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {vehiculos.map(v => {
+            {filteredVehiculos.map(v => {
               const estado = v.estado_ruta ? estadoLabels[v.estado_ruta] : null;
               return (
                 <motion.div key={v.id} variants={item}>
