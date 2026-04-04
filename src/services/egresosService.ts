@@ -97,8 +97,8 @@ export async function uploadRecibo(file: File, folder: string): Promise<string |
     .from("recibos")
     .upload(fileName, file);
   if (error) return null;
-  const { data } = supabase.storage.from("recibos").getPublicUrl(fileName);
-  return data.publicUrl;
+  const { data } = await supabase.storage.from("recibos").createSignedUrl(fileName, 3600);
+  return data?.signedUrl || null;
 }
 
 // Fetch all viajes with ingresos and egresos for a given empresa (FINALIZADO)
