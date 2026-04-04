@@ -140,8 +140,12 @@ export default function SuperAdminPanel() {
     loadSolicitudes();
   };
 
-  const handleViewDetail = async (empresa: EmpresaRow) => {
-    setDetailEmpresa(empresa);
+  const handleToggleExpand = async (empresa: EmpresaRow) => {
+    if (expandedEmpresaId === empresa.id) {
+      setExpandedEmpresaId(null);
+      return;
+    }
+    setExpandedEmpresaId(empresa.id);
     setDetailLoading(true);
     const detail = await fetchEmpresaDetail(empresa.id);
     setDetailVehiculos(detail.vehiculos);
