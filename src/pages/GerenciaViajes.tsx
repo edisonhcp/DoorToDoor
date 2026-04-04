@@ -1,11 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Bus, ChevronDown, ChevronUp, LayoutList, Printer, User, CheckCircle, AlertTriangle, Truck, Check, Filter } from "lucide-react";
+import { LayoutList, Printer, Filter } from "lucide-react";
 import { PrintHeader } from "@/components/PrintHeader";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
-} from "@/components/ui/alert-dialog";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
@@ -230,10 +226,7 @@ export default function GerenciaViajes() {
   const { role, empresaId } = useAuth();
   const [viajes, setViajes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [printingVehicle, setPrintingVehicle] = useState<string | null>(null);
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
-  const [finalizarAlert, setFinalizarAlert] = useState<{ placa: string; hasEnRuta: boolean } | null>(null);
   const [selectedVehiculos, setSelectedVehiculos] = useState<string[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   
@@ -274,7 +267,7 @@ export default function GerenciaViajes() {
       .sort((a, b) => b.year - a.year || b.month - a.month);
   })();
 
-  // Filter viajes by selected months
+  // Filter viajes by selected months and vehicles
   const filteredViajes = (() => {
     let result = viajes;
     if (selectedMonths.length > 0) {
@@ -286,6 +279,12 @@ export default function GerenciaViajes() {
           const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
           return d >= start && d <= end;
         });
+      });
+    }
+    if (selectedVehiculos.length > 0) {
+      result = result.filter(v => {
+        const placa = v.vehiculo?.placa || "sin-vehiculo";
+        return selectedVehiculos.includes(placa);
       });
     }
     return result;
@@ -311,23 +310,6 @@ export default function GerenciaViajes() {
   });
   const consolidadoVehicleKeys = Object.keys(consolidadoVehicleMap).sort();
 
-  // Group by vehicle
-  const vehicleMap: Record<string, { placa: string; marca: string; modelo: string; propietario: string; viajes: any[] }> = {};
-  filteredViajes.forEach((v) => {
-    const placa = v.vehiculo?.placa || "sin-vehiculo";
-    const key = placa;
-    if (!vehicleMap[key]) {
-      vehicleMap[key] = {
-        placa: v.vehiculo?.placa || "—",
-        marca: v.vehiculo?.marca || "",
-        modelo: v.vehiculo?.modelo || "",
-        propietario: v.propietario_nombre || "—",
-        viajes: [],
-      };
-    }
-    vehicleMap[key].viajes.push(v);
-  });
-
   // All vehicle keys from unfiltered viajes (for the vehicle filter)
   const allVehicleKeysUnfiltered = (() => {
     const keys = new Set<string>();
@@ -347,14 +329,6 @@ export default function GerenciaViajes() {
     }
   });
 
-  const allVehicleKeys = Object.keys(vehicleMap).sort();
-  const filteredVehicleKeys = selectedVehiculos.length > 0
-    ? allVehicleKeys.filter(k => selectedVehiculos.includes(k))
-    : allVehicleKeys;
-
-  const handleFinalizarPeriodo = (placa: string) => {
-    toast.success(`Corte de ${frecuenciaLabel.toLowerCase()} realizado para vehículo ${placa}`);
-  };
 
   const toggleMonth = (key: string) => {
     setSelectedMonths(prev =>
@@ -470,85 +444,23 @@ export default function GerenciaViajes() {
           <div className="h-48 rounded-xl bg-muted animate-pulse" />
         ) : (
           <>
-            {filteredVehicleKeys.map((key) => {
-              const veh = vehicleMap[key];
-              const isOpen = expanded === key;
-              return (
-                <motion.div key={key} variants={item} className={printingVehicle && printingVehicle !== key ? "print:hidden" : ""}>
-                  <Card
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setExpanded(isOpen ? null : key)}
-                  >
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center justify-between text-base">
-                        <div className="flex items-center gap-2">
-                          <Bus className="w-5 h-5 text-primary" />
-                          <span>{veh.placa}</span>
-                          <span className="text-muted-foreground font-normal text-sm">
-                            {veh.marca} {veh.modelo}
-                          </span>
-                          <span className="text-muted-foreground text-xs flex items-center gap-1">
-                            <User className="w-3 h-3" /> {veh.propietario}
-                          </span>
-                          <span className="text-muted-foreground text-xs">({veh.viajes.length} viajes)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isOpen && (() => {
-                            const hasEnRuta = veh.viajes.some((v: any) => v.estado === "EN_RUTA" || v.estado === "ASIGNADO");
-                            return (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setPrintingVehicle(key);
-                                    setTimeout(() => {
-                                      window.print();
-                                      setPrintingVehicle(null);
-                                    }, 100);
-                                  }}
-                                >
-                                  <Printer className="w-4 h-4 mr-1" />
-                                  Imprimir
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setFinalizarAlert({ placa: veh.placa, hasEnRuta });
-                                  }}
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  Finalizar {frecuenciaLabel}
-                                </Button>
-                              </>
-                            );
-                          })()}
-                          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    {isOpen && (
-                      <CardContent onClick={(e) => e.stopPropagation()}>
-                        <ViajesTable
-                          viajes={veh.viajes}
-                          showEgresos
-                          showConductorColumn
-                          comisionPct={empresaInfo?.comision_pct || 0.10}
-                          comisionFija={empresaInfo?.comision_fija || 0}
-                          tipoComision={empresaInfo?.tipo_comision || "PORCENTAJE"}
-                          frecuenciaComision={empresaInfo?.frecuencia_comision || "SEMANAL"}
-                        />
-                      </CardContent>
-                    )}
-                  </Card>
-                </motion.div>
-              );
-            })}
+            {/* Filtered viajes table */}
+            {filteredViajes.length > 0 && (
+              <motion.div variants={item}>
+                <ViajesTable
+                  viajes={filteredViajes}
+                  showEgresos
+                  showConductorColumn
+                  comisionPct={empresaInfo?.comision_pct || 0.10}
+                  comisionFija={empresaInfo?.comision_fija || 0}
+                  tipoComision={empresaInfo?.tipo_comision || "PORCENTAJE"}
+                  frecuenciaComision={empresaInfo?.frecuencia_comision || "SEMANAL"}
+                />
+              </motion.div>
+            )}
 
             {viajes.length > 0 && (
-              <motion.div variants={item} className={printingVehicle ? "print:hidden" : ""}>
+              <motion.div variants={item}>
                 <Card className="border-primary/30">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center justify-between text-base">
@@ -573,30 +485,6 @@ export default function GerenciaViajes() {
         )}
       </motion.div>
 
-      <AlertDialog open={!!finalizarAlert} onOpenChange={() => setFinalizarAlert(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              {finalizarAlert?.hasEnRuta && <AlertTriangle className="w-5 h-5 text-yellow-500" />}
-              Finalizar {frecuenciaLabel}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm">
-              {finalizarAlert?.hasEnRuta
-                ? "Tienes rutas pendientes por finalizar. Las rutas que no estén finalizadas se registrarán en el siguiente corte. Contáctate con tu conductor."
-                : `¿Deseas finalizar el corte de ${frecuenciaLabel.toLowerCase()} para el vehículo ${finalizarAlert?.placa}?`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              if (finalizarAlert) handleFinalizarPeriodo(finalizarAlert.placa);
-              setFinalizarAlert(null);
-            }}>
-              Finalizar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </DashboardLayout>
   );
 }
