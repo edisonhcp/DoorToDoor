@@ -620,26 +620,25 @@ export default function Dashboard() {
 
 
         {/* Tablero de Despacho */}
-        <motion.div variants={item}>
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="font-display text-lg flex items-center gap-2">
-                <Route className="w-5 h-5 text-primary" />
-                Tablero de Despacho
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {(() => {
-                const board = buildDespachoBoard(viajesActivos, activeAssignmentsMap);
-                const fixedCities = ["STO", "QTO", "MTA", "GYE"];
-                const otherCities = Object.keys(board).filter(c => !fixedCities.includes(c) && board[c].length > 0).sort();
-                const allCities = [...fixedCities, ...otherCities];
-                const hasAny = allCities.some(c => (board[c] || []).length > 0);
-                const maxRows = Math.max(...allCities.map(c => (board[c] || []).length), 1);
+        {(() => {
+          const board = buildDespachoBoard(viajesActivos, activeAssignmentsMap);
+          const fixedCities = ["STO", "QTO", "MTA", "GYE"];
+          const otherCities = Object.keys(board).filter(c => !fixedCities.includes(c) && board[c].length > 0).sort();
+          const allCities = [...fixedCities, ...otherCities];
+          const hasAny = allCities.some(c => (board[c] || []).length > 0);
+          if (!hasAny) return null;
+          const maxRows = Math.max(...allCities.map(c => (board[c] || []).length), 1);
 
-                return !hasAny ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No hay vehículos con rutas finalizadas</p>
-                ) : (
+          return (
+            <motion.div variants={item}>
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="font-display text-lg flex items-center gap-2">
+                    <Route className="w-5 h-5 text-primary" />
+                    Tablero de Despacho
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-xs">
                       <thead>
@@ -684,11 +683,11 @@ export default function Dashboard() {
                       </tbody>
                     </table>
                   </div>
-                );
-              })()}
-            </CardContent>
-          </Card>
-        </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })()}
       </motion.div>
     </DashboardLayout>
   );
