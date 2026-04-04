@@ -984,6 +984,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      storage_conductor_check: { Args: { file_path: string }; Returns: boolean }
+      storage_propietario_check: {
+        Args: { file_path: string }
+        Returns: boolean
+      }
+      storage_recibo_check: { Args: { file_path: string }; Returns: boolean }
+      storage_vehiculo_check: { Args: { file_path: string }; Returns: boolean }
     }
     Enums: {
       accion_audit:

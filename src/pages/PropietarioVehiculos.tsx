@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Truck, Plus, Search, AlertTriangle, MessageCircle, Users, UtensilsCrossed, Phone, Mail, MapPin, CreditCard, Shield } from "lucide-react";
+import { StorageImage } from "@/components/StorageImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,7 +196,7 @@ export default function PropietarioVehiculos() {
                     <div className="flex items-start justify-between mb-3">
                       {v.foto_url ? (
                         <div className="w-16 h-16 rounded-xl overflow-hidden border border-border">
-                          <img src={v.foto_url} alt={v.placa} className="w-full h-full object-cover" />
+                          <StorageImage src={v.foto_url} alt={v.placa} className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${v.estado === "INHABILITADO" ? "bg-destructive/10" : "bg-primary/10"}`}>
@@ -363,7 +364,7 @@ export default function PropietarioVehiculos() {
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-4">
                 {conductorDetalle.foto_url ? (
-                  <img src={conductorDetalle.foto_url} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
+                  <StorageImage src={conductorDetalle.foto_url} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                     <Users className="w-8 h-8 text-primary" />

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { motion } from "framer-motion";
 import {
   Truck, Users, Route, CheckCircle2, Clock, Plus, AlertTriangle,
@@ -539,7 +540,7 @@ export default function Dashboard() {
             <Card className="border-0 shadow-sm h-full">
               <CardContent className="p-6 flex items-center gap-5">
                 {empresaInfo?.logo_url ? (
-                  <img src={empresaInfo.logo_url} alt="Logo" className="w-16 h-16 rounded-full object-cover border border-border shrink-0" />
+                  <StorageImage src={empresaInfo.logo_url} alt="Logo" className="w-16 h-16 rounded-full object-cover border border-border shrink-0" />
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Building2 className="w-8 h-8 text-primary" />

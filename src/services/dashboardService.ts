@@ -66,8 +66,8 @@ export async function uploadEmpresaLogo(empresaId: string, file: File) {
   const filePath = `logos/${empresaId}.${ext}`;
   const { error: uploadError } = await supabase.storage.from("recibos").upload(filePath, file, { upsert: true });
   if (uploadError) return { error: uploadError, url: null };
-  const { data: urlData } = supabase.storage.from("recibos").getPublicUrl(filePath);
-  const logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const logoUrl = `${supabaseUrl}/storage/v1/object/public/recibos/${filePath}?t=${Date.now()}`;
   const { error: updateError } = await supabase.from("empresas").update({ logo_url: logoUrl }).eq("id", empresaId);
   return { error: updateError, url: logoUrl };
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { motion } from "framer-motion";
 import { Save, Upload, Camera, Truck, Edit2, UtensilsCrossed } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,8 +89,8 @@ export default function PropietarioConfiguracion() {
     const path = `${folder}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
     if (error) return null;
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    return data.publicUrl;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
   };
 
   const handleSave = async () => {
@@ -231,7 +232,7 @@ export default function PropietarioConfiguracion() {
                 onClick={() => fotoRef.current?.click()}
               >
                 {fotoPreview ? (
-                  <img src={fotoPreview} alt="Foto" className="w-full h-full object-cover" />
+                  <StorageImage src={fotoPreview} alt="Foto" className="w-full h-full object-cover" />
                 ) : (
                   <Camera className="w-8 h-8 text-muted-foreground" />
                 )}
@@ -318,7 +319,7 @@ export default function PropietarioConfiguracion() {
                   <div key={v.id} className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                     <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                       {(v as any).foto_url ? (
-                        <img src={(v as any).foto_url} alt={v.placa} className="w-full h-full object-cover" />
+                        <StorageImage src={(v as any).foto_url} alt={v.placa} className="w-full h-full object-cover" />
                       ) : (
                         <Truck className="w-6 h-6 text-muted-foreground" />
                       )}
@@ -356,7 +357,7 @@ export default function PropietarioConfiguracion() {
                 onClick={() => vehiculoFotoRef.current?.click()}
               >
                 {vehiculoFotoPreview ? (
-                  <img src={vehiculoFotoPreview} alt="Vehículo" className="w-full h-full object-cover" />
+                  <StorageImage src={vehiculoFotoPreview} alt="Vehículo" className="w-full h-full object-cover" />
                 ) : (
                   <Camera className="w-6 h-6 text-muted-foreground" />
                 )}

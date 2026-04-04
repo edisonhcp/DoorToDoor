@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { motion } from "framer-motion";
 import { Save, Upload, Camera, User, CreditCard, Car } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,8 +76,8 @@ export default function ConductorConfiguracion() {
     const path = `${conductorId}/${folder}_${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("conductor-docs").upload(path, file, { upsert: true });
     if (error) return null;
-    const { data } = supabase.storage.from("conductor-docs").getPublicUrl(path);
-    return data.publicUrl;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/storage/v1/object/public/conductor-docs/${path}`;
   };
 
   const handleFileChange = (
@@ -171,7 +172,7 @@ export default function ConductorConfiguracion() {
               onClick={() => frontalRef.current?.click()}
             >
               {frontalPreview ? (
-                <img src={frontalPreview} alt="Frontal" className="w-full h-full object-cover" />
+                <StorageImage src={frontalPreview} alt="Frontal" className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center">
                   <Upload className="w-6 h-6 mx-auto text-muted-foreground" />
@@ -188,7 +189,7 @@ export default function ConductorConfiguracion() {
               onClick={() => traseraRef.current?.click()}
             >
               {traseraPreview ? (
-                <img src={traseraPreview} alt="Trasero" className="w-full h-full object-cover" />
+                <StorageImage src={traseraPreview} alt="Trasero" className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center">
                   <Upload className="w-6 h-6 mx-auto text-muted-foreground" />
@@ -221,7 +222,7 @@ export default function ConductorConfiguracion() {
                 onClick={() => fotoRef.current?.click()}
               >
                 {fotoPreview ? (
-                  <img src={fotoPreview} alt="Foto" className="w-full h-full object-cover" />
+                  <StorageImage src={fotoPreview} alt="Foto" className="w-full h-full object-cover" />
                 ) : (
                   <Camera className="w-8 h-8 text-muted-foreground" />
                 )}

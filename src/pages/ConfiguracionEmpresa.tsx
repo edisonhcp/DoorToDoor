@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { motion } from "framer-motion";
 import { Building2, Save, Upload, Camera, AlertTriangle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -168,7 +169,7 @@ export default function ConfiguracionEmpresa() {
                 onClick={() => fileRef.current?.click()}
               >
                 {logoPreview ? (
-                  <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                  <StorageImage src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
                 ) : (
                   <Camera className="w-8 h-8 text-muted-foreground" />
                 )}
