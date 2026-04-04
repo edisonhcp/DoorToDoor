@@ -455,10 +455,10 @@ export default function GerenciaViajes() {
         ) : (
           <>
             {/* Filtered viajes table */}
-            {allFilteredViajes.length > 0 && (
+            {filteredViajes.length > 0 && (
               <motion.div variants={item}>
                 <ViajesTable
-                  viajes={allFilteredViajes}
+                  viajes={filteredViajes}
                   showEgresos
                   showConductorColumn
                   comisionPct={empresaInfo?.comision_pct || 0.10}
