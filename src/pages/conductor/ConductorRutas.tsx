@@ -278,6 +278,53 @@ export default function ConductorRutas() {
           </p>
         </motion.div>
 
+        {/* Vehicle selector */}
+        {availableVehiculos.length > 1 && (
+          <motion.div variants={item}>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Truck className="w-4 h-4" />
+                  {selectedVehiculos.length === 0
+                    ? "Todos los vehículos"
+                    : `${selectedVehiculos.length} vehículo${selectedVehiculos.length > 1 ? "s" : ""}`}
+                  <ChevronDown className="w-3.5 h-3.5 ml-1 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="start">
+                <div className="space-y-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs h-7 text-muted-foreground"
+                    onClick={() => setSelectedVehiculos([])}
+                  >
+                    {selectedVehiculos.length === 0 && <Check className="w-3 h-3 mr-2" />}
+                    Todos
+                  </Button>
+                  {availableVehiculos.map(v => {
+                    const checked = selectedVehiculos.includes(v.placa);
+                    return (
+                      <label key={v.placa} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(c) => {
+                            setSelectedVehiculos(prev =>
+                              c ? [...prev, v.placa] : prev.filter(p => p !== v.placa)
+                            );
+                          }}
+                        />
+                        <span className="font-medium">{v.placa}</span>
+                        <span className="text-muted-foreground">{v.marca} {v.modelo}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </motion.div>
+        )}
+
         {/* Period navigator */}
         <motion.div variants={item}>
           <div className="border rounded-lg bg-card">
