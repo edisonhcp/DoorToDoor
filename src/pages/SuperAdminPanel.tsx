@@ -108,7 +108,7 @@ export default function SuperAdminPanel() {
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
   const handleAprobarSolicitud = async (solicitud: any) => {
-    const { error: resolveErr } = await resolverSolicitud(solicitud.id, "APROBADA", "SUPER_ADMIN");
+    const { error: resolveErr } = await resolverSolicitud(solicitud.id, "APROBADA", user?.id || "");
     if (resolveErr) {
       toast({ title: "Error", description: resolveErr.message, variant: "destructive" });
       return;
