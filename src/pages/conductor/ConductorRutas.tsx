@@ -180,6 +180,7 @@ export default function ConductorRutas() {
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<{ start: Date; end: Date } | null>(null);
   const [openMonths, setOpenMonths] = useState<Record<string, boolean>>({});
+  const [selectedVehiculos, setSelectedVehiculos] = useState<string[]>([]);
 
   const frecuencia = empresaInfo?.frecuencia_comision || "SEMANAL";
 
