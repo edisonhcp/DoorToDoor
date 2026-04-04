@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   UserCheck, Truck, Users, Search, Ban, CheckCircle2, Trash2, MoreVertical,
-  ChevronUp, User, Car, Phone, Mail, MapPin, Calendar, CreditCard, Shield, Gauge, Palette, Filter
+  X, ChevronUp, User, Car, Phone, Mail, MapPin, Calendar, CreditCard, Shield, Gauge, Palette, Filter
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
