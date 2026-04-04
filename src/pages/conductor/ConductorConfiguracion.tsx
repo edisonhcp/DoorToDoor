@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { motion } from "framer-motion";
 import { Save, Upload, Camera, User, CreditCard, Car } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
