@@ -700,6 +700,7 @@ export default function MiFlota() {
               </CardContent>
             </Card>
           </TabsContent>
+        </Tabs>
       </motion.div>
 
       <AlertDialog open={!!deleteAlert} onOpenChange={() => setDeleteAlert(null)}>
