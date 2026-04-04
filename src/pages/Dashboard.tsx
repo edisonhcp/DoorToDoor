@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { motion } from "framer-motion";
 import {
   Truck, Users, Route, CheckCircle2, Clock, Plus, AlertTriangle,
