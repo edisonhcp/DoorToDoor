@@ -319,7 +319,7 @@ export default function PropietarioConfiguracion() {
                   <div key={v.id} className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                     <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                       {(v as any).foto_url ? (
-                        <img src={(v as any).foto_url} alt={v.placa} className="w-full h-full object-cover" />
+                        <StorageImage src={(v as any).foto_url} alt={v.placa} className="w-full h-full object-cover" />
                       ) : (
                         <Truck className="w-6 h-6 text-muted-foreground" />
                       )}
