@@ -24,28 +24,42 @@ export default function AdminConductores() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [condRes, asigRes] = await Promise.all([
-        supabase.from("conductores").select("*, empresas(nombre)").order("created_at", { ascending: false }),
-        supabase.from("asignaciones").select("conductor_id, vehiculos!fk_asignaciones_vehiculo(placa, marca, modelo, anio, propietarios!fk_vehiculos_propietario(nombres, apellidos))").eq("estado", "ACTIVA"),
+      const [condRes, empRes, asigRes, vehRes, propRes] = await Promise.all([
+        supabase.from("conductores").select("*").order("created_at", { ascending: false }),
+        supabase.from("empresas").select("id, nombre"),
+        supabase.from("asignaciones").select("conductor_id, vehiculo_id").eq("estado", "ACTIVA"),
+        supabase.from("vehiculos").select("id, placa, marca, modelo, anio, propietario_id"),
+        supabase.from("propietarios").select("id, nombres, apellidos"),
       ]);
 
-      const asignaciones = asigRes.data || [];
-      const map: Record<string, { nombre: string; conductores: any[] }> = {};
+      const empresasById: Record<string, string> = {};
+      (empRes.data || []).forEach((e: any) => { empresasById[e.id] = e.nombre; });
 
+      const vehById: Record<string, any> = {};
+      (vehRes.data || []).forEach((v: any) => { vehById[v.id] = v; });
+
+      const propsById: Record<string, string> = {};
+      (propRes.data || []).forEach((p: any) => { propsById[p.id] = `${p.nombres} ${p.apellidos}`; });
+
+      const asignaciones = asigRes.data || [];
+
+      const map: Record<string, { nombre: string; conductores: any[] }> = {};
       (condRes.data || []).forEach((c: any) => {
         const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
+        const veh = asig ? vehById[asig.vehiculo_id] : null;
+
         const enriched = {
           ...c,
-          vehiculo_marca: asig?.vehiculos?.marca || null,
-          vehiculo_modelo: asig?.vehiculos?.modelo || null,
-          vehiculo_anio: asig?.vehiculos?.anio || null,
-          vehiculo_placa: asig?.vehiculos?.placa || null,
-          propietario_nombre: asig?.vehiculos?.propietarios ? `${asig.vehiculos.propietarios.nombres} ${asig.vehiculos.propietarios.apellidos}` : null,
+          vehiculo_marca: veh?.marca || null,
+          vehiculo_modelo: veh?.modelo || null,
+          vehiculo_anio: veh?.anio || null,
+          vehiculo_placa: veh?.placa || null,
+          propietario_nombre: veh ? (propsById[veh.propietario_id] || null) : null,
         };
 
         const empId = c.empresa_id;
         if (!map[empId]) {
-          map[empId] = { nombre: c.empresas?.nombre || "—", conductores: [] };
+          map[empId] = { nombre: empresasById[empId] || "—", conductores: [] };
         }
         map[empId].conductores.push(enriched);
       });

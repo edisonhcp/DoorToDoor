@@ -23,24 +23,36 @@ export default function AdminVehiculos() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("vehiculos")
-        .select("*, empresas(nombre), propietarios(nombres, apellidos)")
-        .order("created_at", { ascending: false });
+    const fetchData = async () => {
+      const [vehRes, empRes, propRes] = await Promise.all([
+        supabase.from("vehiculos").select("*").order("created_at", { ascending: false }),
+        supabase.from("empresas").select("id, nombre"),
+        supabase.from("propietarios").select("id, nombres, apellidos"),
+      ]);
+
+      const empresasById: Record<string, string> = {};
+      (empRes.data || []).forEach((e: any) => { empresasById[e.id] = e.nombre; });
+
+      const propsById: Record<string, { nombres: string; apellidos: string }> = {};
+      (propRes.data || []).forEach((p: any) => { propsById[p.id] = { nombres: p.nombres, apellidos: p.apellidos }; });
 
       const map: Record<string, { nombre: string; vehiculos: any[] }> = {};
-      (data || []).forEach((v: any) => {
+      (vehRes.data || []).forEach((v: any) => {
         const empId = v.empresa_id;
         if (!map[empId]) {
-          map[empId] = { nombre: v.empresas?.nombre || "—", vehiculos: [] };
+          map[empId] = { nombre: empresasById[empId] || "—", vehiculos: [] };
         }
-        map[empId].vehiculos.push(v);
+        map[empId].vehiculos.push({
+          ...v,
+          propietario_nombre: propsById[v.propietario_id]
+            ? `${propsById[v.propietario_id].nombres} ${propsById[v.propietario_id].apellidos}`
+            : "—",
+        });
       });
       setEmpresaMap(map);
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, []);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
@@ -54,7 +66,7 @@ export default function AdminVehiculos() {
       v.placa?.toLowerCase().includes(q) ||
       v.marca?.toLowerCase().includes(q) ||
       v.modelo?.toLowerCase().includes(q) ||
-      (v.propietarios?.nombres || "").toLowerCase().includes(q)
+      v.propietario_nombre?.toLowerCase().includes(q)
     );
   });
 
@@ -125,9 +137,7 @@ export default function AdminVehiculos() {
                                 <TableCell>{v.tipo}</TableCell>
                                 <TableCell>{v.color}</TableCell>
                                 <TableCell>{v.anio || "—"}</TableCell>
-                                <TableCell>
-                                  {v.propietarios ? `${v.propietarios.nombres} ${v.propietarios.apellidos}` : "—"}
-                                </TableCell>
+                                <TableCell>{v.propietario_nombre}</TableCell>
                                 <TableCell>
                                   <Badge variant={v.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">
                                     {v.estado}
