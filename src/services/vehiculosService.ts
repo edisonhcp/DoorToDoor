@@ -118,7 +118,7 @@ export async function fetchPropietarioVehiculos(userId: string) {
       .order("created_at", { ascending: false }),
     supabase
       .from("asignaciones")
-      .select("vehiculo_id, conductores(id, nombres, apellidos, celular, email, identificacion, tipo_licencia, fecha_caducidad_licencia, foto_url, domicilio, nacionalidad)")
+      .select("vehiculo_id, conductores(id, nombres, apellidos, celular, email, identificacion, tipo_licencia, fecha_caducidad_licencia, fecha_nacimiento, foto_url, domicilio, nacionalidad)")
       .eq("estado", "ACTIVA"),
   ]);
 

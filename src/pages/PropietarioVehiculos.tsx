@@ -371,7 +371,16 @@ export default function PropietarioVehiculos() {
                 )}
                 <div>
                   <h3 className="font-semibold text-foreground">{conductorDetalle.nombres} {conductorDetalle.apellidos}</h3>
-                  <p className="text-xs text-muted-foreground">{conductorDetalle.nacionalidad}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {conductorDetalle.nacionalidad}
+                    {conductorDetalle.fecha_nacimiento && (() => {
+                      const birth = new Date(conductorDetalle.fecha_nacimiento);
+                      const today = new Date();
+                      let age = today.getFullYear() - birth.getFullYear();
+                      if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+                      return ` · ${age} años`;
+                    })()}
+                  </p>
                 </div>
               </div>
 
