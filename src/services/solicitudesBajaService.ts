@@ -18,12 +18,18 @@ export async function crearSolicitudBaja(empresaId: string, userId: string, moti
 }
 
 export async function fetchSolicitudesPendientes() {
-  const { data } = await supabase
-    .from("solicitudes_baja")
-    .select("*, empresas(nombre)")
-    .eq("estado", "PENDIENTE")
-    .order("created_at", { ascending: false });
-  return data || [];
+  const [solRes, empRes] = await Promise.all([
+    supabase.from("solicitudes_baja").select("*").eq("estado", "PENDIENTE").order("created_at", { ascending: false }),
+    supabase.from("empresas").select("id, nombre"),
+  ]);
+
+  const empresasById: Record<string, string> = {};
+  (empRes.data || []).forEach((e: any) => { empresasById[e.id] = e.nombre; });
+
+  return (solRes.data || []).map((s: any) => ({
+    ...s,
+    empresas: { nombre: empresasById[s.empresa_id] || "Compañía eliminada" },
+  }));
 }
 
 export async function resolverSolicitud(id: string, estado: "APROBADA" | "RECHAZADA", resueltoPor: string, motivoRechazo?: string) {
