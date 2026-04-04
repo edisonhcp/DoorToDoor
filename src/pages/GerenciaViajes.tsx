@@ -95,6 +95,36 @@ function getPeriodsForMonth(year: number, month: number, frecuencia: string): Pe
   return periods;
 }
 
+function getCurrentPeriod(frecuencia: string): { start: Date; end: Date } {
+  const now = new Date();
+  if (frecuencia === "MENSUAL") {
+    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999) };
+  } else if (frecuencia === "QUINCENAL") {
+    const day = now.getDate();
+    if (day <= 15) {
+      return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth(), 15, 23, 59, 59, 999) };
+    } else {
+      return { start: new Date(now.getFullYear(), now.getMonth(), 16), end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999) };
+    }
+  } else if (frecuencia === "BISEMANAL") {
+    const dayOfWeek = now.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const thisMonday = new Date(now); thisMonday.setDate(now.getDate() + diffToMonday); thisMonday.setHours(0, 0, 0, 0);
+    const refMonday = new Date(2024, 0, 1);
+    const weeksSinceRef = Math.floor((thisMonday.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    const isEvenWeek = weeksSinceRef % 2 === 0;
+    const biweekStart = isEvenWeek ? thisMonday : new Date(thisMonday.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const biweekEnd = new Date(biweekStart.getTime() + 13 * 24 * 60 * 60 * 1000); biweekEnd.setHours(23, 59, 59, 999);
+    return { start: biweekStart, end: biweekEnd };
+  } else {
+    const dayOfWeek = now.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(now); monday.setDate(now.getDate() + diffToMonday); monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23, 59, 59, 999);
+    return { start: monday, end: sunday };
+  }
+}
+
 function getNextSunday(dateStr: string): string {
   const d = new Date(dateStr);
   const day = d.getDay();
