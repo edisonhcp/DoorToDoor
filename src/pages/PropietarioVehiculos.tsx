@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Truck, Plus, Search, AlertTriangle, MessageCircle, Users, UtensilsCrossed, Phone, Mail, MapPin, CreditCard, Shield } from "lucide-react";
+import { StorageImage } from "@/components/StorageImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
