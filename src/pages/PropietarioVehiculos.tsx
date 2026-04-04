@@ -196,7 +196,7 @@ export default function PropietarioVehiculos() {
                     <div className="flex items-start justify-between mb-3">
                       {v.foto_url ? (
                         <div className="w-16 h-16 rounded-xl overflow-hidden border border-border">
-                          <img src={v.foto_url} alt={v.placa} className="w-full h-full object-cover" />
+                          <StorageImage src={v.foto_url} alt={v.placa} className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${v.estado === "INHABILITADO" ? "bg-destructive/10" : "bg-primary/10"}`}>
