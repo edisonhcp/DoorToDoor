@@ -3,7 +3,7 @@ import { StorageImage } from "@/components/StorageImage";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Truck, Users, Route, ClipboardList,
-  Settings, LogOut, Menu, X, Building2, Shield, Link2, UserCheck, FileText
+  Settings, LogOut, Menu, X, Building2, Shield, Link2, UserCheck, FileText, Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const gerenciaNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Mi Flota", icon: Layers, href: "/dashboard/mi-flota" },
   { label: "Propietarios", icon: UserCheck, href: "/dashboard/propietarios" },
   { label: "Vehículos", icon: Truck, href: "/dashboard/vehiculos" },
   { label: "Conductores", icon: Users, href: "/dashboard/conductores" },

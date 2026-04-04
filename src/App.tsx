@@ -17,6 +17,7 @@ import AdminAuditoria from "./pages/admin/AdminAuditoria";
 import AgencyPropietarios from "./pages/agency/AgencyPropietarios";
 import AgencyVehiculos from "./pages/agency/AgencyVehiculos";
 import AgencyConductores from "./pages/agency/AgencyConductores";
+import MiFlota from "./pages/agency/MiFlota";
 import RegistroInvitacion from "./pages/RegistroInvitacion";
 import Invitaciones from "./pages/Invitaciones";
 import PropietarioVehiculos from "./pages/PropietarioVehiculos";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/mis-vehiculos" element={<ProtectedRoute><PropietarioVehiculos /></ProtectedRoute>} />
             <Route path="/dashboard/propietarios" element={<ProtectedRoute><AgencyPropietarios /></ProtectedRoute>} />
+            <Route path="/dashboard/mi-flota" element={<ProtectedRoute><MiFlota /></ProtectedRoute>} />
             <Route path="/dashboard/vehiculos" element={<ProtectedRoute><AgencyVehiculos /></ProtectedRoute>} />
             <Route path="/dashboard/conductores" element={<ProtectedRoute><AgencyConductores /></ProtectedRoute>} />
             <Route path="/dashboard/invitaciones" element={<ProtectedRoute><Invitaciones /></ProtectedRoute>} />
