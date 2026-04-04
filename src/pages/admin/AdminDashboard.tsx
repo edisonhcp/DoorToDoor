@@ -32,8 +32,6 @@ export default function AdminDashboard() {
     { title: "Vehículos", value: stats.vehiculos, icon: Truck, color: "text-amber-600", bg: "bg-amber-100" },
     { title: "Conductores", value: stats.conductores, icon: Users, color: "text-accent", bg: "bg-accent/10" },
     { title: "Propietarios", value: stats.propietarios, icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-100" },
-    { title: "Viajes Concluidos", value: stats.viajesCerrados, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Viajes Cancelados", value: stats.viajesCancelados, icon: Ban, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
   return (
