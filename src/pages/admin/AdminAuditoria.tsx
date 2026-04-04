@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Search, Filter, FileText } from "lucide-react";
+import { Shield, Filter, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
@@ -30,8 +29,7 @@ export default function AdminAuditoria() {
   // Filters
   const [filterEmpresa, setFilterEmpresa] = useState("all");
   const [filterAccion, setFilterAccion] = useState("all");
-  const [filterDesde, setFilterDesde] = useState("");
-  const [filterHasta, setFilterHasta] = useState("");
+  const [filterMes, setFilterMes] = useState("all");
 
   useEffect(() => {
     supabase.from("empresas").select("id, nombre").order("nombre").then(({ data }) => {
@@ -43,14 +41,24 @@ export default function AdminAuditoria() {
     });
   }, []);
 
+  const getMonthRange = (mesValue: string) => {
+    if (mesValue === "all") return { desde: undefined, hasta: undefined };
+    const [year, month] = mesValue.split("-").map(Number);
+    const desde = `${year}-${String(month).padStart(2, "0")}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const hasta = `${year}-${String(month).padStart(2, "0")}-${lastDay}`;
+    return { desde, hasta };
+  };
+
   const loadLogs = async () => {
     setLoading(true);
     try {
+      const { desde, hasta } = getMonthRange(filterMes);
       const data = await fetchAuditLogs({
         empresaId: filterEmpresa !== "all" ? filterEmpresa : undefined,
         accion: filterAccion !== "all" ? filterAccion : undefined,
-        desde: filterDesde || undefined,
-        hasta: filterHasta || undefined,
+        desde,
+        hasta,
       });
       setLogs(data);
     } catch (err) {
@@ -59,21 +67,20 @@ export default function AdminAuditoria() {
     setLoading(false);
   };
 
-  useEffect(() => { loadLogs(); }, []);
+  useEffect(() => { loadLogs(); }, [filterEmpresa, filterAccion, filterMes]);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
   const accionesDisponibles = Object.keys(ACCION_LABELS);
 
-  const handleApplyFilters = () => { loadLogs(); };
-
-  const handleClearFilters = () => {
-    setFilterEmpresa("all");
-    setFilterAccion("all");
-    setFilterDesde("");
-    setFilterHasta("");
-    setTimeout(loadLogs, 0);
-  };
+  // Generate last 12 months for the month picker
+  const mesesDisponibles = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString("es-EC", { month: "long", year: "numeric" });
+    return { value, label: label.charAt(0).toUpperCase() + label.slice(1) };
+  });
 
   return (
     <DashboardLayout>
@@ -95,7 +102,7 @@ export default function AdminAuditoria() {
                 <Filter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">Filtros</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas las agencias" />
@@ -120,25 +127,17 @@ export default function AdminAuditoria() {
                   </SelectContent>
                 </Select>
 
-                <Input
-                  type="date"
-                  value={filterDesde}
-                  onChange={e => setFilterDesde(e.target.value)}
-                  placeholder="Desde"
-                />
-                <Input
-                  type="date"
-                  value={filterHasta}
-                  onChange={e => setFilterHasta(e.target.value)}
-                  placeholder="Hasta"
-                />
-
-                <div className="flex gap-2">
-                  <Button onClick={handleApplyFilters} className="flex-1 gap-1">
-                    <Search className="w-4 h-4" /> Buscar
-                  </Button>
-                  <Button variant="outline" onClick={handleClearFilters}>Limpiar</Button>
-                </div>
+                <Select value={filterMes} onValueChange={setFilterMes}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos los meses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los meses</SelectItem>
+                    {mesesDisponibles.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
