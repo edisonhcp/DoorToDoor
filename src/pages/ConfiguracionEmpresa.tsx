@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { StorageImage } from "@/components/StorageImage";
 import { motion } from "framer-motion";
 import { Building2, Save, Upload, Camera, AlertTriangle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
