@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Bus, ChevronDown, ChevronUp, LayoutList, Printer, User, CheckCircle, AlertTriangle, Truck, Check, Filter } from "lucide-react";
+import { LayoutList, Printer, Filter } from "lucide-react";
 import { PrintHeader } from "@/components/PrintHeader";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
