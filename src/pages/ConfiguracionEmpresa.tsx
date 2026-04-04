@@ -19,13 +19,17 @@ import { PROVINCIAS_ECUADOR } from "@/constants/provinciasEcuador";
 import { fetchSolicitudPendiente, crearSolicitudBaja } from "@/services/solicitudesBajaService";
 
 export default function ConfiguracionEmpresa() {
-  const { empresaId } = useAuth();
+  const { empresaId, userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bajaDialogOpen, setBajaDialogOpen] = useState(false);
+  const [bajaMotivo, setBajaMotivo] = useState("");
+  const [bajaSending, setBajaSending] = useState(false);
+  const [solicitudPendiente, setSolicitudPendiente] = useState<any>(null);
   const [form, setForm] = useState({
     nombre: "",
     ruc: "",
