@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import { fetchInvitaciones, generateInvitation } from "@/services/invitacionesService";
+import { insertAuditLog } from "@/services/auditService";
 
 interface InvitacionRow {
   id: string;
