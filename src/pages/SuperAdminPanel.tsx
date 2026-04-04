@@ -130,6 +130,9 @@ export default function SuperAdminPanel() {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
+      // We need the empresa_id; find it from rechazandoId
+      const sol = solicitudes.find((s: any) => s.id === id);
+      if (sol) insertAuditLog({ empresa_id: sol.empresa_id, accion: "SOLICITUD_BAJA_RECHAZADA", user_id: user?.id, rol: "SUPER_ADMIN", despues: { motivo_rechazo: motivoRechazo } });
       toast({ title: "Solicitud rechazada" });
     }
     setRechazandoId(null);
