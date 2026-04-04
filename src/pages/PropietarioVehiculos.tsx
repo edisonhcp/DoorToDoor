@@ -62,6 +62,7 @@ export default function PropietarioVehiculos() {
     alimentacion_habilitada: true,
   });
   const [savingAlimentacion, setSavingAlimentacion] = useState(false);
+  const [conductorDetalle, setConductorDetalle] = useState<any | null>(null);
 
   const loadData = async () => {
     if (!user?.id) return;
