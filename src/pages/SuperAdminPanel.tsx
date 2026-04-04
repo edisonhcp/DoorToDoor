@@ -33,6 +33,7 @@ import {
 import { generateInvitation } from "@/services/invitacionesService";
 import { PROVINCIAS_ECUADOR } from "@/constants/provinciasEcuador";
 import { fetchSolicitudesPendientes, resolverSolicitud } from "@/services/solicitudesBajaService";
+import { insertAuditLog } from "@/services/auditService";
 
 interface EmpresaRow {
   id: string;
