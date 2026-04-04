@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Truck, Users, Printer } from "lucide-react";
+import { Truck, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { PrintHeader } from "@/components/PrintHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { fetchPropietarioAsignaciones } from "@/services/egresosService";
@@ -53,17 +51,12 @@ export default function PropietarioAsignaciones() {
 
   return (
     <DashboardLayout>
-      <PrintHeader reportTitle="Asignaciones — Propietario" />
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item} className="no-print flex items-center justify-between flex-wrap gap-4">
+        <motion.div variants={item}>
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Asignaciones</h1>
             <p className="text-muted-foreground mt-1">Estado de rutas asignadas a tus vehículos</p>
           </div>
-          <Button size="sm" variant="outline" onClick={() => window.print()} className="no-print">
-            <Printer className="w-4 h-4 mr-1" />
-            Imprimir
-          </Button>
         </motion.div>
 
         {loading ? (
