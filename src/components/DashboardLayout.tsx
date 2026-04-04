@@ -151,9 +151,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center overflow-hidden">
               {propietarioFotoUrl ? (
-                <img src={propietarioFotoUrl} alt="Propietario" className="w-full h-full object-cover" />
+                <StorageImage src={propietarioFotoUrl} alt="Propietario" className="w-full h-full object-cover" />
               ) : logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                <StorageImage src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-sm font-semibold text-sidebar-foreground">
                   {profile?.username?.charAt(0).toUpperCase() || "U"}
