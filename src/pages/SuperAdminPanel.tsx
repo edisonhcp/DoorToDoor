@@ -196,6 +196,9 @@ export default function SuperAdminPanel() {
       const link = `${window.location.origin}/registro/${data.token}`;
       setGeneratedLink(link);
       setLinkDialogOpen(true);
+      if (empresaId) {
+        insertAuditLog({ empresa_id: empresaId, accion: "LINK_GERENCIA_GENERADO", user_id: user?.id, rol: "SUPER_ADMIN" });
+      }
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
