@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, ChevronRight, Calendar, Truck, Check } from "lucide-react";
+import { Filter, Truck } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
@@ -8,14 +8,12 @@ import { fetchConductorViajes } from "@/services/egresosService";
 import { fetchEmpresaInfo } from "@/services/dashboardService";
 import { ViajesTable } from "@/components/ViajesTable";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -27,150 +25,73 @@ const MONTH_NAMES = [
 
 interface PeriodRange {
   label: string;
+  key: string;
   start: Date;
   end: Date;
 }
 
 function getPeriodsForMonth(year: number, month: number, frecuencia: string): PeriodRange[] {
   const periods: PeriodRange[] = [];
-  
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
   if (frecuencia === "MENSUAL") {
     const start = new Date(year, month, 1);
     const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
-    periods.push({ label: `${MONTH_NAMES[month]} ${year}`, start, end });
+    periods.push({ label: `${MONTH_NAMES[month]} ${year}`, key: `${year}-${month}-M1`, start, end });
   } else if (frecuencia === "QUINCENAL") {
     const mid = new Date(year, month, 15, 23, 59, 59, 999);
     const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
-    periods.push({ label: `Quincena 1 (1-15)`, start: new Date(year, month, 1), end: mid });
-    periods.push({ label: `Quincena 2 (16-${endOfMonth.getDate()})`, start: new Date(year, month, 16), end: endOfMonth });
+    periods.push({ label: `Quincena 1 (1-15)`, key: `${year}-${month}-Q1`, start: new Date(year, month, 1), end: mid });
+    periods.push({ label: `Quincena 2 (16-${endOfMonth.getDate()})`, key: `${year}-${month}-Q2`, start: new Date(year, month, 16), end: endOfMonth });
   } else if (frecuencia === "BISEMANAL") {
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
     let current = new Date(firstDay);
     const dow = current.getDay();
-    if (dow === 0) { current.setDate(current.getDate() - 6); }
-    else if (dow !== 1) { current.setDate(current.getDate() - (dow - 1)); }
-    
-    // Align to biweek using reference Monday
+    if (dow === 0) current.setDate(current.getDate() - 6);
+    else if (dow !== 1) current.setDate(current.getDate() - (dow - 1));
+
     const refMonday = new Date(2024, 0, 1);
     const weeksSinceRef = Math.floor((current.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    if (weeksSinceRef % 2 !== 0) {
-      current.setDate(current.getDate() - 7);
-    }
-    
-    let biweekNum = 1;
+    if (weeksSinceRef % 2 !== 0) current.setDate(current.getDate() - 7);
+
+    let num = 1;
     while (current <= lastDay) {
-      const bStart = new Date(current);
-      bStart.setHours(0, 0, 0, 0);
-      const bEnd = new Date(current);
-      bEnd.setDate(bEnd.getDate() + 13);
-      bEnd.setHours(23, 59, 59, 999);
-      
-      // Show if the period overlaps with this month
+      const bStart = new Date(current); bStart.setHours(0, 0, 0, 0);
+      const bEnd = new Date(current); bEnd.setDate(bEnd.getDate() + 13); bEnd.setHours(23, 59, 59, 999);
       if (bEnd >= firstDay && bStart <= lastDay) {
-        const sDay = bStart.getDate();
-        const sMonth = bStart.getMonth();
-        const eDay = bEnd.getDate();
-        const eMonth = bEnd.getMonth();
-        let label = `Bisemana ${biweekNum}`;
-        if (sMonth === eMonth) {
-          label += ` (${sDay}-${eDay} ${MONTH_NAMES[sMonth].substring(0, 3)})`;
-        } else {
-          label += ` (${sDay} ${MONTH_NAMES[sMonth].substring(0, 3)}-${eDay} ${MONTH_NAMES[eMonth].substring(0, 3)})`;
-        }
-        periods.push({ label, start: bStart, end: bEnd });
-        biweekNum++;
+        const sDay = bStart.getDate(), sMonth = bStart.getMonth();
+        const eDay = bEnd.getDate(), eMonth = bEnd.getMonth();
+        let label = `Bisemana ${num}`;
+        if (sMonth === eMonth) label += ` (${sDay}-${eDay} ${MONTH_NAMES[sMonth].substring(0, 3)})`;
+        else label += ` (${sDay} ${MONTH_NAMES[sMonth].substring(0, 3)}-${eDay} ${MONTH_NAMES[eMonth].substring(0, 3)})`;
+        periods.push({ label, key: `${year}-${month}-B${num}`, start: bStart, end: bEnd });
+        num++;
       }
       current.setDate(current.getDate() + 14);
     }
   } else {
-    // SEMANAL - Lunes a Domingo
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    
     let current = new Date(firstDay);
     const dow = current.getDay();
-    if (dow === 0) { current.setDate(current.getDate() - 6); }
-    else if (dow !== 1) { current.setDate(current.getDate() - (dow - 1)); }
-    
+    if (dow === 0) current.setDate(current.getDate() - 6);
+    else if (dow !== 1) current.setDate(current.getDate() - (dow - 1));
+
     let weekNum = 1;
     while (current <= lastDay) {
-      const weekStart = new Date(current);
-      weekStart.setHours(0, 0, 0, 0);
-      const weekEnd = new Date(current);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      // Show if the period overlaps with this month
+      const weekStart = new Date(current); weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(current); weekEnd.setDate(weekEnd.getDate() + 6); weekEnd.setHours(23, 59, 59, 999);
       if (weekEnd >= firstDay && weekStart <= lastDay) {
-        const sDay = weekStart.getDate();
-        const sMonth = weekStart.getMonth();
-        const eDay = weekEnd.getDate();
-        const eMonth = weekEnd.getMonth();
+        const sDay = weekStart.getDate(), sMonth = weekStart.getMonth();
+        const eDay = weekEnd.getDate(), eMonth = weekEnd.getMonth();
         let label = `Semana ${weekNum}`;
-        if (sMonth === eMonth) {
-          label += ` (${sDay}-${eDay} ${MONTH_NAMES[sMonth].substring(0, 3)})`;
-        } else {
-          label += ` (${sDay} ${MONTH_NAMES[sMonth].substring(0, 3)}-${eDay} ${MONTH_NAMES[eMonth].substring(0, 3)})`;
-        }
-        periods.push({ label, start: weekStart, end: weekEnd });
+        if (sMonth === eMonth) label += ` (${sDay}-${eDay} ${MONTH_NAMES[sMonth].substring(0, 3)})`;
+        else label += ` (${sDay} ${MONTH_NAMES[sMonth].substring(0, 3)}-${eDay} ${MONTH_NAMES[eMonth].substring(0, 3)})`;
+        periods.push({ label, key: `${year}-${month}-S${weekNum}`, start: weekStart, end: weekEnd });
         weekNum++;
       }
       current.setDate(current.getDate() + 7);
     }
   }
-  
   return periods;
-}
-
-function getCurrentPeriod(frecuencia: string): { start: Date; end: Date } {
-  const now = new Date();
-  
-  if (frecuencia === "MENSUAL") {
-    return {
-      start: new Date(now.getFullYear(), now.getMonth(), 1),
-      end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
-    };
-  } else if (frecuencia === "QUINCENAL") {
-    const day = now.getDate();
-    if (day <= 15) {
-      return {
-        start: new Date(now.getFullYear(), now.getMonth(), 1),
-        end: new Date(now.getFullYear(), now.getMonth(), 15, 23, 59, 59, 999),
-      };
-    } else {
-      return {
-        start: new Date(now.getFullYear(), now.getMonth(), 16),
-        end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
-      };
-    }
-  } else if (frecuencia === "BISEMANAL") {
-    // Every 2 weeks Monday-Sunday. Find the biweek containing today.
-    const dayOfWeek = now.getDay();
-    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const thisMonday = new Date(now);
-    thisMonday.setDate(now.getDate() + diffToMonday);
-    thisMonday.setHours(0, 0, 0, 0);
-    // Use epoch-based calculation: weeks since a reference Monday
-    const refMonday = new Date(2024, 0, 1); // Jan 1 2024 is a Monday
-    const weeksSinceRef = Math.floor((thisMonday.getTime() - refMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    const isEvenWeek = weeksSinceRef % 2 === 0;
-    const biweekStart = isEvenWeek ? thisMonday : new Date(thisMonday.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const biweekEnd = new Date(biweekStart.getTime() + 13 * 24 * 60 * 60 * 1000);
-    biweekEnd.setHours(23, 59, 59, 999);
-    return { start: biweekStart, end: biweekEnd };
-  } else {
-    // SEMANAL - Monday to Sunday
-    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon...
-    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMonday);
-    monday.setHours(0, 0, 0, 0);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-    return { start: monday, end: sunday };
-  }
 }
 
 export default function ConductorRutas() {
@@ -178,8 +99,8 @@ export default function ConductorRutas() {
   const [allViajes, setAllViajes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState<{ start: Date; end: Date } | null>(null);
-  const [openMonths, setOpenMonths] = useState<Record<string, boolean>>({});
+  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
+  const [selectedPeriodKey, setSelectedPeriodKey] = useState<string>("__all__");
   const [selectedVehiculos, setSelectedVehiculos] = useState<string[]>([]);
 
   const frecuencia = empresaInfo?.frecuencia_comision || "SEMANAL";
@@ -198,18 +119,15 @@ export default function ConductorRutas() {
     load();
   }, [user, empresaId]);
 
-  // Set default to current period once empresaInfo loads
+  // Default current month on load
   useEffect(() => {
-    if (empresaInfo && !selectedPeriod) {
-      const current = getCurrentPeriod(frecuencia);
-      setSelectedPeriod(current);
-      // Open current month by default
+    if (empresaInfo && selectedMonths.length === 0) {
       const now = new Date();
-      setOpenMonths({ [`${now.getFullYear()}-${now.getMonth()}`]: true });
+      setSelectedMonths([`${now.getFullYear()}-${now.getMonth()}`]);
     }
   }, [empresaInfo]);
 
-  // Get unique vehicles from viajes
+  // Available vehicles
   const availableVehiculos = useMemo(() => {
     const map = new Map<string, { placa: string; marca: string; modelo: string }>();
     allViajes.forEach(v => {
@@ -220,46 +138,77 @@ export default function ConductorRutas() {
     return Array.from(map.values()).sort((a, b) => a.placa.localeCompare(b.placa));
   }, [allViajes]);
 
-  // Get available months from all viajes
+  // Available months
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
     const now = new Date();
     months.add(`${now.getFullYear()}-${now.getMonth()}`);
-    
     allViajes.forEach(v => {
       const d = new Date(v.fecha_salida);
       months.add(`${d.getFullYear()}-${d.getMonth()}`);
     });
-    
     return Array.from(months)
       .map(key => {
         const [year, month] = key.split("-").map(Number);
-        return { year, month, key };
+        return { year, month, key, label: `${MONTH_NAMES[month]} ${year}` };
       })
-      .sort((a, b) => a.year - b.year || a.month - b.month);
+      .sort((a, b) => b.year - a.year || b.month - a.month);
   }, [allViajes]);
 
-  // Filter viajes by selected period AND selected vehicles
+  // Periods for selected months
+  const availablePeriods = useMemo(() => {
+    const periods: PeriodRange[] = [];
+    for (const mk of selectedMonths) {
+      const [year, month] = mk.split("-").map(Number);
+      periods.push(...getPeriodsForMonth(year, month, frecuencia));
+    }
+    const seen = new Set<string>();
+    return periods.filter(p => {
+      if (seen.has(p.key)) return false;
+      seen.add(p.key);
+      return true;
+    }).sort((a, b) => a.start.getTime() - b.start.getTime());
+  }, [selectedMonths, frecuencia]);
+
+  // Filter viajes
   const filteredViajes = useMemo(() => {
     let result = allViajes;
-    if (selectedPeriod) {
-      result = result.filter(v => {
-        const fecha = new Date(v.fecha_salida);
-        return fecha >= selectedPeriod.start && fecha <= selectedPeriod.end;
-      });
+    if (selectedPeriodKey === "__all__") {
+      if (selectedMonths.length > 0 && availablePeriods.length > 0) {
+        result = result.filter(v => {
+          const d = new Date(v.fecha_salida);
+          return availablePeriods.some(r => d >= r.start && d <= r.end);
+        });
+      }
+    } else {
+      const period = availablePeriods.find(p => p.key === selectedPeriodKey);
+      if (period) {
+        result = result.filter(v => {
+          const d = new Date(v.fecha_salida);
+          return d >= period.start && d <= period.end;
+        });
+      }
     }
     if (selectedVehiculos.length > 0) {
       result = result.filter(v => v.vehiculo?.placa && selectedVehiculos.includes(v.vehiculo.placa));
     }
     return result;
-  }, [allViajes, selectedPeriod, selectedVehiculos]);
-
-  const isCurrentPeriod = (start: Date, end: Date) => {
-    if (!selectedPeriod) return false;
-    return selectedPeriod.start.getTime() === start.getTime() && selectedPeriod.end.getTime() === end.getTime();
-  };
+  }, [allViajes, selectedMonths, selectedPeriodKey, selectedVehiculos, availablePeriods]);
 
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
+
+  const toggleMonth = (key: string) => {
+    setSelectedMonths(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+    setSelectedPeriodKey("__all__");
+  };
+
+  const toggleVehiculo = (placa: string) => {
+    setSelectedVehiculos(prev =>
+      prev.includes(placa) ? prev.filter(k => k !== placa) : [...prev, placa]
+    );
+  };
 
   const frecuenciaLabel: Record<string, string> = {
     SEMANAL: "Semanal",
@@ -267,6 +216,18 @@ export default function ConductorRutas() {
     QUINCENAL: "Quincenal",
     MENSUAL: "Mensual",
   };
+
+  const selectedMonthsLabel = selectedMonths.length === 0
+    ? "Seleccionar meses"
+    : selectedMonths.length <= 2
+      ? selectedMonths.map(k => { const [y, m] = k.split("-").map(Number); return `${MONTH_NAMES[m].substring(0, 3)} ${y}`; }).join(", ")
+      : `${selectedMonths.length} meses`;
+
+  const selectedVehiculosLabel = selectedVehiculos.length === 0
+    ? "Todos los vehículos"
+    : selectedVehiculos.length <= 2
+      ? selectedVehiculos.join(", ")
+      : `${selectedVehiculos.length} vehículos`;
 
   return (
     <DashboardLayout>
@@ -278,102 +239,90 @@ export default function ConductorRutas() {
           </p>
         </motion.div>
 
-        {/* Vehicle selector */}
-        {availableVehiculos.length > 1 && (
+        {/* Filters card */}
+        {!loading && (
           <motion.div variants={item}>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Truck className="w-4 h-4" />
-                  {selectedVehiculos.length === 0
-                    ? "Todos los vehículos"
-                    : `${selectedVehiculos.length} vehículo${selectedVehiculos.length > 1 ? "s" : ""}`}
-                  <ChevronDown className="w-3.5 h-3.5 ml-1 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-2" align="start">
-                <div className="space-y-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-xs h-7 text-muted-foreground"
-                    onClick={() => setSelectedVehiculos([])}
-                  >
-                    {selectedVehiculos.length === 0 && <Check className="w-3 h-3 mr-2" />}
-                    Todos
-                  </Button>
-                  {availableVehiculos.map(v => {
-                    const checked = selectedVehiculos.includes(v.placa);
-                    return (
-                      <label key={v.placa} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(c) => {
-                            setSelectedVehiculos(prev =>
-                              c ? [...prev, v.placa] : prev.filter(p => p !== v.placa)
-                            );
-                          }}
-                        />
-                        <span className="font-medium">{v.placa}</span>
-                        <span className="text-muted-foreground">{v.marca} {v.modelo}</span>
-                      </label>
-                    );
-                  })}
+            <Card>
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Filter className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Filtros</span>
                 </div>
-              </PopoverContent>
-            </Popover>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Meses */}
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Meses</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start text-sm font-normal h-10">
+                          {selectedMonthsLabel}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2 max-h-64 overflow-y-auto" align="start">
+                        {availableMonths.map(m => (
+                          <label key={m.key} className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm">
+                            <Checkbox
+                              checked={selectedMonths.includes(m.key)}
+                              onCheckedChange={() => toggleMonth(m.key)}
+                            />
+                            {m.label}
+                          </label>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Período */}
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Período</label>
+                    <Select value={selectedPeriodKey} onValueChange={setSelectedPeriodKey}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Todos los períodos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__all__">Todos los períodos</SelectItem>
+                        {availablePeriods.map(p => (
+                          <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Vehículos */}
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Vehículos</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start text-sm font-normal h-10">
+                          {selectedVehiculosLabel}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2 max-h-64 overflow-y-auto" align="start">
+                        <label className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm text-muted-foreground">
+                          <Checkbox
+                            checked={selectedVehiculos.length === 0}
+                            onCheckedChange={() => setSelectedVehiculos([])}
+                          />
+                          Todos
+                        </label>
+                        {availableVehiculos.map(v => (
+                          <label key={v.placa} className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm">
+                            <Checkbox
+                              checked={selectedVehiculos.includes(v.placa)}
+                              onCheckedChange={() => toggleVehiculo(v.placa)}
+                            />
+                            <span className="font-medium">{v.placa}</span>
+                            <span className="text-muted-foreground text-xs">{v.marca} {v.modelo}</span>
+                          </label>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
-
-        {/* Period navigator */}
-        <motion.div variants={item}>
-          <div className="border rounded-lg bg-card">
-            <div className="p-3 border-b bg-muted/30 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Seleccionar Período</span>
-            </div>
-            <div className="p-2 max-h-64 overflow-y-auto space-y-1">
-              {availableMonths.map(({ year, month, key }) => {
-                const periods = getPeriodsForMonth(year, month, frecuencia);
-                const isOpen = openMonths[key] || false;
-
-                return (
-                  <Collapsible
-                    key={key}
-                    open={isOpen}
-                    onOpenChange={(open) => setOpenMonths(prev => ({ ...prev, [key]: open }))}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" className="w-full justify-start gap-2 text-sm font-medium h-8">
-                        {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                        {MONTH_NAMES[month]} {year}
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="pl-6 space-y-0.5 py-1">
-                        {periods.map((p, idx) => {
-                          const active = isCurrentPeriod(p.start, p.end);
-                          return (
-                            <Button
-                              key={idx}
-                              variant={active ? "default" : "ghost"}
-                              size="sm"
-                              className={`w-full justify-start text-xs h-7 ${active ? "" : "text-muted-foreground"}`}
-                              onClick={() => setSelectedPeriod({ start: p.start, end: p.end })}
-                            >
-                              {p.label}
-                              {active && <Badge variant="secondary" className="ml-auto text-[10px] px-1">Actual</Badge>}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                );
-              })}
-            </div>
-          </div>
-        </motion.div>
 
         <motion.div variants={item}>
           {loading ? (
