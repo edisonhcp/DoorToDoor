@@ -28,7 +28,7 @@ export default function AdminAuditoria() {
 
   // Filters
   const [filterEmpresa, setFilterEmpresa] = useState("all");
-  const [filterAccion, setFilterAccion] = useState("all");
+  
   const [filterMes, setFilterMes] = useState("all");
 
   useEffect(() => {
@@ -56,7 +56,6 @@ export default function AdminAuditoria() {
       const { desde, hasta } = getMonthRange(filterMes);
       const data = await fetchAuditLogs({
         empresaId: filterEmpresa !== "all" ? filterEmpresa : undefined,
-        accion: filterAccion !== "all" ? filterAccion : undefined,
         desde,
         hasta,
       });
@@ -67,11 +66,11 @@ export default function AdminAuditoria() {
     setLoading(false);
   };
 
-  useEffect(() => { loadLogs(); }, [filterEmpresa, filterAccion, filterMes]);
+  useEffect(() => { loadLogs(); }, [filterEmpresa, filterMes]);
 
   if (role !== "SUPER_ADMIN") return <Navigate to="/dashboard" replace />;
 
-  const accionesDisponibles = Object.keys(ACCION_LABELS);
+  
 
   // Generate last 12 months for the month picker
   const mesesDisponibles = Array.from({ length: 12 }, (_, i) => {
@@ -102,7 +101,7 @@ export default function AdminAuditoria() {
                 <Filter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">Filtros</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas las agencias" />
@@ -115,17 +114,6 @@ export default function AdminAuditoria() {
                   </SelectContent>
                 </Select>
 
-                <Select value={filterAccion} onValueChange={setFilterAccion}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todas las acciones" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las acciones</SelectItem>
-                    {accionesDisponibles.map(a => (
-                      <SelectItem key={a} value={a}>{ACCION_LABELS[a]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
 
                 <Select value={filterMes} onValueChange={setFilterMes}>
                   <SelectTrigger>
