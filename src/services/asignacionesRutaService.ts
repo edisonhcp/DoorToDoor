@@ -123,8 +123,9 @@ export async function fetchAsignacionesActivas(empresaId: string) {
       ingresos_viaje(pasajeros_monto, encomiendas_monto),
       asignaciones(
         vehiculos(placa, marca, modelo),
-        conductores(nombres, apellidos)
-      )
+        conductores(nombres, apellidos, celular)
+      ),
+      reservaciones(id, parada, nombre_pasajero, celular_pasajero, detalle)
     `)
     .eq("empresa_id", empresaId)
     .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
@@ -136,6 +137,7 @@ export async function fetchAsignacionesActivas(empresaId: string) {
       vehiculo: v.asignaciones?.vehiculos,
       conductor: v.asignaciones?.conductores,
       ingresos: v.ingresos_viaje,
+      reservacion: v.reservaciones?.[0] || null,
     })),
     error,
   };
