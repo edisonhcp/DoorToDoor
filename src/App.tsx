@@ -28,6 +28,7 @@ import GerenciaViajes from "./pages/GerenciaViajes";
 import ConductorAsignaciones from "./pages/conductor/ConductorAsignaciones";
 import ConductorRutas from "./pages/conductor/ConductorRutas";
 import PropietarioAsignaciones from "./pages/propietario/PropietarioAsignaciones";
+import PropietarioAsignacionesPrueba from "./pages/propietario/PropietarioAsignacionesPrueba";
 import PropietarioViajes from "./pages/propietario/PropietarioViajes";
 import ConfiguracionEmpresa from "./pages/ConfiguracionEmpresa";
 import GestionGerencia from "./pages/GestionGerencia";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/dashboard/conductor-rutas" element={<ProtectedRoute><ConductorRutas /></ProtectedRoute>} />
             <Route path="/dashboard/conductor-config" element={<ProtectedRoute><ConductorConfiguracion /></ProtectedRoute>} />
             <Route path="/dashboard/propietario-asignaciones" element={<ProtectedRoute><PropietarioAsignaciones /></ProtectedRoute>} />
+            <Route path="/dashboard/propietario-asignaciones-prueba" element={<ProtectedRoute><PropietarioAsignacionesPrueba /></ProtectedRoute>} />
             <Route path="/dashboard/propietario-viajes" element={<ProtectedRoute><PropietarioViajes /></ProtectedRoute>} />
             <Route path="/dashboard/propietario-config" element={<ProtectedRoute><PropietarioConfiguracion /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><SuperAdminPanel /></ProtectedRoute>} />

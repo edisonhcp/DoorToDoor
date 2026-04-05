@@ -25,6 +25,7 @@ const propietarioNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Mis Vehículos", icon: Truck, href: "/dashboard/mis-vehiculos" },
   { label: "Asignaciones", icon: ClipboardList, href: "/dashboard/propietario-asignaciones" },
+  { label: "Asignaciones Prueba", icon: ClipboardList, href: "/dashboard/propietario-asignaciones-prueba" },
   { label: "Consolidado Rutas", icon: Route, href: "/dashboard/propietario-viajes" },
   { label: "Configuración", icon: Settings, href: "/dashboard/propietario-config" },
 ];
