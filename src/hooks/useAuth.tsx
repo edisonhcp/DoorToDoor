@@ -31,53 +31,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserData = async (userId: string) => {
     const [roleRes, profileRes] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userId).single(),
-      supabase.from("profiles").select("username, email, empresa_id, propietario_id, conductor_id").eq("user_id", userId).single(),
+      supabase.from("profiles").select("username, email, empresa_id, propietario_id, conductor_id").eq("user_id", userId).maybeSingle(),
     ]);
 
-    if (roleRes.data) setRole(roleRes.data.role as AppRole);
-    if (profileRes.data) {
-      setProfile({
-        username: profileRes.data.username,
-        email: profileRes.data.email,
-        propietario_id: profileRes.data.propietario_id,
-        conductor_id: profileRes.data.conductor_id,
-      });
-      setEmpresaId(profileRes.data.empresa_id);
+    const userRole = roleRes.data?.role as AppRole | undefined;
+    if (userRole) setRole(userRole);
 
-      const userRole = roleRes.data?.role as AppRole;
-
-      // Check empresa suspension for ALL non-SUPER_ADMIN roles
-      if (userRole && userRole !== "SUPER_ADMIN") {
-        const { data: empresa } = await supabase
-          .from("empresas")
-          .select("nombre, activo")
-          .eq("id", profileRes.data.empresa_id)
-          .single();
-
-        if (empresa && !empresa.activo) {
-          setSuspended({
-            type: "empresa",
-            message: `Compañía ${empresa.nombre} se encuentra suspendida, por favor contáctese con soporte mediante WhatsApp.`,
-          });
-          return;
-        }
+    // SUPER_ADMIN may not have a profile row — handle gracefully
+    if (!profileRes.data) {
+      if (userRole === "SUPER_ADMIN") {
+        // Use auth metadata as fallback
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        setProfile({
+          username: authUser?.user_metadata?.username || authUser?.email?.split("@")[0] || "Admin",
+          email: authUser?.email || "",
+        });
+        setEmpresaId(null);
       }
+      return;
+    }
 
-      // Check propietario suspension
-      if (userRole === "PROPIETARIO" && profileRes.data.propietario_id) {
-        const [propRes, empresaRes] = await Promise.all([
-          supabase.from("propietarios").select("nombres, estado").eq("id", profileRes.data.propietario_id).single(),
-          supabase.from("empresas").select("nombre").eq("id", profileRes.data.empresa_id).single(),
-        ]);
-        if (propRes.data && propRes.data.estado === "INHABILITADO") {
-          setSuspended({
-            type: "propietario",
-            message: `${propRes.data.nombres}, su unidad se encuentra suspendida, por favor contáctese con ${empresaRes.data?.nombre || "la compañía"} mediante WhatsApp.`,
-          });
-          return;
-        }
+    setProfile({
+      username: profileRes.data.username,
+      email: profileRes.data.email,
+      propietario_id: profileRes.data.propietario_id,
+      conductor_id: profileRes.data.conductor_id,
+    });
+    setEmpresaId(profileRes.data.empresa_id);
+
+    // Check empresa suspension for ALL non-SUPER_ADMIN roles
+    if (userRole && userRole !== "SUPER_ADMIN") {
+      const { data: empresa } = await supabase
+        .from("empresas")
+        .select("nombre, activo")
+        .eq("id", profileRes.data.empresa_id)
+        .single();
+
+      if (empresa && !empresa.activo) {
+        setSuspended({
+          type: "empresa",
+          message: `Compañía ${empresa.nombre} se encuentra suspendida, por favor contáctese con soporte mediante WhatsApp.`,
+        });
+        return;
       }
+    }
 
+    // Check propietario suspension
+    if (userRole === "PROPIETARIO" && profileRes.data.propietario_id) {
+      const [propRes, empresaRes] = await Promise.all([
+        supabase.from("propietarios").select("nombres, estado").eq("id", profileRes.data.propietario_id).single(),
+        supabase.from("empresas").select("nombre").eq("id", profileRes.data.empresa_id).single(),
+      ]);
+      if (propRes.data && propRes.data.estado === "INHABILITADO") {
+        setSuspended({
+          type: "propietario",
+          message: `${propRes.data.nombres}, su unidad se encuentra suspendida, por favor contáctese con ${empresaRes.data?.nombre || "la compañía"} mediante WhatsApp.`,
+        });
+        return;
+      }
     }
   };
 
