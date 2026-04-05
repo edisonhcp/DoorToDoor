@@ -434,7 +434,7 @@ export default function MiFlota() {
                               <TableCell className="font-medium">{v.placa}</TableCell>
                               <TableCell>{v.marca} {v.modelo}</TableCell>
                               <TableCell>{v.tipo}</TableCell>
-                              <TableCell>{v.propietarios?.nombres || "—"}</TableCell>
+                              <TableCell>{v.propietarios ? `${v.propietarios.apellidos || ""} ${v.propietarios.nombres}`.trim() : "—"}</TableCell>
                               <TableCell onClick={e => e.stopPropagation()}>
                                 {v.conductor_nombre ? (
                                   <div className="flex items-center gap-2">
