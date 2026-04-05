@@ -18,9 +18,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  fetchVehiculosDisponiblesPropietario,
-  fetchAsignacionesActivasPropietario,
+  fetchVehiculosDisponibles,
   crearAsignacionRuta,
+  fetchAsignacionesActivas,
   editarAsignacionRuta,
   type RutaAsignada,
 } from "@/services/asignacionesRutaService";
@@ -41,7 +41,7 @@ const estadoBadge: Record<string, { label: string; variant: "default" | "seconda
 };
 
 export default function PropietarioAsignaciones() {
-  const { role, user, empresaId } = useAuth();
+  const { role, empresaId } = useAuth();
   const { toast } = useToast();
   const [vehiculosDisponibles, setVehiculosDisponibles] = useState<any[]>([]);
   const [asignaciones, setAsignaciones] = useState<RutaAsignada[]>([]);
@@ -49,10 +49,8 @@ export default function PropietarioAsignaciones() {
   const [submitting, setSubmitting] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Edit mode
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form state
   const [selectedVehiculo, setSelectedVehiculo] = useState("");
   const [destino, setDestino] = useState("");
   const [origen, setOrigen] = useState("");
@@ -75,10 +73,10 @@ export default function PropietarioAsignaciones() {
   };
 
   const loadData = async () => {
-    if (!user?.id) return;
+    if (!empresaId) return;
     const [vehiculos, asigs] = await Promise.all([
-      fetchVehiculosDisponiblesPropietario(user.id),
-      fetchAsignacionesActivasPropietario(user.id),
+      fetchVehiculosDisponibles(empresaId),
+      fetchAsignacionesActivas(empresaId),
     ]);
     setVehiculosDisponibles(vehiculos);
     setAsignaciones(asigs.data);
@@ -87,7 +85,7 @@ export default function PropietarioAsignaciones() {
 
   useEffect(() => {
     loadData();
-  }, [user]);
+  }, [empresaId]);
 
   if (role !== "PROPIETARIO") return <Navigate to="/dashboard" replace />;
 
@@ -105,7 +103,7 @@ export default function PropietarioAsignaciones() {
   };
 
   const handleSubmit = async () => {
-    if (!empresaId || !user?.id) return;
+    if (!empresaId) return;
 
     if (editingId) {
       if (!destino || !origen) {
@@ -151,13 +149,13 @@ export default function PropietarioAsignaciones() {
         const nuevaDateOnly = new Date(nuevaFecha.getFullYear(), nuevaFecha.getMonth(), nuevaFecha.getDate());
 
         if (nuevaDateOnly < ultimaDateOnly) {
-          toast({ title: "Fecha no permitida", description: "La fecha de salida debe ser posterior a la última ruta asignada", variant: "destructive" });
+          toast({ title: "Fecha no permitida", description: "La fecha de salida debe ser posterior a la última ruta asignada para este vehículo", variant: "destructive" });
           return;
         }
 
         if (nuevaDateOnly.getTime() === ultimaDateOnly.getTime() && horaSalida && vehiculoData.ultimo_viaje.hora_salida) {
           if (horaSalida <= vehiculoData.ultimo_viaje.hora_salida) {
-            toast({ title: "Hora no permitida", description: "La hora de salida debe ser posterior a la última ruta asignada", variant: "destructive" });
+            toast({ title: "Hora no permitida", description: "La hora de salida debe ser posterior a la última ruta asignada para este vehículo", variant: "destructive" });
             return;
           }
         }
@@ -192,7 +190,7 @@ export default function PropietarioAsignaciones() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
         <motion.div variants={item}>
           <h1 className="text-3xl font-display font-bold text-foreground">Asignaciones de Ruta</h1>
-          <p className="text-muted-foreground mt-1">Asigna tus vehículos a rutas y gestiona los ingresos</p>
+          <p className="text-muted-foreground mt-1">Asigna vehículos a rutas y gestiona los ingresos</p>
         </motion.div>
 
         {/* Form */}
