@@ -571,9 +571,9 @@ export default function AsignacionesPrueba() {
                                     <Pencil className="w-3.5 h-3.5" />
                                     Editar
                                   </Button>
-                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEnviarWhatsApp(a)}>
-                                    <Send className="w-3.5 h-3.5" />
-                                    Enviar a WhatsApp
+                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleCopiarReserva(a)}>
+                                    <Copy className="w-3.5 h-3.5" />
+                                    Copiar Reserva
                                   </Button>
                                 </div>
                               </div>
