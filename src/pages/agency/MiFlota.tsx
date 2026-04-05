@@ -438,7 +438,7 @@ export default function MiFlota() {
                               <TableCell onClick={e => e.stopPropagation()}>
                                 {v.conductor_nombre ? (
                                   <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="text-xs">{v.conductor_nombre}</Badge>
+                                    <Badge variant="outline" className="text-xs">{v.conductor_apellidos ? `${v.conductor_apellidos} ${v.conductor_nombre}` : v.conductor_nombre}</Badge>
                                     {!v.en_ruta && (
                                       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleUnassignFromVeh(v)}>
                                         <Ban className="w-3 h-3 text-muted-foreground" />
