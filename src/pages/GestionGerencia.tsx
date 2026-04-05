@@ -367,15 +367,15 @@ export default function GestionGerencia() {
         subtitle={`Consolidado financiero por ${FREQ_LABEL[frecuencia]?.toLowerCase() || "periodo"}`}
       />
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item} className="flex items-center justify-between">
-          <div className="no-print">
-            <h1 className="text-3xl font-display font-bold text-foreground">Gestión</h1>
-            <p className="text-muted-foreground mt-1">
+        <motion.div variants={item} className="flex items-center justify-between gap-2">
+          <div className="no-print min-w-0 flex-1">
+            <h1 className="text-lg sm:text-3xl font-display font-bold text-foreground">Gestión</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm mt-1">
               Consolidado financiero por {FREQ_LABEL[frecuencia]?.toLowerCase() || "periodo"}
             </p>
           </div>
-          <Button size="sm" variant="outline" onClick={() => window.print()} className="no-print">
-            <Printer className="w-4 h-4 mr-1" />
+          <Button size="sm" variant="outline" onClick={() => window.print()} className="no-print h-8 px-2 sm:h-9 sm:px-3 text-xs sm:text-sm shrink-0">
+            <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
             Imprimir
           </Button>
         </motion.div>
