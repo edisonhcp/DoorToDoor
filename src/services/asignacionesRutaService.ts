@@ -138,6 +138,7 @@ export async function fetchAsignacionesActivas(empresaId: string) {
       conductor: v.asignaciones?.conductores,
       ingresos: v.ingresos_viaje,
       reservacion: v.reservaciones?.[0] || null,
+      reservaciones: v.reservaciones || [],
     })),
     error,
   };

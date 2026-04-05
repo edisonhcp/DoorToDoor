@@ -51,6 +51,7 @@ export default function AsignacionesPrueba() {
 
   // Edit mode
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingReservacionId, setEditingReservacionId] = useState<string | null>(null);
 
   // Form state
   const [selectedVehiculo, setSelectedVehiculo] = useState("");
@@ -80,6 +81,7 @@ export default function AsignacionesPrueba() {
     setPasajeroCelular("");
     setPasajeroDetalle("");
     setEditingId(null);
+    setEditingReservacionId(null);
   };
 
   const loadData = async () => {
@@ -111,6 +113,26 @@ export default function AsignacionesPrueba() {
     setPasajeroNombre(a.reservacion?.nombre_pasajero || "");
     setPasajeroCelular(a.reservacion?.celular_pasajero || "");
     setPasajeroDetalle(a.reservacion?.detalle || "");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Edit a specific reservacion within a viaje
+
+  const handleEditReservacion = (viaje: any, reserva: any) => {
+    setEditingId(viaje.id);
+    setEditingReservacionId(reserva.id);
+    setOrigen(viaje.origen);
+    setDestino(viaje.destino);
+    setHoraSalida(viaje.hora_salida || "");
+    setCantidadPasajeros(String(viaje.cantidad_pasajeros || 0));
+    setValorPasajeros(String(viaje.ingresos?.pasajeros_monto || 0));
+    setValorEncomienda(String(viaje.ingresos?.encomiendas_monto || 0));
+    setSelectedVehiculo(viaje.asignacion_id || "");
+    setFechaSalida(viaje.fecha_salida ? new Date(viaje.fecha_salida) : undefined);
+    setParada(reserva.parada || "");
+    setPasajeroNombre(reserva.nombre_pasajero || "");
+    setPasajeroCelular(reserva.celular_pasajero || "");
+    setPasajeroDetalle(reserva.detalle || "");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -159,8 +181,7 @@ export default function AsignacionesPrueba() {
       });
 
       if (!error) {
-        const currentAsig = asignaciones.find(a => a.id === editingId);
-        await saveReservacion(editingId, empresaId, currentAsig?.reservacion?.id);
+        await saveReservacion(editingId, empresaId, editingReservacionId || undefined);
       }
 
       setSubmitting(false);
@@ -181,47 +202,106 @@ export default function AsignacionesPrueba() {
       if (!vehiculoData) return;
 
       setSubmitting(true);
-      const { data: viaje, error } = await crearAsignacionRuta({
-        asignacion_id: vehiculoData.id,
-        destino,
-        origen,
-        hora_salida: horaSalida,
-        cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
-        pasajeros_monto: parseFloat(valorPasajeros) || 0,
-        encomiendas_monto: parseFloat(valorEncomienda) || 0,
-        empresa_id: empresaId,
-        fecha_salida: fechaSalida ? fechaSalida.toISOString() : new Date().toISOString(),
+
+      const fechaISO = fechaSalida ? fechaSalida.toISOString() : new Date().toISOString();
+      const fechaDate = fechaSalida ? format(fechaSalida, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+
+      // Check if a viaje already exists with same asignacion, origen, destino, fecha, hora
+      const existingViaje = asignaciones.find((a: any) => {
+        const aFecha = a.fecha_salida ? format(new Date(a.fecha_salida), "yyyy-MM-dd") : "";
+        return (
+          a.asignacion_id === vehiculoData.id &&
+          a.origen === origen &&
+          a.destino === destino &&
+          aFecha === fechaDate &&
+          (a.hora_salida || "") === horaSalida &&
+          ["ASIGNADO", "EN_RUTA"].includes(a.estado)
+        );
       });
 
-      if (!error && viaje) {
-        await saveReservacion(viaje.id, empresaId);
-      }
+      if (existingViaje) {
+        // Add to existing viaje: increment passengers + ingresos, add reservacion
+        const newPasajeros = (existingViaje.cantidad_pasajeros || 0) + (parseInt(cantidadPasajeros) || 0);
+        const newPasajerosMonto = (existingViaje.ingresos?.pasajeros_monto || 0) + (parseFloat(valorPasajeros) || 0);
+        const newEncomiendaMonto = (existingViaje.ingresos?.encomiendas_monto || 0) + (parseFloat(valorEncomienda) || 0);
 
-      setSubmitting(false);
+        const { error: updateError } = await supabase
+          .from("viajes")
+          .update({ cantidad_pasajeros: newPasajeros })
+          .eq("id", existingViaje.id);
 
-      if (error) {
-        toast({ title: "Error al reservar", description: error.message, variant: "destructive" });
+        if (!updateError) {
+          await supabase
+            .from("ingresos_viaje")
+            .update({
+              pasajeros_monto: newPasajerosMonto,
+              encomiendas_monto: newEncomiendaMonto,
+              total_ingreso: newPasajerosMonto + newEncomiendaMonto,
+            })
+            .eq("viaje_id", existingViaje.id);
+
+          await saveReservacion(existingViaje.id, empresaId);
+        }
+
+        setSubmitting(false);
+        if (updateError) {
+          toast({ title: "Error al reservar", description: updateError.message, variant: "destructive" });
+        } else {
+          toast({ title: "Pasajero agregado a la reserva existente" });
+          clearForm();
+          loadData();
+        }
       } else {
-        toast({ title: "Reserva creada exitosamente" });
-        clearForm();
-        loadData();
+        // Create new viaje
+        const { data: viaje, error } = await crearAsignacionRuta({
+          asignacion_id: vehiculoData.id,
+          destino,
+          origen,
+          hora_salida: horaSalida,
+          cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
+          pasajeros_monto: parseFloat(valorPasajeros) || 0,
+          encomiendas_monto: parseFloat(valorEncomienda) || 0,
+          empresa_id: empresaId,
+          fecha_salida: fechaISO,
+        });
+
+        if (!error && viaje) {
+          await saveReservacion(viaje.id, empresaId);
+        }
+
+        setSubmitting(false);
+
+        if (error) {
+          toast({ title: "Error al reservar", description: error.message, variant: "destructive" });
+        } else {
+          toast({ title: "Reserva creada exitosamente" });
+          clearForm();
+          loadData();
+        }
       }
     }
   };
 
-  const handleCopiarReserva = async (a: any) => {
-    const fechaStr = a.fecha_salida ? format(new Date(a.fecha_salida), "dd/MM/yyyy") : "—";
-    const horaStr = a.hora_salida || "—";
-    const reserva = a.reservacion;
-    const pasajeros = a.cantidad_pasajeros || 1;
-    const nombrePasajero = reserva?.nombre_pasajero || "—";
-    const detalle = reserva?.detalle ? `, ${reserva.detalle}` : "";
+  const handleCopiarReserva = async (viaje: any) => {
+    const fechaStr = viaje.fecha_salida ? format(new Date(viaje.fecha_salida), "dd/MM/yyyy") : "—";
+    const horaStr = viaje.hora_salida || "—";
+    const pasajeros = viaje.cantidad_pasajeros || 1;
+    const reservaciones = viaje.reservaciones || [];
 
-    let texto = `*RESERVA DE VIAJE PARA ${pasajeros} PASAJERO${pasajeros > 1 ? "S" : ""}*, PARA EL ${fechaStr} ${horaStr} EN LA RUTA: ${a.origen} → ${a.destino}\n\n`;
-    texto += `${pasajeros} PASAJERO: ${nombrePasajero}${detalle}\n`;
-    if (reserva?.celular_pasajero) texto += `Celular: ${reserva.celular_pasajero}\n`;
-    texto += `Precio: $${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
-    texto += `Encomienda: $${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
+    let texto = `*RESERVA DE VIAJE PARA ${pasajeros} PASAJERO${pasajeros > 1 ? "S" : ""}*, PARA EL ${fechaStr} ${horaStr} EN LA RUTA: ${viaje.origen} → ${viaje.destino}\n\n`;
+
+    if (reservaciones.length > 0) {
+      reservaciones.forEach((r: any, idx: number) => {
+        const detalle = r.detalle ? `, ${r.detalle}` : "";
+        texto += `*Pasajero ${idx + 1}:* ${r.nombre_pasajero || "—"}${detalle}\n`;
+        if (r.celular_pasajero) texto += `Celular: ${r.celular_pasajero}\n`;
+        if (r.parada) texto += `Parada: ${r.parada}\n`;
+        texto += "\n";
+      });
+    }
+
+    texto += `*Precio Total:* $${viaje.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
+    texto += `*Encomienda Total:* $${viaje.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
 
     try {
       await navigator.clipboard.writeText(texto);
@@ -448,18 +528,7 @@ export default function AsignacionesPrueba() {
               return true;
             });
 
-            // Group by vehicle + route + date + time
-            const groups: Record<string, any[]> = {};
-            for (const a of filteredAsignaciones) {
-              const fechaStr = a.fecha_salida ? format(new Date(a.fecha_salida), "yyyy-MM-dd") : "";
-              const key = `${a.asignacion_id || ""}_${a.origen}_${a.destino}_${fechaStr}_${a.hora_salida || ""}`;
-              if (!groups[key]) groups[key] = [];
-              groups[key].push(a);
-            }
-
-            const groupEntries = Object.entries(groups);
-
-            return groupEntries.length === 0 ? (
+            return filteredAsignaciones.length === 0 ? (
               <Card className="border-0 shadow-sm">
                 <CardContent className="py-12 text-center">
                   <Route className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
@@ -468,13 +537,13 @@ export default function AsignacionesPrueba() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {groupEntries.map(([groupKey, items]) => {
-                  const first = items[0];
-                  const badge = estadoBadge[first.estado] || { label: first.estado, variant: "secondary" as const };
+                {filteredAsignaciones.map((viaje: any) => {
+                  const badge = estadoBadge[viaje.estado] || { label: viaje.estado, variant: "secondary" as const };
+                  const reservaciones = viaje.reservaciones || [];
                   return (
-                    <Card key={groupKey} className="border-0 shadow-sm">
+                    <Card key={viaje.id} className="border-0 shadow-sm">
                       <CardContent className="p-5">
-                        {/* Group header — vehicle, route, date, time, conductor (shown once) */}
+                        {/* Viaje header — vehicle, route, date, time, conductor */}
                         <div className="flex items-start gap-4 mb-3">
                           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                             <Truck className="w-5 h-5 text-primary" />
@@ -482,101 +551,95 @@ export default function AsignacionesPrueba() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-display font-semibold text-foreground">
-                                {first.vehiculo?.placa || "—"} · {first.vehiculo?.marca} {first.vehiculo?.modelo}
+                                {viaje.vehiculo?.placa || "—"} · {viaje.vehiculo?.marca} {viaje.vehiculo?.modelo}
                               </span>
                               <Badge variant={badge.variant}>{badge.label}</Badge>
                             </div>
                             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
-                                {first.origen} → {first.destino}
+                                {viaje.origen} → {viaje.destino}
                               </span>
-                              {first.fecha_salida && (
+                              {viaje.fecha_salida && (
                                 <span className="flex items-center gap-1">
                                   <CalendarIcon className="w-3 h-3" />
-                                  {format(new Date(first.fecha_salida), "dd/MM/yyyy")}
+                                  {format(new Date(viaje.fecha_salida), "dd/MM/yyyy")}
                                 </span>
                               )}
-                              {first.hora_salida && (
+                              {viaje.hora_salida && (
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
-                                  {first.hora_salida}
+                                  {viaje.hora_salida}
                                 </span>
                               )}
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                {viaje.cantidad_pasajeros} pasajero{(viaje.cantidad_pasajeros || 0) > 1 ? "s" : ""} total
+                              </span>
                             </div>
-                            {first.conductor && (
+                            {viaje.conductor && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                Conductor: {first.conductor.nombres} {first.conductor.apellidos}
+                                Conductor: {viaje.conductor.nombres} {viaje.conductor.apellidos}
                               </p>
                             )}
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                              <span>Total Pasajeros: ${viaje.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}</span>
+                              <span>Total Encomienda: ${viaje.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}</span>
+                            </div>
                           </div>
                         </div>
 
                         {/* Individual reservations */}
-                        <div className="border-t border-border pt-3 space-y-3">
-                          {items.map((a: any) => {
-                            const reserva = a.reservacion;
-                            const isFinalized24h = a.estado === "FINALIZADO" && a.fecha_llegada && (Date.now() - new Date(a.fecha_llegada).getTime() > 24 * 60 * 60 * 1000);
-                            const canEdit = !isFinalized24h;
-                            return (
-                              <div key={a.id} className={`flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 ${editingId === a.id ? "ring-2 ring-amber-500" : ""}`}>
+                        {reservaciones.length > 0 && (
+                          <div className="border-t border-border pt-3 space-y-3">
+                            {reservaciones.map((reserva: any, idx: number) => (
+                              <div key={reserva.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-lg bg-muted/30">
                                 <div className="flex-1 min-w-0 space-y-1">
-                                  {reserva?.parada && (
+                                  <span className="text-xs font-semibold text-foreground">Reserva #{idx + 1}</span>
+                                  {reserva.parada && (
                                     <span className="flex items-center gap-1 text-sm text-muted-foreground">
                                       <MapPinned className="w-3 h-3" />
                                       Parada: {reserva.parada}
                                     </span>
                                   )}
-                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <Users className="w-3 h-3" />
-                                    {a.cantidad_pasajeros} pasajeros
-                                  </div>
-                                  {(reserva?.nombre_pasajero || reserva?.celular_pasajero || reserva?.detalle) && (
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                                      {reserva?.nombre_pasajero && (
-                                        <span className="flex items-center gap-1">
-                                          <User className="w-3 h-3" />
-                                          {reserva.nombre_pasajero}
-                                        </span>
-                                      )}
-                                      {reserva?.celular_pasajero && (
-                                        <span className="flex items-center gap-1">
-                                          <Phone className="w-3 h-3" />
-                                          {reserva.celular_pasajero}
-                                        </span>
-                                      )}
-                                      {reserva?.detalle && (
-                                        <span className="flex items-center gap-1">
-                                          <FileText className="w-3 h-3" />
-                                          {reserva.detalle}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
                                   <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                                    <span className="flex items-center gap-1">
-                                      <DollarSign className="w-3 h-3" />
-                                      Pasajeros: ${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Package className="w-3 h-3" />
-                                      Encomienda: ${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}
-                                    </span>
+                                    {reserva.nombre_pasajero && (
+                                      <span className="flex items-center gap-1">
+                                        <User className="w-3 h-3" />
+                                        {reserva.nombre_pasajero}
+                                      </span>
+                                    )}
+                                    {reserva.celular_pasajero && (
+                                      <span className="flex items-center gap-1">
+                                        <Phone className="w-3 h-3" />
+                                        {reserva.celular_pasajero}
+                                      </span>
+                                    )}
+                                    {reserva.detalle && (
+                                      <span className="flex items-center gap-1">
+                                        <FileText className="w-3 h-3" />
+                                        {reserva.detalle}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                                 <div className="flex gap-2 shrink-0">
-                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEdit(a)} disabled={!canEdit}>
+                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEditReservacion(viaje, reserva)}>
                                     <Pencil className="w-3.5 h-3.5" />
                                     Editar
                                   </Button>
-                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleCopiarReserva(a)}>
-                                    <Copy className="w-3.5 h-3.5" />
-                                    Copiar Reserva
-                                  </Button>
                                 </div>
                               </div>
-                            );
-                          })}
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Copy button for the whole viaje */}
+                        <div className="flex justify-end mt-3">
+                          <Button variant="outline" size="sm" className="gap-1" onClick={() => handleCopiarReserva(viaje)}>
+                            <Copy className="w-3.5 h-3.5" />
+                            Copiar Reserva
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
