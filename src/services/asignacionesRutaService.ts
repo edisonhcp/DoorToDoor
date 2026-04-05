@@ -243,3 +243,119 @@ export async function editarAsignacionRuta(params: {
 
   return { error: null };
 }
+
+// ─── Propietario-specific functions ───
+
+export async function fetchVehiculosDisponiblesPropietario(userId: string) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("propietario_id, empresa_id")
+    .eq("user_id", userId)
+    .single();
+
+  if (!profile?.propietario_id || !profile?.empresa_id) return [];
+
+  const { data: vehiculos } = await supabase
+    .from("vehiculos")
+    .select("id")
+    .eq("propietario_id", profile.propietario_id);
+
+  if (!vehiculos || vehiculos.length === 0) return [];
+
+  const vehiculoIds = vehiculos.map((v: any) => v.id);
+
+  const { data: asignaciones } = await supabase
+    .from("asignaciones")
+    .select("id, vehiculo_id, conductor_id, vehiculos(id, placa, marca, modelo, capacidad), conductores(id, nombres, apellidos)")
+    .eq("empresa_id", profile.empresa_id)
+    .eq("estado", "ACTIVA")
+    .in("vehiculo_id", vehiculoIds);
+
+  const { data: viajesActivos } = await supabase
+    .from("viajes")
+    .select("asignacion_id, fecha_salida, hora_salida, estado, destino")
+    .eq("empresa_id", profile.empresa_id)
+    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
+    .order("fecha_salida", { ascending: false });
+
+  const ultimoViajePorAsignacion: Record<string, { fecha_salida: string; hora_salida: string | null; estado: string; destino: string }> = {};
+  for (const v of (viajesActivos || []) as any[]) {
+    if (v.asignacion_id && !ultimoViajePorAsignacion[v.asignacion_id]) {
+      ultimoViajePorAsignacion[v.asignacion_id] = {
+        fecha_salida: v.fecha_salida,
+        hora_salida: v.hora_salida,
+        estado: v.estado,
+        destino: v.destino,
+      };
+    }
+  }
+
+  return (asignaciones || [])
+    .filter((a: any) => a.vehiculos)
+    .map((a: any) => ({
+      id: a.id,
+      vehiculo_id: a.vehiculo_id,
+      conductor_id: a.conductor_id,
+      placa: a.vehiculos?.placa,
+      marca: a.vehiculos?.marca,
+      modelo: a.vehiculos?.modelo,
+      capacidad: a.vehiculos?.capacidad,
+      conductor_nombre: `${a.conductores?.nombres || ""} ${a.conductores?.apellidos || ""}`.trim(),
+      ultimo_viaje: ultimoViajePorAsignacion[a.id] || null,
+    }));
+}
+
+export async function fetchAsignacionesActivasPropietario(userId: string) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("propietario_id, empresa_id")
+    .eq("user_id", userId)
+    .single();
+
+  if (!profile?.propietario_id || !profile?.empresa_id) return { data: [], error: null };
+
+  const { data: vehiculos } = await supabase
+    .from("vehiculos")
+    .select("id")
+    .eq("propietario_id", profile.propietario_id);
+
+  if (!vehiculos || vehiculos.length === 0) return { data: [], error: null };
+
+  const vehiculoIds = vehiculos.map((v: any) => v.id);
+
+  const { data: asignaciones } = await supabase
+    .from("asignaciones")
+    .select("id, vehiculo_id")
+    .eq("empresa_id", profile.empresa_id)
+    .in("vehiculo_id", vehiculoIds);
+
+  if (!asignaciones || asignaciones.length === 0) return { data: [], error: null };
+
+  const asignacionIds = asignaciones.map((a: any) => a.id);
+
+  const { data, error } = await supabase
+    .from("viajes")
+    .select(`
+      id, destino, origen, hora_salida, cantidad_pasajeros, estado, fecha_salida, fecha_llegada,
+      asignacion_id,
+      ingresos_viaje(pasajeros_monto, encomiendas_monto),
+      asignaciones(
+        vehiculos(placa, marca, modelo),
+        conductores(nombres, apellidos)
+      )
+    `)
+    .eq("empresa_id", profile.empresa_id)
+    .in("asignacion_id", asignacionIds)
+    .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
+    .order("created_at", { ascending: false });
+
+  return {
+    data: (data || []).map((v: any) => ({
+      ...v,
+      vehiculo: v.asignaciones?.vehiculos,
+      conductor: v.asignaciones?.conductores,
+      ingresos: v.ingresos_viaje,
+    })),
+    error,
+  };
+}
