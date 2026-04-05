@@ -232,7 +232,7 @@ export default function AsignacionesPrueba() {
     const conductorCelular = a.conductor?.celular || "";
     const phone = conductorCelular ? `593${conductorCelular.replace(/^0/, "")}` : "";
     const encoded = encodeURIComponent(texto);
-    window.open(`https://wa.me/${phone}?text=${encoded}`, "_blank");
+    window.location.href = `https://wa.me/${phone}?text=${encoded}`;
   };
 
   return (
