@@ -321,6 +321,7 @@ export default function MiFlota() {
                               <TableCell>{p.apellidos}</TableCell>
                               <TableCell>{p.identificacion}</TableCell>
                               <TableCell>{p.celular}</TableCell>
+                              <TableCell className="text-xs truncate max-w-[180px]">{p.email}</TableCell>
                               <TableCell>
                                 <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"} className="text-xs">{p.estado}</Badge>
                               </TableCell>
