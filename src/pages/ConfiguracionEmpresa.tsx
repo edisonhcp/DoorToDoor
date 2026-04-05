@@ -155,8 +155,8 @@ export default function ConfiguracionEmpresa() {
     <DashboardLayout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-3xl">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Configuración de la Compañía</h1>
-          <p className="text-muted-foreground text-sm mt-1">Edita los datos de tu empresa</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Configuración de la Compañía</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Edita los datos de tu empresa</p>
         </div>
 
         {/* Logo */}
