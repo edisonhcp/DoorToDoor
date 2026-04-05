@@ -456,11 +456,9 @@ export type Database = {
           created_at: string
           detalle: string
           direccion: string
-          email: string
           empresa_id: string
           encomiendas_monto: number
           id: string
-          identificacion: string
           nombre: string
           parada: string
           pasajeros_monto: number
@@ -474,11 +472,9 @@ export type Database = {
           created_at?: string
           detalle?: string
           direccion?: string
-          email?: string
           empresa_id: string
           encomiendas_monto?: number
           id?: string
-          identificacion?: string
           nombre?: string
           parada?: string
           pasajeros_monto?: number
@@ -492,11 +488,9 @@ export type Database = {
           created_at?: string
           detalle?: string
           direccion?: string
-          email?: string
           empresa_id?: string
           encomiendas_monto?: number
           id?: string
-          identificacion?: string
           nombre?: string
           parada?: string
           pasajeros_monto?: number
