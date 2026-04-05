@@ -236,7 +236,27 @@ export default function MiFlota() {
 
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelected(null); }}>
           <motion.div variants={anim}>
-            <TabsList className="mb-4">
+            {/* Mobile: Select dropdown */}
+            <div className="block md:hidden mb-4">
+              <Select value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelected(null); }}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="propietarios">
+                    <span className="flex items-center gap-2"><UserCheck className="w-4 h-4" /> Propietarios ({filteredPropietarios.length})</span>
+                  </SelectItem>
+                  <SelectItem value="vehiculos">
+                    <span className="flex items-center gap-2"><Truck className="w-4 h-4" /> Vehículos ({filteredVehiculos.length})</span>
+                  </SelectItem>
+                  <SelectItem value="conductores">
+                    <span className="flex items-center gap-2"><Users className="w-4 h-4" /> Conductores ({filteredConductores.length})</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Desktop: Tabs */}
+            <TabsList className="mb-4 hidden md:inline-flex">
               <TabsTrigger value="propietarios" className="gap-2">
                 <UserCheck className="w-4 h-4" /> Propietarios ({filteredPropietarios.length})
               </TabsTrigger>
@@ -250,30 +270,30 @@ export default function MiFlota() {
           </motion.div>
 
           {/* Filters */}
-          <motion.div variants={anim} className="flex flex-wrap items-center gap-3">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <div className="relative">
+          <motion.div variants={anim} className="flex flex-wrap items-center gap-2 md:gap-3">
+            <Filter className="w-4 h-4 text-muted-foreground hidden md:block" />
+            <div className="relative w-full md:w-auto">
               <Input
                 placeholder="Propietario..."
                 value={filterPropietario}
                 onChange={e => setFilterPropietario(e.target.value)}
-                className="h-9 w-44 text-sm"
+                className="h-9 w-full md:w-44 text-sm"
               />
             </div>
-            <div className="relative">
+            <div className="relative w-[calc(50%-4px)] md:w-auto">
               <Input
                 placeholder="Placa..."
                 value={filterPlaca}
                 onChange={e => setFilterPlaca(e.target.value)}
-                className="h-9 w-36 text-sm"
+                className="h-9 w-full md:w-36 text-sm"
               />
             </div>
-            <div className="relative">
+            <div className="relative w-[calc(50%-4px)] md:w-auto">
               <Input
                 placeholder="Conductor..."
                 value={filterConductor}
                 onChange={e => setFilterConductor(e.target.value)}
-                className="h-9 w-44 text-sm"
+                className="h-9 w-full md:w-44 text-sm"
               />
             </div>
             {hasFilters && (

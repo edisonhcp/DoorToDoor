@@ -389,13 +389,13 @@ export default function GestionGerencia() {
                   <Filter className="w-4 h-4 text-primary" />
                   <span className="text-sm font-semibold text-foreground">Filtros</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   {/* Month multi-select */}
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Meses</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-sm font-normal h-10">
+                        <Button variant="outline" className="w-full justify-start text-xs sm:text-sm font-normal h-9 sm:h-10">
                           {selectedMonthsLabel}
                         </Button>
                       </PopoverTrigger>
@@ -417,7 +417,7 @@ export default function GestionGerencia() {
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Período</label>
                     <Select value={selectedPeriodKey} onValueChange={setSelectedPeriodKey}>
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                         <SelectValue placeholder="Todos los períodos" />
                       </SelectTrigger>
                       <SelectContent>
@@ -434,7 +434,7 @@ export default function GestionGerencia() {
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Vehículos</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-sm font-normal h-10">
+                        <Button variant="outline" className="w-full justify-start text-xs sm:text-sm font-normal h-9 sm:h-10">
                           {selectedVehiculosLabel}
                         </Button>
                       </PopoverTrigger>

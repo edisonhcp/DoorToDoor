@@ -110,18 +110,18 @@ export default function Invitaciones() {
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Invitaciones</h1>
-            <p className="text-muted-foreground mt-1">Genera links de registro para conductores y propietarios</p>
+            <p className="text-muted-foreground mt-1 text-sm">Genera links de registro para conductores y propietarios</p>
           </div>
-          <Button onClick={() => setGenerateOpen(true)} className="gap-2 font-display">
+          <Button onClick={() => setGenerateOpen(true)} className="gap-2 font-display w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             Generar Invitación
           </Button>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           {[
             { title: "Total", value: stats.total, icon: Link2, color: "text-primary", bg: "bg-primary/10" },
             { title: "Activas", value: stats.activas, icon: Clock, color: "text-accent", bg: "bg-accent/10" },
@@ -129,15 +129,15 @@ export default function Invitaciones() {
           ].map((stat) => (
             <motion.div key={stat.title} variants={item}>
               <Card className="border-0 shadow-sm">
-                <CardContent className="p-5 flex items-center justify-between">
+                <CardContent className="p-3 sm:p-5 flex items-center justify-between gap-1">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-3xl font-display font-bold text-foreground mt-1">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-xl sm:text-3xl font-display font-bold text-foreground mt-1">
                       {loading ? "—" : stat.value}
                     </p>
                   </div>
-                  <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
-                    <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                  <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl ${stat.bg} flex items-center justify-center shrink-0`}>
+                    <stat.icon className={`w-4 h-4 sm:w-6 sm:h-6 ${stat.color}`} />
                   </div>
                 </CardContent>
               </Card>

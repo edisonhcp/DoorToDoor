@@ -155,17 +155,17 @@ export default function ConfiguracionEmpresa() {
     <DashboardLayout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-3xl">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Configuración de la Compañía</h1>
-          <p className="text-muted-foreground text-sm mt-1">Edita los datos de tu empresa</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Configuración de la Compañía</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Edita los datos de tu empresa</p>
         </div>
 
         {/* Logo */}
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle className="font-display text-lg">Logo de la Compañía</CardTitle></CardHeader>
           <CardContent>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
               <div
-                className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-dashed border-border cursor-pointer hover:border-primary transition-colors"
+                className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-dashed border-border cursor-pointer hover:border-primary transition-colors shrink-0"
                 onClick={() => fileRef.current?.click()}
               >
                 {logoPreview ? (
@@ -250,7 +250,7 @@ export default function ConfiguracionEmpresa() {
           <CardContent className="space-y-4">
             <div>
               <Label className="mb-2 block">Tipo de Comisión</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {[
                   { value: "PORCENTAJE", label: "Porcentaje (%)" },
                   { value: "FIJO", label: "Valor Fijo ($)" },
@@ -293,7 +293,7 @@ export default function ConfiguracionEmpresa() {
 
             <div>
               <Label className="mb-2 block">Frecuencia de Comisión</Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 sm:flex gap-2">
                 {[
                   { value: "SEMANAL", label: "Semanal" },
                   { value: "BISEMANAL", label: "Bisemanal" },
