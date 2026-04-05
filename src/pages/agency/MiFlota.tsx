@@ -419,6 +419,7 @@ export default function MiFlota() {
                         <TableHead>Conductor</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead className="w-10"></TableHead>
+
                       </TableRow>
                     </TableHeader>
                     <TableBody>
