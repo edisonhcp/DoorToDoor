@@ -185,23 +185,23 @@ export async function fetchEmpresaDetail(empresaId: string) {
   const vehiculos = allVehiculos.map((v: any) => {
     const asig = asignaciones.find((a: any) => a.vehiculo_id === v.id);
     const conductor = asig ? (cRes.data || []).find((c: any) => c.id === asig.conductor_id) : null;
+    const prop = propsById[v.propietario_id];
     return {
       ...v,
-      propietarios: propsById[v.propietario_id] ? { nombres: propsById[v.propietario_id].nombres } : null,
-      conductor_nombre: conductor?.nombres || null,
+      propietarios: prop ? { nombres: prop.nombres, apellidos: prop.apellidos } : null,
+      conductor_nombre: conductor ? `${conductor.apellidos} ${conductor.nombres}` : null,
     };
   });
 
   const conductores = (cRes.data || []).map((c: any) => {
     const asig = asignaciones.find((a: any) => a.conductor_id === c.id);
     const veh = asig ? vehById[asig.vehiculo_id] : null;
+    const prop = veh ? propsById[veh.propietario_id] : null;
     return {
       ...c,
       vehiculo_placa: veh?.placa || null,
       vehiculo_marca: veh?.marca || null,
-      vehiculo_modelo: veh?.modelo || null,
-      vehiculo_anio: veh?.anio || null,
-      propietario_nombre: veh && propsById[veh.propietario_id] ? propsById[veh.propietario_id].nombres : null,
+      propietario_nombre: prop ? `${prop.nombres} ${prop.apellidos}` : null,
     };
   });
 

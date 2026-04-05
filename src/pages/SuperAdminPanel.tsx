@@ -432,7 +432,7 @@ export default function SuperAdminPanel() {
                                                     <TableCell>{v.marca} {v.modelo}</TableCell>
                                                     <TableCell>{v.color}</TableCell>
                                                     <TableCell>{v.conductor_nombre || <span className="text-muted-foreground">Sin asignar</span>}</TableCell>
-                                                    <TableCell>{v.propietarios?.nombres || "—"}</TableCell>
+                                                    <TableCell>{v.propietarios ? `${v.propietarios.apellidos} ${v.propietarios.nombres}` : "—"}</TableCell>
                                                     <TableCell><Badge variant={v.estado === "HABILITADO" ? "default" : "destructive"}>{v.estado}</Badge></TableCell>
                                                   </TableRow>
                                                 ))}
@@ -448,9 +448,14 @@ export default function SuperAdminPanel() {
                                             <Table>
                                               <TableHeader>
                                                 <TableRow>
+                                                  <TableHead>Apellidos</TableHead>
                                                   <TableHead>Nombres</TableHead>
                                                   <TableHead>Identificación</TableHead>
+                                                  <TableHead>Correo</TableHead>
+                                                  <TableHead>Fecha Registro</TableHead>
+                                                  <TableHead>Celular</TableHead>
                                                   <TableHead>Placa</TableHead>
+                                                  <TableHead>Marca</TableHead>
                                                   <TableHead>Propietario</TableHead>
                                                   <TableHead>Estado</TableHead>
                                                 </TableRow>
@@ -458,9 +463,14 @@ export default function SuperAdminPanel() {
                                               <TableBody>
                                                 {detailConductores.map((c: any) => (
                                                   <TableRow key={c.id}>
-                                                    <TableCell className="font-medium">{c.nombres}</TableCell>
+                                                    <TableCell className="font-medium">{c.apellidos}</TableCell>
+                                                    <TableCell>{c.nombres}</TableCell>
                                                     <TableCell>{c.identificacion}</TableCell>
-                                                    <TableCell>{c.vehiculo_placa || <span className="text-muted-foreground">Sin asignar</span>}</TableCell>
+                                                    <TableCell className="text-xs">{c.email}</TableCell>
+                                                    <TableCell>{new Date(c.created_at).toLocaleDateString("es-ES")}</TableCell>
+                                                    <TableCell>{c.celular}</TableCell>
+                                                    <TableCell>{c.vehiculo_placa || <span className="text-muted-foreground">—</span>}</TableCell>
+                                                    <TableCell>{c.vehiculo_marca || "—"}</TableCell>
                                                     <TableCell>{c.propietario_nombre || "—"}</TableCell>
                                                     <TableCell><Badge variant={c.estado === "HABILITADO" ? "default" : "destructive"}>{c.estado}</Badge></TableCell>
                                                   </TableRow>
@@ -477,8 +487,11 @@ export default function SuperAdminPanel() {
                                             <Table>
                                               <TableHeader>
                                                 <TableRow>
+                                                  <TableHead>Apellidos</TableHead>
                                                   <TableHead>Nombres</TableHead>
                                                   <TableHead>Identificación</TableHead>
+                                                  <TableHead>Correo</TableHead>
+                                                  <TableHead>Celular</TableHead>
                                                   <TableHead>Vehículos</TableHead>
                                                   <TableHead>Estado</TableHead>
                                                 </TableRow>
@@ -489,8 +502,11 @@ export default function SuperAdminPanel() {
                                                   if (vehs.length === 0) {
                                                     return [(
                                                       <TableRow key={p.id}>
-                                                        <TableCell className="font-medium">{p.nombres}</TableCell>
+                                                        <TableCell className="font-medium">{p.apellidos}</TableCell>
+                                                        <TableCell>{p.nombres}</TableCell>
                                                         <TableCell>{p.identificacion}</TableCell>
+                                                        <TableCell className="text-xs">{p.email}</TableCell>
+                                                        <TableCell>{p.celular}</TableCell>
                                                         <TableCell><span className="text-muted-foreground">Sin vehículos</span></TableCell>
                                                         <TableCell><Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge></TableCell>
                                                       </TableRow>
@@ -498,8 +514,11 @@ export default function SuperAdminPanel() {
                                                   }
                                                   return vehs.map((v: any, i: number) => (
                                                     <TableRow key={`${p.id}-${i}`}>
-                                                      <TableCell className="font-medium">{i === 0 ? p.nombres : ""}</TableCell>
+                                                      <TableCell className="font-medium">{i === 0 ? p.apellidos : ""}</TableCell>
+                                                      <TableCell>{i === 0 ? p.nombres : ""}</TableCell>
                                                       <TableCell>{i === 0 ? p.identificacion : ""}</TableCell>
+                                                      <TableCell className="text-xs">{i === 0 ? p.email : ""}</TableCell>
+                                                      <TableCell>{i === 0 ? p.celular : ""}</TableCell>
                                                       <TableCell>{v.marca} {v.modelo} — {v.placa}</TableCell>
                                                       <TableCell>{i === 0 && <Badge variant={p.estado === "HABILITADO" ? "default" : "destructive"}>{p.estado}</Badge>}</TableCell>
                                                     </TableRow>
