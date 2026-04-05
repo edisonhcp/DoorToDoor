@@ -565,6 +565,7 @@ export type Database = {
           celular_pasajero: string | null
           created_at: string
           detalle: string | null
+          direccion: string | null
           empresa_id: string
           id: string
           nombre_pasajero: string | null
@@ -576,6 +577,7 @@ export type Database = {
           celular_pasajero?: string | null
           created_at?: string
           detalle?: string | null
+          direccion?: string | null
           empresa_id: string
           id?: string
           nombre_pasajero?: string | null
@@ -587,6 +589,7 @@ export type Database = {
           celular_pasajero?: string | null
           created_at?: string
           detalle?: string | null
+          direccion?: string | null
           empresa_id?: string
           id?: string
           nombre_pasajero?: string | null

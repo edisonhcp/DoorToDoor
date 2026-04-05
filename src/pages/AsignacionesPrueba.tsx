@@ -66,6 +66,7 @@ export default function AsignacionesPrueba() {
   const [pasajeroNombre, setPasajeroNombre] = useState("");
   const [pasajeroCelular, setPasajeroCelular] = useState("");
   const [pasajeroDetalle, setPasajeroDetalle] = useState("");
+  const [pasajeroDireccion, setPasajeroDireccion] = useState("");
 
   const clearForm = () => {
     setSelectedVehiculo("");
@@ -80,6 +81,7 @@ export default function AsignacionesPrueba() {
     setPasajeroNombre("");
     setPasajeroCelular("");
     setPasajeroDetalle("");
+    setPasajeroDireccion("");
     setEditingId(null);
     setEditingReservacionId(null);
   };
@@ -113,10 +115,9 @@ export default function AsignacionesPrueba() {
     setPasajeroNombre(a.reservacion?.nombre_pasajero || "");
     setPasajeroCelular(a.reservacion?.celular_pasajero || "");
     setPasajeroDetalle(a.reservacion?.detalle || "");
+    setPasajeroDireccion(a.reservacion?.direccion || "");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-
-  // Edit a specific reservacion within a viaje
 
   const handleEditReservacion = (viaje: any, reserva: any) => {
     setEditingId(viaje.id);
@@ -133,6 +134,7 @@ export default function AsignacionesPrueba() {
     setPasajeroNombre(reserva.nombre_pasajero || "");
     setPasajeroCelular(reserva.celular_pasajero || "");
     setPasajeroDetalle(reserva.detalle || "");
+    setPasajeroDireccion(reserva.direccion || "");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -143,7 +145,8 @@ export default function AsignacionesPrueba() {
         nombre_pasajero: pasajeroNombre,
         celular_pasajero: pasajeroCelular,
         detalle: pasajeroDetalle,
-      }).eq("id", reservacionId);
+        direccion: pasajeroDireccion,
+      } as any).eq("id", reservacionId);
     } else {
       await supabase.from("reservaciones").insert({
         viaje_id: viajeId,
@@ -152,6 +155,7 @@ export default function AsignacionesPrueba() {
         nombre_pasajero: pasajeroNombre,
         celular_pasajero: pasajeroCelular,
         detalle: pasajeroDetalle,
+        direccion: pasajeroDireccion,
       } as any);
     }
   };
@@ -245,6 +249,7 @@ export default function AsignacionesPrueba() {
       const pasajeros = reserva._viaje?.cantidad_pasajeros || 1;
       texto += `${idx + 1}. PASAJERO (${pasajeros}): ${reserva.nombre_pasajero || "—"}${detalle}\n`;
       if (reserva.celular_pasajero) texto += `   Celular: ${reserva.celular_pasajero}\n`;
+      if (reserva.direccion) texto += `   Dirección: ${reserva.direccion}\n`;
       texto += `   Precio: $${reserva._viaje?.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
       texto += `   Encomienda: $${reserva._viaje?.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}\n\n`;
     });
@@ -414,6 +419,13 @@ export default function AsignacionesPrueba() {
                           Detalle
                         </Label>
                         <Input placeholder="Detalle adicional" value={pasajeroDetalle} onChange={(e) => setPasajeroDetalle(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-muted-foreground flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          Dirección/Ubicación
+                        </Label>
+                        <Input placeholder="Dirección o ubicación del pasajero" value={pasajeroDireccion} onChange={(e) => setPasajeroDireccion(e.target.value)} />
                       </div>
                     </div>
                   </div>
@@ -585,8 +597,13 @@ export default function AsignacionesPrueba() {
                                           {reserva.detalle}
                                         </span>
                                       )}
+                                      {reserva.direccion && (
+                                        <span className="flex items-center gap-1">
+                                          <MapPin className="w-3 h-3" />
+                                          {reserva.direccion}
+                                        </span>
+                                      )}
                                     </div>
-                                  </div>
                                   <div className="flex gap-2 shrink-0">
                                     <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEditReservacion(reserva._viaje, reserva)}>
                                       <Pencil className="w-3.5 h-3.5" />
