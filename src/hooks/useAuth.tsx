@@ -76,6 +76,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // Check conductor suspension
+    if (userRole === "CONDUCTOR" && profileRes.data.conductor_id) {
+      const [condRes, empresaRes] = await Promise.all([
+        supabase.from("conductores").select("nombres, apellidos, estado").eq("id", profileRes.data.conductor_id).single(),
+        supabase.from("empresas").select("nombre").eq("id", profileRes.data.empresa_id).single(),
+      ]);
+      if (condRes.data && condRes.data.estado === "INHABILITADO") {
+        setSuspended({
+          type: "empresa",
+          message: `${condRes.data.nombres} ${condRes.data.apellidos}, su cuenta de conductor se encuentra suspendida. Por favor contáctese con ${empresaRes.data?.nombre || "la compañía"} mediante WhatsApp.`,
+        });
+        return;
+      }
+    }
+
     // Check propietario suspension
     if (userRole === "PROPIETARIO" && profileRes.data.propietario_id) {
       const [propRes, empresaRes] = await Promise.all([
