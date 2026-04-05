@@ -39,7 +39,7 @@ const estadoBadge: Record<string, { label: string; variant: "default" | "seconda
   FINALIZADO: { label: "Ruta Finalizada", variant: "outline" },
 };
 
-export default function Asignaciones() {
+export default function AsignacionesPrueba() {
   const { empresaId } = useAuth();
   const { toast } = useToast();
   const [vehiculosDisponibles, setVehiculosDisponibles] = useState<any[]>([]);
