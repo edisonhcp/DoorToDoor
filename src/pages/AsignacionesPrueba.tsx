@@ -230,19 +230,26 @@ export default function AsignacionesPrueba() {
     }
   };
 
-  const handleCopiarReserva = async (viaje: any) => {
-    const fechaStr = viaje.fecha_salida ? format(new Date(viaje.fecha_salida), "dd/MM/yyyy") : "—";
-    const horaStr = viaje.hora_salida || "—";
-    const reserva = viaje.reservacion;
-    const pasajeros = viaje.cantidad_pasajeros || 1;
-    const nombrePasajero = reserva?.nombre_pasajero || "—";
-    const detalle = reserva?.detalle ? `, ${reserva.detalle}` : "";
+  const handleCopiarReservaGrupo = async (viajes: any[], allReservaciones: any[]) => {
+    const first = viajes[0];
+    const fechaStr = first.fecha_salida ? format(new Date(first.fecha_salida), "dd/MM/yyyy") : "—";
+    const horaStr = first.hora_salida || "—";
+    const totalPasajeros = viajes.reduce((s: number, v: any) => s + (v.cantidad_pasajeros || 0), 0);
+    const totalPrecio = viajes.reduce((s: number, v: any) => s + (v.ingresos?.pasajeros_monto || 0), 0);
+    const totalEncomienda = viajes.reduce((s: number, v: any) => s + (v.ingresos?.encomiendas_monto || 0), 0);
 
-    let texto = `*RESERVA DE VIAJE PARA ${pasajeros} PASAJERO${pasajeros > 1 ? "S" : ""}*, PARA EL ${fechaStr} ${horaStr} EN LA RUTA: ${viaje.origen} → ${viaje.destino}\n\n`;
-    texto += `${pasajeros} PASAJERO: ${nombrePasajero}${detalle}\n`;
-    if (reserva?.celular_pasajero) texto += `Celular: ${reserva.celular_pasajero}\n`;
-    texto += `Precio: $${viaje.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
-    texto += `Encomienda: $${viaje.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
+    let texto = `*RESERVA DE VIAJE PARA ${totalPasajeros} PASAJERO${totalPasajeros > 1 ? "S" : ""}*, PARA EL ${fechaStr} ${horaStr} EN LA RUTA: ${first.origen} → ${first.destino}\n\n`;
+
+    allReservaciones.forEach((reserva: any, idx: number) => {
+      const detalle = reserva.detalle ? `, ${reserva.detalle}` : "";
+      const pasajeros = reserva._viaje?.cantidad_pasajeros || 1;
+      texto += `${idx + 1}. PASAJERO (${pasajeros}): ${reserva.nombre_pasajero || "—"}${detalle}\n`;
+      if (reserva.celular_pasajero) texto += `   Celular: ${reserva.celular_pasajero}\n`;
+      texto += `   Precio: $${reserva._viaje?.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
+      texto += `   Encomienda: $${reserva._viaje?.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}\n\n`;
+    });
+
+    texto += `*TOTAL*: ${totalPasajeros} pasajero${totalPasajeros > 1 ? "s" : ""} | Precio: $${totalPrecio.toFixed(2)} | Encomienda: $${totalEncomienda.toFixed(2)}`;
 
     try {
       await navigator.clipboard.writeText(texto);
@@ -552,7 +559,7 @@ export default function AsignacionesPrueba() {
                               {allReservaciones.map((reserva: any, idx: number) => (
                                 <div key={reserva.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-lg bg-muted/30">
                                   <div className="flex-1 min-w-0 space-y-1">
-                                    <span className="text-xs font-semibold text-foreground">Reserva #{idx + 1}</span>
+                                    <span className="text-xs font-semibold text-foreground">Reserva #{idx + 1} — {reserva._viaje?.cantidad_pasajeros || 0} pasajero{(reserva._viaje?.cantidad_pasajeros || 0) !== 1 ? "s" : ""}</span>
                                     {reserva.parada && (
                                       <span className="flex items-center gap-1 text-sm text-muted-foreground">
                                         <MapPinned className="w-3 h-3" />
@@ -605,7 +612,7 @@ export default function AsignacionesPrueba() {
 
                           {/* Copy button */}
                           <div className="flex justify-end mt-3">
-                            <Button variant="outline" size="sm" className="gap-1" onClick={() => handleCopiarReserva(first)}>
+                            <Button variant="outline" size="sm" className="gap-1" onClick={() => handleCopiarReservaGrupo(viajes, allReservaciones)}>
                               <Copy className="w-3.5 h-3.5" />
                               Copiar Reserva
                             </Button>
