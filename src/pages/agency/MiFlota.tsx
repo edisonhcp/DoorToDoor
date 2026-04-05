@@ -632,8 +632,8 @@ export default function MiFlota() {
                             </TableRow>
                             {isOpen && (
                               <tr>
-                                <td colSpan={7} className="p-0 border-b">
-                                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="p-4 border border-foreground rounded-md m-2 text-xs font-medium bg-[sidebar-primary-foreground] bg-muted">
+                                 <td colSpan={8} className="p-0 border-b">
+                                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="p-4 border border-foreground rounded-md m-2 text-xs font-medium bg-[sidebar-primary-foreground] bg-muted">
                                     <div className="flex items-start justify-between mb-3">
                                       <div className="flex items-center gap-3">
                                         {c.foto_url ? (

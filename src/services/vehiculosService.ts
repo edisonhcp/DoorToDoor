@@ -11,7 +11,7 @@ export async function fetchVehiculos() {
   return (vehRes.data || []).map((v: any) => {
     const asig = asignaciones.find((a: any) => a.vehiculo_id === v.id);
     const enRuta = asig ? viajesActivos.has(asig.id) : false;
-    return { ...v, conductor_nombre: asig?.conductores?.nombres || null, conductor_id: asig?.conductor_id || null, en_ruta: enRuta };
+    return { ...v, conductor_nombre: asig?.conductores?.nombres || null, conductor_apellidos: asig?.conductores?.apellidos || null, conductor_id: asig?.conductor_id || null, en_ruta: enRuta };
   });
 }
 
