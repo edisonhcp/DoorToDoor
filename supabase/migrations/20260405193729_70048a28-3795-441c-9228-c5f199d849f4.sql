@@ -1,0 +1,1 @@
+ALTER TABLE public.reservaciones ADD COLUMN direccion text DEFAULT '';
