@@ -241,8 +241,20 @@ export default function ConductorAsignaciones() {
         ) : (
           <div className="space-y-4">
             {(() => {
+              // Only show non-FINALIZADO trips as active cards
+              const activeViajes = filteredViajes.filter(v => v.estado !== "FINALIZADO");
+              
+              if (activeViajes.length === 0) return (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="py-12 text-center">
+                    <Route className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+                    <p className="text-muted-foreground">No tienes rutas activas</p>
+                  </CardContent>
+                </Card>
+              );
+
               const groups: Record<string, any[]> = {};
-              for (const v of filteredViajes) {
+              for (const v of activeViajes) {
                 const fechaStr = v.fecha_salida ? new Date(v.fecha_salida).toLocaleDateString("es-EC") : "";
                 const key = `${v.asignacion_id || ""}_${v.origen}_${v.destino}_${fechaStr}_${v.hora_salida || ""}`;
                 if (!groups[key]) groups[key] = [];
@@ -258,49 +270,68 @@ export default function ConductorAsignaciones() {
 
                 return (
                   <motion.div key={groupKey} variants={item}>
-                    <Card className={`border-0 shadow-sm ${first.estado === "EN_RUTA" ? "border-l-4 border-l-primary" : "border-l-4 border-l-muted"}`}>
-                      <CardContent className="p-5 space-y-4">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <Card className={`border-0 shadow-sm ${first.estado === "EN_RUTA" ? "border-l-4 border-l-primary" : "border-l-4 border-l-secondary"}`}>
+                      <CardContent className="p-5 space-y-3">
+                        <div className="flex items-center gap-3 mb-1">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                            <Truck className="w-5 h-5 text-primary" />
+                          </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <Route className="w-5 h-5 text-primary" />
-                              <span className="font-display font-semibold text-foreground">
-                                {first.origen} → {first.destino}
-                              </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-display font-bold text-lg text-foreground">Ruta Asignada</span>
                               <Badge variant={groupBadge.variant}>{groupBadge.label}</Badge>
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                              {first.fecha_salida && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Salida: {new Date(first.fecha_salida).toLocaleDateString("es-EC")} {first.hora_salida || ""}</span>}
-                              {first.estado === "FINALIZADO" && first.fecha_llegada && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Llegada: {new Date(first.fecha_llegada).toLocaleDateString("es-EC")} {new Date(first.fecha_llegada).toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" })}</span>}
-                              <span className="flex items-center gap-1"><Users className="w-3 h-3" />{totalPasajeros} pasajeros</span>
-                              {first.vehiculo && <span><Truck className="w-3 h-3 inline mr-1" />{first.vehiculo.placa}</span>}
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                              <span>Pasajeros: ${totalPasajerosMonto.toFixed(2)}</span>
-                              <span>Encomienda: ${totalEncomienda.toFixed(2)}</span>
-                            </div>
+                            {first.vehiculo && (
+                              <p className="text-sm text-muted-foreground">{first.vehiculo.placa} · {first.vehiculo.marca} {first.vehiculo.modelo}</p>
+                            )}
                           </div>
-                            <div className="flex gap-2 flex-wrap">
-                              {first.estado === "ASIGNADO" && (
-                                <Button onClick={() => handleIniciarRuta(first.id)} className="gap-2" size="sm">
-                                  <Route className="w-4 h-4" /> Iniciar Ruta
-                                </Button>
-                              )}
-                              {first.estado === "EN_RUTA" && (
-                                <Button onClick={() => handleFinalizarRuta(first.id)} variant="outline" className="gap-2" size="sm">
-                                  <CheckCircle2 className="w-4 h-4" /> Finalizar Ruta
-                                </Button>
-                              )}
-                              <Button
-                                variant={editingEgresos === first.id ? "secondary" : "outline"}
-                                size="sm"
-                                onClick={() => editingEgresos === first.id ? setEditingEgresos(null) : openEgresoEditor(first)}
-                                className="gap-1"
-                              >
-                                <Save className="w-3.5 h-3.5" />
-                                {editingEgresos === first.id ? "Cerrar" : "Egresos"}
-                              </Button>
-                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Route className="w-4 h-4 text-primary" />
+                            <span className="font-semibold text-foreground">{first.origen} → {first.destino}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {first.fecha_salida ? new Date(first.fecha_salida).toLocaleDateString("es-EC") : "—"} {first.hora_salida || ""}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-foreground font-medium">{totalPasajeros} pasajero{totalPasajeros !== 1 ? "s" : ""}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-foreground">Pasajeros: ${totalPasajerosMonto.toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Package className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-foreground">Encomienda: ${totalEncomienda.toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 flex-wrap pt-2 border-t border-border">
+                          {first.estado === "ASIGNADO" && (
+                            <Button onClick={() => handleIniciarRuta(first.id)} className="gap-2" size="sm">
+                              <Route className="w-4 h-4" /> Iniciar Ruta
+                            </Button>
+                          )}
+                          {first.estado === "EN_RUTA" && (
+                            <Button onClick={() => handleFinalizarRuta(first.id)} variant="outline" className="gap-2" size="sm">
+                              <CheckCircle2 className="w-4 h-4" /> Finalizar Ruta
+                            </Button>
+                          )}
+                          <Button
+                            variant={editingEgresos === first.id ? "secondary" : "outline"}
+                            size="sm"
+                            onClick={() => editingEgresos === first.id ? setEditingEgresos(null) : openEgresoEditor(first)}
+                            className="gap-1"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            {editingEgresos === first.id ? "Cerrar" : "Egresos"}
+                          </Button>
                         </div>
 
                         {editingEgresos === first.id && (
