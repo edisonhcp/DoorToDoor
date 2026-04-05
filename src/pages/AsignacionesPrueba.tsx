@@ -206,20 +206,72 @@ export default function AsignacionesPrueba() {
       if (!vehiculoData) return;
 
       setSubmitting(true);
-      const { data: viaje, error } = await crearAsignacionRuta({
-        asignacion_id: vehiculoData.id,
-        destino,
-        origen,
-        hora_salida: horaSalida,
-        cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
-        pasajeros_monto: parseFloat(valorPasajeros) || 0,
-        encomiendas_monto: parseFloat(valorEncomienda) || 0,
-        empresa_id: empresaId,
-        fecha_salida: fechaSalida ? fechaSalida.toISOString() : new Date().toISOString(),
+
+      // Check if there's an existing viaje with same vehicle, origen, destino, fecha and hora
+      const fechaISO = fechaSalida ? fechaSalida.toISOString() : new Date().toISOString();
+      const fechaDate = fechaSalida ? format(fechaSalida, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+
+      const { data: existingViajes } = await supabase
+        .from("viajes")
+        .select("id, origen, destino, hora_salida, fecha_salida, cantidad_pasajeros, asignacion_id, ingresos_viaje(pasajeros_monto, encomiendas_monto)")
+        .eq("empresa_id", empresaId)
+        .eq("asignacion_id", vehiculoData.id)
+        .eq("origen", origen)
+        .eq("destino", destino);
+
+      // Find a viaje matching fecha (same day) and hora
+      const matchingViaje = existingViajes?.find((v: any) => {
+        const vFecha = v.fecha_salida ? format(new Date(v.fecha_salida), "yyyy-MM-dd") : "";
+        const vHora = v.hora_salida || "";
+        return vFecha === fechaDate && vHora === (horaSalida || "");
       });
 
-      if (!error && viaje) {
-        await saveReservacion(viaje.id, empresaId);
+      let error: any = null;
+      let targetViajeId: string | null = null;
+
+      if (matchingViaje) {
+        // Add to existing viaje: update totals
+        const newPax = (matchingViaje.cantidad_pasajeros || 0) + (parseInt(cantidadPasajeros) || 0);
+        const existingIngresos = (matchingViaje as any).ingresos_viaje?.[0];
+        const newPasajerosMonto = (existingIngresos?.pasajeros_monto || 0) + (parseFloat(valorPasajeros) || 0);
+        const newEncomiendaMonto = (existingIngresos?.encomiendas_monto || 0) + (parseFloat(valorEncomienda) || 0);
+
+        const { error: updateError } = await supabase
+          .from("viajes")
+          .update({ cantidad_pasajeros: newPax })
+          .eq("id", matchingViaje.id);
+
+        if (!updateError) {
+          await supabase
+            .from("ingresos_viaje")
+            .update({
+              pasajeros_monto: newPasajerosMonto,
+              encomiendas_monto: newEncomiendaMonto,
+              total_ingreso: newPasajerosMonto + newEncomiendaMonto,
+            })
+            .eq("viaje_id", matchingViaje.id);
+          targetViajeId = matchingViaje.id;
+        }
+        error = updateError;
+      } else {
+        // Create new viaje
+        const { data: viaje, error: createError } = await crearAsignacionRuta({
+          asignacion_id: vehiculoData.id,
+          destino,
+          origen,
+          hora_salida: horaSalida,
+          cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
+          pasajeros_monto: parseFloat(valorPasajeros) || 0,
+          encomiendas_monto: parseFloat(valorEncomienda) || 0,
+          empresa_id: empresaId,
+          fecha_salida: fechaISO,
+        });
+        error = createError;
+        if (viaje) targetViajeId = viaje.id;
+      }
+
+      if (!error && targetViajeId) {
+        await saveReservacion(targetViajeId, empresaId);
       }
 
       setSubmitting(false);
