@@ -51,6 +51,7 @@ export default function AsignacionesPrueba() {
 
   // Edit mode
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingReservacionId, setEditingReservacionId] = useState<string | null>(null);
 
   // Form state
   const [selectedVehiculo, setSelectedVehiculo] = useState("");
