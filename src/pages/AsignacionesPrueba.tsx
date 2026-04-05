@@ -611,10 +611,42 @@ export default function AsignacionesPrueba() {
                                       Editar
                                     </Button>
                                     <Button variant="destructive" size="sm" className="gap-1" onClick={async () => {
+                                      const viajeId = reserva._viaje?.id;
                                       const { error } = await supabase.from("reservaciones").delete().eq("id", reserva.id);
                                       if (error) {
                                         toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
                                       } else {
+                                        // Check if viaje has remaining reservaciones
+                                        if (viajeId) {
+                                          const { data: remaining } = await supabase
+                                            .from("reservaciones")
+                                            .select("id")
+                                            .eq("viaje_id", viajeId);
+                                          if (!remaining || remaining.length === 0) {
+                                            // Delete ingresos and viaje too
+                                            await supabase.from("ingresos_viaje").delete().eq("viaje_id", viajeId);
+                                            await supabase.from("egresos_viaje").delete().eq("viaje_id", viajeId);
+                                            await supabase.from("viaje_dia_control").delete().eq("viaje_id", viajeId);
+                                            await supabase.from("viajes").delete().eq("id", viajeId);
+                                          } else {
+                                            // Recalculate viaje totals from remaining reservaciones
+                                            const { data: remainingFull } = await supabase
+                                              .from("reservaciones")
+                                              .select("*")
+                                              .eq("viaje_id", viajeId);
+                                            if (remainingFull && remainingFull.length > 0) {
+                                              const totalPax = remainingFull.reduce((s: number, r: any) => s + (r.cantidad_pasajeros || 0), 0);
+                                              const totalMonto = remainingFull.reduce((s: number, r: any) => s + (r.pasajeros_monto || 0), 0);
+                                              const totalEnc = remainingFull.reduce((s: number, r: any) => s + (r.encomiendas_monto || 0), 0);
+                                              await supabase.from("viajes").update({ cantidad_pasajeros: totalPax }).eq("id", viajeId);
+                                              await supabase.from("ingresos_viaje").update({
+                                                pasajeros_monto: totalMonto,
+                                                encomiendas_monto: totalEnc,
+                                                total_ingreso: totalMonto + totalEnc,
+                                              }).eq("viaje_id", viajeId);
+                                            }
+                                          }
+                                        }
                                         toast({ title: "Reserva eliminada" });
                                         loadData();
                                       }
