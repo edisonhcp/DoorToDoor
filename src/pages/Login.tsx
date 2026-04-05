@@ -75,14 +75,14 @@ export default function Login() {
           className="relative z-10 text-center"
         >
           {/* Ec Esfera Software - Developer branding */}
-          <div className="mb-6 flex flex-col items-center gap-1">
-            <img src={logoEcEsfera} alt="Ec Esfera Software" className="w-12 h-12 rounded-lg" loading="lazy" width={512} height={512} />
+          <div className="mb-6 flex flex-col items-center gap-2">
+            <img src={logoEcEsfera} alt="Ec Esfera Software" className="w-20 h-20 rounded-2xl" loading="lazy" width={512} height={512} />
             <span className="text-xs text-sidebar-foreground/50 font-medium tracking-wide">Ec Esfera Software</span>
           </div>
 
           {/* DoorToDoor logo */}
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white/10 mb-8 overflow-hidden">
-            <img src={logoDoorToDoor} alt="DoorToDoor" className="w-20 h-20 object-contain" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl overflow-hidden mb-8">
+            <img src={logoDoorToDoor} alt="DoorToDoor" className="w-24 h-24 rounded-2xl object-cover" />
           </div>
           <h1 className="text-5xl font-display font-bold text-sidebar-foreground mb-4 tracking-tight">
             DoorToDoor
