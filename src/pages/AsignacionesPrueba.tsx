@@ -285,23 +285,16 @@ export default function AsignacionesPrueba() {
   const handleCopiarReserva = async (viaje: any) => {
     const fechaStr = viaje.fecha_salida ? format(new Date(viaje.fecha_salida), "dd/MM/yyyy") : "—";
     const horaStr = viaje.hora_salida || "—";
+    const reserva = viaje.reservacion;
     const pasajeros = viaje.cantidad_pasajeros || 1;
-    const reservaciones = viaje.reservaciones || [];
+    const nombrePasajero = reserva?.nombre_pasajero || "—";
+    const detalle = reserva?.detalle ? `, ${reserva.detalle}` : "";
 
     let texto = `*RESERVA DE VIAJE PARA ${pasajeros} PASAJERO${pasajeros > 1 ? "S" : ""}*, PARA EL ${fechaStr} ${horaStr} EN LA RUTA: ${viaje.origen} → ${viaje.destino}\n\n`;
-
-    if (reservaciones.length > 0) {
-      reservaciones.forEach((r: any, idx: number) => {
-        const detalle = r.detalle ? `, ${r.detalle}` : "";
-        texto += `*Pasajero ${idx + 1}:* ${r.nombre_pasajero || "—"}${detalle}\n`;
-        if (r.celular_pasajero) texto += `Celular: ${r.celular_pasajero}\n`;
-        if (r.parada) texto += `Parada: ${r.parada}\n`;
-        texto += "\n";
-      });
-    }
-
-    texto += `*Precio Total:* $${viaje.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
-    texto += `*Encomienda Total:* $${viaje.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
+    texto += `${pasajeros} PASAJERO: ${nombrePasajero}${detalle}\n`;
+    if (reserva?.celular_pasajero) texto += `Celular: ${reserva.celular_pasajero}\n`;
+    texto += `Precio: $${viaje.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
+    texto += `Encomienda: $${viaje.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
 
     try {
       await navigator.clipboard.writeText(texto);
