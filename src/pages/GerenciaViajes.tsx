@@ -237,7 +237,7 @@ export default function GerenciaViajes() {
                 </div>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full md:w-72 justify-start text-sm font-normal h-10">
+                    <Button variant="outline" className="w-full md:w-72 justify-start text-xs sm:text-sm font-normal h-8 sm:h-10">
                       {selectedVehiculosLabel}
                     </Button>
                   </PopoverTrigger>
