@@ -254,7 +254,6 @@ export default function ConductorAsignaciones() {
                 const totalPasajeros = items.reduce((s: number, v: any) => s + (v.cantidad_pasajeros || 0), 0);
                 const totalPasajerosMonto = items.reduce((s: number, v: any) => s + (v.ingresos?.pasajeros_monto || 0), 0);
                 const totalEncomienda = items.reduce((s: number, v: any) => s + (v.ingresos?.encomiendas_monto || 0), 0);
-                const isGroup = items.length > 1;
                 const groupBadge = estadoBadge[first.estado] || { label: first.estado, variant: "secondary" as const };
 
                 return (
