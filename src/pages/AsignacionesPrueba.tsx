@@ -107,7 +107,6 @@ export default function AsignacionesPrueba() {
     setValorEncomienda(String(a.ingresos?.encomiendas_monto || 0));
     setSelectedVehiculo(a.asignacion_id || "");
     setFechaSalida(a.fecha_salida ? new Date(a.fecha_salida) : undefined);
-    // Restore reservation fields from DB
     setParada(a.reservacion?.parada || "");
     setPasajeroNombre(a.reservacion?.nombre_pasajero || "");
     setPasajeroCelular(a.reservacion?.celular_pasajero || "");
@@ -181,8 +180,6 @@ export default function AsignacionesPrueba() {
       const vehiculoData = vehiculosDisponibles.find((v) => v.vehiculo_id === selectedVehiculo);
       if (!vehiculoData) return;
 
-      // No time/date restriction — allow multiple reservations at the same time
-
       setSubmitting(true);
       const { data: viaje, error } = await crearAsignacionRuta({
         asignacion_id: vehiculoData.id,
@@ -228,11 +225,10 @@ export default function AsignacionesPrueba() {
     texto += `*PRECIO PASAJEROS:* $${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
     texto += `*ENCOMIENDA:* $${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
 
-    // Send to conductor's WhatsApp number
     const conductorCelular = a.conductor?.celular || "";
     const phone = conductorCelular ? `593${conductorCelular.replace(/^0/, "")}` : "";
     const encoded = encodeURIComponent(texto);
-    window.open(`https://wa.me/${phone}?text=${encoded}`, "_blank");
+    window.location.href = `https://wa.me/${phone}?text=${encoded}`;
   };
 
   return (
@@ -451,131 +447,143 @@ export default function AsignacionesPrueba() {
               }
               return true;
             });
-            return filteredAsignaciones.length === 0 ? (
-            <Card className="border-0 shadow-sm">
-              <CardContent className="py-12 text-center">
-                <Route className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">No hay reservaciones</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {filteredAsignaciones.map((a: any) => {
-                const badge = estadoBadge[a.estado] || { label: a.estado, variant: "secondary" as const };
-                const isFinalized24h = a.estado === "FINALIZADO" && a.fecha_llegada && (Date.now() - new Date(a.fecha_llegada).getTime() > 24 * 60 * 60 * 1000);
-                const canEdit = !isFinalized24h;
-                const reserva = a.reservacion;
-                return (
-                  <Card key={a.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${editingId === a.id ? "ring-2 ring-amber-500" : ""}`}>
-                    <CardContent className="p-5">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-start gap-4 flex-1">
+
+            // Group by vehicle + route + date + time
+            const groups: Record<string, any[]> = {};
+            for (const a of filteredAsignaciones) {
+              const fechaStr = a.fecha_salida ? format(new Date(a.fecha_salida), "yyyy-MM-dd") : "";
+              const key = `${a.asignacion_id || ""}_${a.origen}_${a.destino}_${fechaStr}_${a.hora_salida || ""}`;
+              if (!groups[key]) groups[key] = [];
+              groups[key].push(a);
+            }
+
+            const groupEntries = Object.entries(groups);
+
+            return groupEntries.length === 0 ? (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-12 text-center">
+                  <Route className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+                  <p className="text-muted-foreground">No hay reservaciones</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {groupEntries.map(([groupKey, items]) => {
+                  const first = items[0];
+                  const badge = estadoBadge[first.estado] || { label: first.estado, variant: "secondary" as const };
+                  return (
+                    <Card key={groupKey} className="border-0 shadow-sm">
+                      <CardContent className="p-5">
+                        {/* Group header — vehicle, route, date, time, conductor (shown once) */}
+                        <div className="flex items-start gap-4 mb-3">
                           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                             <Truck className="w-5 h-5 text-primary" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-display font-semibold text-foreground">
-                                {a.vehiculo?.placa || "—"} · {a.vehiculo?.marca} {a.vehiculo?.modelo}
+                                {first.vehiculo?.placa || "—"} · {first.vehiculo?.marca} {first.vehiculo?.modelo}
                               </span>
                               <Badge variant={badge.variant}>{badge.label}</Badge>
                             </div>
                             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
-                                {a.origen} → {a.destino}
+                                {first.origen} → {first.destino}
                               </span>
-                              {reserva?.parada && (
-                                <span className="flex items-center gap-1">
-                                  <MapPinned className="w-3 h-3" />
-                                  Parada: {reserva.parada}
-                                </span>
-                              )}
-                              {a.fecha_salida && (
+                              {first.fecha_salida && (
                                 <span className="flex items-center gap-1">
                                   <CalendarIcon className="w-3 h-3" />
-                                  {format(new Date(a.fecha_salida), "dd/MM/yyyy")}
+                                  {format(new Date(first.fecha_salida), "dd/MM/yyyy")}
                                 </span>
                               )}
-                              {a.hora_salida && (
+                              {first.hora_salida && (
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
-                                  {a.hora_salida}
+                                  {first.hora_salida}
                                 </span>
                               )}
-                              <span className="flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                {a.cantidad_pasajeros} pasajeros
-                              </span>
                             </div>
-                            {/* Passenger info */}
-                            {(reserva?.nombre_pasajero || reserva?.celular_pasajero || reserva?.detalle) && (
-                              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
-                                {reserva?.nombre_pasajero && (
-                                  <span className="flex items-center gap-1">
-                                    <User className="w-3 h-3" />
-                                    {reserva.nombre_pasajero}
-                                  </span>
-                                )}
-                                {reserva?.celular_pasajero && (
-                                  <span className="flex items-center gap-1">
-                                    <Phone className="w-3 h-3" />
-                                    {reserva.celular_pasajero}
-                                  </span>
-                                )}
-                                {reserva?.detalle && (
-                                  <span className="flex items-center gap-1">
-                                    <FileText className="w-3 h-3" />
-                                    {reserva.detalle}
-                                  </span>
-                                )}
-                              </div>
+                            {first.conductor && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Conductor: {first.conductor.nombres} {first.conductor.apellidos}
+                              </p>
                             )}
-                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
-                              <span className="flex items-center gap-1">
-                                <DollarSign className="w-3 h-3" />
-                                Pasajeros: ${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Package className="w-3 h-3" />
-                                Encomienda: ${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}
-                              </span>
-                              {a.conductor && (
-                                <span className="text-xs">
-                                  Conductor: {a.conductor.nombres} {a.conductor.apellidos}
-                                </span>
-                              )}
-                            </div>
                           </div>
                         </div>
-                        <div className="flex gap-2 shrink-0">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1"
-                            onClick={() => handleEdit(a)}
-                            disabled={!canEdit}
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                            Editar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1"
-                            onClick={() => handleEnviarWhatsApp(a)}
-                          >
-                            <Send className="w-3.5 h-3.5" />
-                            Enviar a WhatsApp
-                          </Button>
+
+                        {/* Individual reservations */}
+                        <div className="border-t border-border pt-3 space-y-3">
+                          {items.map((a: any) => {
+                            const reserva = a.reservacion;
+                            const isFinalized24h = a.estado === "FINALIZADO" && a.fecha_llegada && (Date.now() - new Date(a.fecha_llegada).getTime() > 24 * 60 * 60 * 1000);
+                            const canEdit = !isFinalized24h;
+                            return (
+                              <div key={a.id} className={`flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 ${editingId === a.id ? "ring-2 ring-amber-500" : ""}`}>
+                                <div className="flex-1 min-w-0 space-y-1">
+                                  {reserva?.parada && (
+                                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                                      <MapPinned className="w-3 h-3" />
+                                      Parada: {reserva.parada}
+                                    </span>
+                                  )}
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Users className="w-3 h-3" />
+                                    {a.cantidad_pasajeros} pasajeros
+                                  </div>
+                                  {(reserva?.nombre_pasajero || reserva?.celular_pasajero || reserva?.detalle) && (
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                                      {reserva?.nombre_pasajero && (
+                                        <span className="flex items-center gap-1">
+                                          <User className="w-3 h-3" />
+                                          {reserva.nombre_pasajero}
+                                        </span>
+                                      )}
+                                      {reserva?.celular_pasajero && (
+                                        <span className="flex items-center gap-1">
+                                          <Phone className="w-3 h-3" />
+                                          {reserva.celular_pasajero}
+                                        </span>
+                                      )}
+                                      {reserva?.detalle && (
+                                        <span className="flex items-center gap-1">
+                                          <FileText className="w-3 h-3" />
+                                          {reserva.detalle}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                                    <span className="flex items-center gap-1">
+                                      <DollarSign className="w-3 h-3" />
+                                      Pasajeros: ${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Package className="w-3 h-3" />
+                                      Encomienda: ${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 shrink-0">
+                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEdit(a)} disabled={!canEdit}>
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    Editar
+                                  </Button>
+                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEnviarWhatsApp(a)}>
+                                    <Send className="w-3.5 h-3.5" />
+                                    Enviar a WhatsApp
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          );
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            );
           })()}
         </motion.div>
       </motion.div>
