@@ -603,7 +603,7 @@ export default function AsignacionesPrueba() {
                                           {reserva.direccion}
                                         </span>
                                       )}
-                                  </div>
+                                    </div>
                                   <div className="flex gap-2 shrink-0">
                                     <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEditReservacion(reserva._viaje, reserva)}>
                                       <Pencil className="w-3.5 h-3.5" />
