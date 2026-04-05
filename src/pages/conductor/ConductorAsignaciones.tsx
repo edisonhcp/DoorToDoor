@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Route, Truck, Clock, Users, CheckCircle2, Save, Upload, Image } from "lucide-react";
+import { Route, Truck, Clock, Users, CheckCircle2, Save, Upload, Image, DollarSign, Package } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
