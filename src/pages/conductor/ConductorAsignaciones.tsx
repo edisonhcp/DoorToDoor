@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Route, Truck, Clock, Users, CheckCircle2, Save, Upload, Image } from "lucide-react";
+import { Route, Truck, Clock, Users, CheckCircle2, Save, Upload, Image, DollarSign, Package } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -240,6 +240,57 @@ export default function ConductorAsignaciones() {
           </Card>
         ) : (
           <div className="space-y-4">
+            {/* Summary cards — group viajes by route + date + time */}
+            {(() => {
+              const groups: Record<string, any[]> = {};
+              for (const v of filteredViajes) {
+                const fechaStr = v.fecha_salida ? new Date(v.fecha_salida).toLocaleDateString("es-EC") : "";
+                const key = `${v.asignacion_id || ""}_${v.origen}_${v.destino}_${fechaStr}_${v.hora_salida || ""}`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(v);
+              }
+              const multiGroups = Object.entries(groups).filter(([, items]) => items.length > 1);
+              if (multiGroups.length === 0) return null;
+              return multiGroups.map(([key, items]) => {
+                const first = items[0];
+                const totalPasajeros = items.reduce((s, v) => s + (v.cantidad_pasajeros || 0), 0);
+                const totalPasajerosMonto = items.reduce((s, v) => s + (v.ingresos?.pasajeros_monto || 0), 0);
+                const totalEncomienda = items.reduce((s, v) => s + (v.ingresos?.encomiendas_monto || 0), 0);
+                return (
+                  <Card key={`summary-${key}`} className="border-0 shadow-sm border-l-4 border-l-primary bg-primary/5">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-5 h-5 text-primary" />
+                        <span className="font-display font-semibold text-foreground">
+                          Resumen: {first.origen} → {first.destino}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {first.fecha_salida ? new Date(first.fecha_salida).toLocaleDateString("es-EC") : ""} {first.hora_salida || ""}
+                        </span>
+                        {first.vehiculo && <span><Truck className="w-3 h-3 inline mr-1" />{first.vehiculo.placa}</span>}
+                      </div>
+                      <div className="flex items-center gap-6 mt-2 text-sm font-medium flex-wrap">
+                        <span className="flex items-center gap-1 text-foreground">
+                          <Users className="w-4 h-4 text-primary" />
+                          {totalPasajeros} pasajeros total
+                        </span>
+                        <span className="flex items-center gap-1 text-foreground">
+                          <DollarSign className="w-4 h-4 text-primary" />
+                          Pasajeros: ${totalPasajerosMonto.toFixed(2)}
+                        </span>
+                        <span className="flex items-center gap-1 text-foreground">
+                          <Package className="w-4 h-4 text-primary" />
+                          Encomienda: ${totalEncomienda.toFixed(2)}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              });
+            })()}
             {filteredViajes.map((v) => {
               const badge = estadoBadge[v.estado] || { label: v.estado, variant: "secondary" as const };
               const isEditing = editingEgresos === v.id;
