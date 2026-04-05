@@ -114,6 +114,27 @@ export default function AsignacionesPrueba() {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  // Edit a specific reservacion within a viaje
+  const [editingReservacionId, setEditingReservacionId] = useState<string | null>(null);
+
+  const handleEditReservacion = (viaje: any, reserva: any) => {
+    setEditingId(viaje.id);
+    setEditingReservacionId(reserva.id);
+    setOrigen(viaje.origen);
+    setDestino(viaje.destino);
+    setHoraSalida(viaje.hora_salida || "");
+    setCantidadPasajeros(String(viaje.cantidad_pasajeros || 0));
+    setValorPasajeros(String(viaje.ingresos?.pasajeros_monto || 0));
+    setValorEncomienda(String(viaje.ingresos?.encomiendas_monto || 0));
+    setSelectedVehiculo(viaje.asignacion_id || "");
+    setFechaSalida(viaje.fecha_salida ? new Date(viaje.fecha_salida) : undefined);
+    setParada(reserva.parada || "");
+    setPasajeroNombre(reserva.nombre_pasajero || "");
+    setPasajeroCelular(reserva.celular_pasajero || "");
+    setPasajeroDetalle(reserva.detalle || "");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const saveReservacion = async (viajeId: string, empresaIdVal: string, reservacionId?: string) => {
     if (reservacionId) {
       await supabase.from("reservaciones").update({
