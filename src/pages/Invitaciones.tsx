@@ -152,7 +152,7 @@ export default function Invitaciones() {
         </motion.div>
 
         <motion.div variants={item}>
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               {loading ? (
                 <div className="p-8 text-center text-muted-foreground">Cargando...</div>
