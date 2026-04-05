@@ -115,9 +115,10 @@ export default function Invitaciones() {
             <h1 className="text-xl sm:text-3xl font-display font-bold text-foreground">Invitaciones</h1>
             <p className="text-muted-foreground mt-1 text-xs sm:text-sm">Genera links de registro para conductores y propietarios</p>
           </div>
-          <Button onClick={() => setGenerateOpen(true)} size="sm" className="gap-2 font-display w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+          <Button onClick={() => setGenerateOpen(true)} size="sm" className="gap-2 font-display w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm shrink-0">
             <Plus className="w-4 h-4" />
-            Generar Invitación
+            <span className="hidden sm:inline">Generar Invitación</span>
+            <span className="sm:hidden">Generar</span>
           </Button>
         </motion.div>
 
