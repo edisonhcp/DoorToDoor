@@ -230,8 +230,8 @@ export default function MiFlota() {
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <motion.div variants={anim}>
-          <h1 className="text-3xl font-display font-bold text-foreground">Mi Flota</h1>
-          <p className="text-muted-foreground mt-1">Vista consolidada de propietarios, vehículos y conductores</p>
+          <h1 className="text-xl sm:text-3xl font-display font-bold text-foreground">Mi Flota</h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm truncate">Vista consolidada de propietarios, vehículos y conductores</p>
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelected(null); }}>
