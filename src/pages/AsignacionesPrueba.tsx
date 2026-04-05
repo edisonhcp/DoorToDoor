@@ -550,10 +550,10 @@ export default function AsignacionesPrueba() {
             ) : (
               <div className="space-y-4">
                 {(() => {
-                  // Group viajes by vehicle (asignacion_id + origen + destino + fecha + hora)
+                  // Group each viaje as its own card (each viaje = unique route+date+time)
                   const vehicleGroups: Record<string, any[]> = {};
                   for (const viaje of filteredAsignaciones) {
-                    const vehKey = viaje.asignacion_id || viaje.id;
+                    const vehKey = viaje.id;
                     if (!vehicleGroups[vehKey]) vehicleGroups[vehKey] = [];
                     vehicleGroups[vehKey].push(viaje);
                   }
