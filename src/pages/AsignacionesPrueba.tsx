@@ -181,30 +181,82 @@ export default function AsignacionesPrueba() {
       if (!vehiculoData) return;
 
       setSubmitting(true);
-      const { data: viaje, error } = await crearAsignacionRuta({
-        asignacion_id: vehiculoData.id,
-        destino,
-        origen,
-        hora_salida: horaSalida,
-        cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
-        pasajeros_monto: parseFloat(valorPasajeros) || 0,
-        encomiendas_monto: parseFloat(valorEncomienda) || 0,
-        empresa_id: empresaId,
-        fecha_salida: fechaSalida ? fechaSalida.toISOString() : new Date().toISOString(),
+
+      const fechaISO = fechaSalida ? fechaSalida.toISOString() : new Date().toISOString();
+      const fechaDate = fechaSalida ? format(fechaSalida, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+
+      // Check if a viaje already exists with same asignacion, origen, destino, fecha, hora
+      const existingViaje = asignaciones.find((a: any) => {
+        const aFecha = a.fecha_salida ? format(new Date(a.fecha_salida), "yyyy-MM-dd") : "";
+        return (
+          a.asignacion_id === vehiculoData.id &&
+          a.origen === origen &&
+          a.destino === destino &&
+          aFecha === fechaDate &&
+          (a.hora_salida || "") === horaSalida &&
+          ["ASIGNADO", "EN_RUTA"].includes(a.estado)
+        );
       });
 
-      if (!error && viaje) {
-        await saveReservacion(viaje.id, empresaId);
-      }
+      if (existingViaje) {
+        // Add to existing viaje: increment passengers + ingresos, add reservacion
+        const newPasajeros = (existingViaje.cantidad_pasajeros || 0) + (parseInt(cantidadPasajeros) || 0);
+        const newPasajerosMonto = (existingViaje.ingresos?.pasajeros_monto || 0) + (parseFloat(valorPasajeros) || 0);
+        const newEncomiendaMonto = (existingViaje.ingresos?.encomiendas_monto || 0) + (parseFloat(valorEncomienda) || 0);
 
-      setSubmitting(false);
+        const { error: updateError } = await supabase
+          .from("viajes")
+          .update({ cantidad_pasajeros: newPasajeros })
+          .eq("id", existingViaje.id);
 
-      if (error) {
-        toast({ title: "Error al reservar", description: error.message, variant: "destructive" });
+        if (!updateError) {
+          await supabase
+            .from("ingresos_viaje")
+            .update({
+              pasajeros_monto: newPasajerosMonto,
+              encomiendas_monto: newEncomiendaMonto,
+              total_ingreso: newPasajerosMonto + newEncomiendaMonto,
+            })
+            .eq("viaje_id", existingViaje.id);
+
+          await saveReservacion(existingViaje.id, empresaId);
+        }
+
+        setSubmitting(false);
+        if (updateError) {
+          toast({ title: "Error al reservar", description: updateError.message, variant: "destructive" });
+        } else {
+          toast({ title: "Pasajero agregado a la reserva existente" });
+          clearForm();
+          loadData();
+        }
       } else {
-        toast({ title: "Reserva creada exitosamente" });
-        clearForm();
-        loadData();
+        // Create new viaje
+        const { data: viaje, error } = await crearAsignacionRuta({
+          asignacion_id: vehiculoData.id,
+          destino,
+          origen,
+          hora_salida: horaSalida,
+          cantidad_pasajeros: parseInt(cantidadPasajeros) || 0,
+          pasajeros_monto: parseFloat(valorPasajeros) || 0,
+          encomiendas_monto: parseFloat(valorEncomienda) || 0,
+          empresa_id: empresaId,
+          fecha_salida: fechaISO,
+        });
+
+        if (!error && viaje) {
+          await saveReservacion(viaje.id, empresaId);
+        }
+
+        setSubmitting(false);
+
+        if (error) {
+          toast({ title: "Error al reservar", description: error.message, variant: "destructive" });
+        } else {
+          toast({ title: "Reserva creada exitosamente" });
+          clearForm();
+          loadData();
+        }
       }
     }
   };
