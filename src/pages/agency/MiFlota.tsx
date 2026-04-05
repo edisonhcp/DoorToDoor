@@ -576,10 +576,11 @@ export default function MiFlota() {
                               className={`cursor-pointer ${isOpen ? "bg-accent" : ""}`}
                               onClick={() => setSelected(isOpen ? null : { type: "conductor", item: c })}
                             >
-                              <TableCell className="font-medium">{c.nombres}</TableCell>
-                              <TableCell>{c.apellidos}</TableCell>
+                              <TableCell className="font-medium">{c.apellidos}</TableCell>
+                              <TableCell>{c.nombres}</TableCell>
                               <TableCell>{c.identificacion}</TableCell>
                               <TableCell>{c.celular}</TableCell>
+                              <TableCell className="text-xs truncate max-w-[180px]">{c.email}</TableCell>
                               <TableCell onClick={e => e.stopPropagation()}>
                                 {c.vehiculo ? (
                                   c.vehiculo.estado === "INHABILITADO" ? (
