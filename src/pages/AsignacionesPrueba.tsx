@@ -478,114 +478,131 @@ export default function AsignacionesPrueba() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredAsignaciones.map((viaje: any) => {
-                  const badge = estadoBadge[viaje.estado] || { label: viaje.estado, variant: "secondary" as const };
-                  const reservaciones = viaje.reservaciones || [];
-                  return (
-                    <Card key={viaje.id} className="border-0 shadow-sm">
-                      <CardContent className="p-5">
-                        {/* Viaje header — vehicle, route, date, time, conductor */}
-                        <div className="flex items-start gap-4 mb-3">
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                            <Truck className="w-5 h-5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-display font-semibold text-foreground">
-                                {viaje.vehiculo?.placa || "—"} · {viaje.vehiculo?.marca} {viaje.vehiculo?.modelo}
-                              </span>
-                              <Badge variant={badge.variant}>{badge.label}</Badge>
-                            </div>
-                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                {viaje.origen} → {viaje.destino}
-                              </span>
-                              {viaje.fecha_salida && (
-                                <span className="flex items-center gap-1">
-                                  <CalendarIcon className="w-3 h-3" />
-                                  {format(new Date(viaje.fecha_salida), "dd/MM/yyyy")}
-                                </span>
-                              )}
-                              {viaje.hora_salida && (
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {viaje.hora_salida}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                {viaje.cantidad_pasajeros} pasajero{(viaje.cantidad_pasajeros || 0) > 1 ? "s" : ""} total
-                              </span>
-                            </div>
-                            {viaje.conductor && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Conductor: {viaje.conductor.nombres} {viaje.conductor.apellidos}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                              <span>Total Pasajeros: ${viaje.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}</span>
-                              <span>Total Encomienda: ${viaje.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}</span>
-                            </div>
-                          </div>
-                        </div>
+                {(() => {
+                  // Group viajes by vehicle (asignacion_id + origen + destino + fecha + hora)
+                  const vehicleGroups: Record<string, any[]> = {};
+                  for (const viaje of filteredAsignaciones) {
+                    const vehKey = viaje.asignacion_id || viaje.id;
+                    if (!vehicleGroups[vehKey]) vehicleGroups[vehKey] = [];
+                    vehicleGroups[vehKey].push(viaje);
+                  }
 
-                        {/* Individual reservations */}
-                        {reservaciones.length > 0 && (
-                          <div className="border-t border-border pt-3 space-y-3">
-                            {reservaciones.map((reserva: any, idx: number) => (
-                              <div key={reserva.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-lg bg-muted/30">
-                                <div className="flex-1 min-w-0 space-y-1">
-                                  <span className="text-xs font-semibold text-foreground">Reserva #{idx + 1}</span>
-                                  {reserva.parada && (
-                                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                                      <MapPinned className="w-3 h-3" />
-                                      Parada: {reserva.parada}
-                                    </span>
-                                  )}
-                                  <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                                    {reserva.nombre_pasajero && (
-                                      <span className="flex items-center gap-1">
-                                        <User className="w-3 h-3" />
-                                        {reserva.nombre_pasajero}
+                  return Object.entries(vehicleGroups).map(([vehKey, viajes]) => {
+                    const first = viajes[0];
+                    const totalPasajeros = viajes.reduce((s: number, v: any) => s + (v.cantidad_pasajeros || 0), 0);
+                    const totalPasajerosMonto = viajes.reduce((s: number, v: any) => s + (v.ingresos?.pasajeros_monto || 0), 0);
+                    const totalEncomienda = viajes.reduce((s: number, v: any) => s + (v.ingresos?.encomiendas_monto || 0), 0);
+                    const allReservaciones = viajes.flatMap((v: any) => 
+                      (v.reservaciones || []).map((r: any) => ({ ...r, _viaje: v }))
+                    );
+                    const badge = estadoBadge[first.estado] || { label: first.estado, variant: "secondary" as const };
+
+                    return (
+                      <Card key={vehKey} className="border-0 shadow-sm">
+                        <CardContent className="p-5">
+                          {/* Vehicle header */}
+                          <div className="flex items-start gap-4 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                              <Truck className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-display font-semibold text-foreground">
+                                  {first.vehiculo?.placa || "—"} · {first.vehiculo?.marca} {first.vehiculo?.modelo}
+                                </span>
+                                <Badge variant={badge.variant}>{badge.label}</Badge>
+                              </div>
+                              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {first.origen} → {first.destino}
+                                </span>
+                                {first.fecha_salida && (
+                                  <span className="flex items-center gap-1">
+                                    <CalendarIcon className="w-3 h-3" />
+                                    {format(new Date(first.fecha_salida), "dd/MM/yyyy")}
+                                  </span>
+                                )}
+                                {first.hora_salida && (
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {first.hora_salida}
+                                  </span>
+                                )}
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {totalPasajeros} pasajero{totalPasajeros > 1 ? "s" : ""} total
+                                </span>
+                              </div>
+                              {first.conductor && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Conductor: {first.conductor.nombres} {first.conductor.apellidos}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                <span>Total Pasajeros: ${totalPasajerosMonto.toFixed(2)}</span>
+                                <span>Total Encomienda: ${totalEncomienda.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* All reservations under this vehicle */}
+                          {allReservaciones.length > 0 && (
+                            <div className="border-t border-border pt-3 space-y-3">
+                              {allReservaciones.map((reserva: any, idx: number) => (
+                                <div key={reserva.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-lg bg-muted/30">
+                                  <div className="flex-1 min-w-0 space-y-1">
+                                    <span className="text-xs font-semibold text-foreground">Reserva #{idx + 1}</span>
+                                    {reserva.parada && (
+                                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                                        <MapPinned className="w-3 h-3" />
+                                        Parada: {reserva.parada}
                                       </span>
                                     )}
-                                    {reserva.celular_pasajero && (
-                                      <span className="flex items-center gap-1">
-                                        <Phone className="w-3 h-3" />
-                                        {reserva.celular_pasajero}
-                                      </span>
-                                    )}
-                                    {reserva.detalle && (
-                                      <span className="flex items-center gap-1">
-                                        <FileText className="w-3 h-3" />
-                                        {reserva.detalle}
-                                      </span>
-                                    )}
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                                      {reserva.nombre_pasajero && (
+                                        <span className="flex items-center gap-1">
+                                          <User className="w-3 h-3" />
+                                          {reserva.nombre_pasajero}
+                                        </span>
+                                      )}
+                                      {reserva.celular_pasajero && (
+                                        <span className="flex items-center gap-1">
+                                          <Phone className="w-3 h-3" />
+                                          {reserva.celular_pasajero}
+                                        </span>
+                                      )}
+                                      {reserva.detalle && (
+                                        <span className="flex items-center gap-1">
+                                          <FileText className="w-3 h-3" />
+                                          {reserva.detalle}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2 shrink-0">
+                                    <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEditReservacion(reserva._viaje, reserva)}>
+                                      <Pencil className="w-3.5 h-3.5" />
+                                      Editar
+                                    </Button>
                                   </div>
                                 </div>
-                                <div className="flex gap-2 shrink-0">
-                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEditReservacion(viaje, reserva)}>
-                                    <Pencil className="w-3.5 h-3.5" />
-                                    Editar
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                              ))}
+                            </div>
+                          )}
 
-                        {/* Copy button for the whole viaje */}
-                        <div className="flex justify-end mt-3">
-                          <Button variant="outline" size="sm" className="gap-1" onClick={() => handleCopiarReserva(viaje)}>
-                            <Copy className="w-3.5 h-3.5" />
-                            Copiar Reserva
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                          {/* Copy button */}
+                          <div className="flex justify-end mt-3">
+                            <Button variant="outline" size="sm" className="gap-1" onClick={() => handleCopiarReserva(first)}>
+                              <Copy className="w-3.5 h-3.5" />
+                              Copiar Reserva
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  });
+                })()}
               </div>
             );
           })()}
