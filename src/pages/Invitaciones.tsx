@@ -111,11 +111,11 @@ export default function Invitaciones() {
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-display font-bold text-foreground">Invitaciones</h1>
-            <p className="text-muted-foreground mt-1 text-sm">Genera links de registro para conductores y propietarios</p>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-3xl font-display font-bold text-foreground">Invitaciones</h1>
+            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">Genera links de registro para conductores y propietarios</p>
           </div>
-          <Button onClick={() => setGenerateOpen(true)} className="gap-2 font-display w-full sm:w-auto">
+          <Button onClick={() => setGenerateOpen(true)} size="sm" className="gap-2 font-display w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
             <Plus className="w-4 h-4" />
             Generar Invitación
           </Button>
