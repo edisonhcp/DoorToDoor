@@ -560,6 +560,50 @@ export type Database = {
         }
         Relationships: []
       }
+      reservaciones: {
+        Row: {
+          celular_pasajero: string | null
+          created_at: string
+          detalle: string | null
+          empresa_id: string
+          id: string
+          nombre_pasajero: string | null
+          parada: string | null
+          updated_at: string
+          viaje_id: string
+        }
+        Insert: {
+          celular_pasajero?: string | null
+          created_at?: string
+          detalle?: string | null
+          empresa_id: string
+          id?: string
+          nombre_pasajero?: string | null
+          parada?: string | null
+          updated_at?: string
+          viaje_id: string
+        }
+        Update: {
+          celular_pasajero?: string | null
+          created_at?: string
+          detalle?: string | null
+          empresa_id?: string
+          id?: string
+          nombre_pasajero?: string | null
+          parada?: string | null
+          updated_at?: string
+          viaje_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservaciones_viaje_id_fkey"
+            columns: ["viaje_id"]
+            isOneToOne: false
+            referencedRelation: "viajes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       semanas: {
         Row: {
           conductor_semana_finalizada_at: string | null

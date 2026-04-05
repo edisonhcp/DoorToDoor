@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -43,7 +44,7 @@ export default function AsignacionesPrueba() {
   const { empresaId } = useAuth();
   const { toast } = useToast();
   const [vehiculosDisponibles, setVehiculosDisponibles] = useState<any[]>([]);
-  const [asignaciones, setAsignaciones] = useState<RutaAsignada[]>([]);
+  const [asignaciones, setAsignaciones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
@@ -61,7 +62,6 @@ export default function AsignacionesPrueba() {
   const [valorPasajeros, setValorPasajeros] = useState("");
   const [valorEncomienda, setValorEncomienda] = useState("");
   const [fechaSalida, setFechaSalida] = useState<Date | undefined>(undefined);
-  // Passenger info fields
   const [pasajeroNombre, setPasajeroNombre] = useState("");
   const [pasajeroCelular, setPasajeroCelular] = useState("");
   const [pasajeroDetalle, setPasajeroDetalle] = useState("");
@@ -97,7 +97,7 @@ export default function AsignacionesPrueba() {
     loadData();
   }, [empresaId]);
 
-  const handleEdit = (a: RutaAsignada) => {
+  const handleEdit = (a: any) => {
     setEditingId(a.id);
     setOrigen(a.origen);
     setDestino(a.destino);
@@ -107,11 +107,32 @@ export default function AsignacionesPrueba() {
     setValorEncomienda(String(a.ingresos?.encomiendas_monto || 0));
     setSelectedVehiculo(a.asignacion_id || "");
     setFechaSalida(a.fecha_salida ? new Date(a.fecha_salida) : undefined);
-    setParada("");
-    setPasajeroNombre("");
-    setPasajeroCelular("");
-    setPasajeroDetalle("");
+    // Restore reservation fields from DB
+    setParada(a.reservacion?.parada || "");
+    setPasajeroNombre(a.reservacion?.nombre_pasajero || "");
+    setPasajeroCelular(a.reservacion?.celular_pasajero || "");
+    setPasajeroDetalle(a.reservacion?.detalle || "");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const saveReservacion = async (viajeId: string, empresaIdVal: string, reservacionId?: string) => {
+    if (reservacionId) {
+      await supabase.from("reservaciones").update({
+        parada,
+        nombre_pasajero: pasajeroNombre,
+        celular_pasajero: pasajeroCelular,
+        detalle: pasajeroDetalle,
+      }).eq("id", reservacionId);
+    } else {
+      await supabase.from("reservaciones").insert({
+        viaje_id: viajeId,
+        empresa_id: empresaIdVal,
+        parada,
+        nombre_pasajero: pasajeroNombre,
+        celular_pasajero: pasajeroCelular,
+        detalle: pasajeroDetalle,
+      } as any);
+    }
   };
 
   const handleSubmit = async () => {
@@ -137,6 +158,12 @@ export default function AsignacionesPrueba() {
         encomiendas_monto: parseFloat(valorEncomienda) || 0,
         asignacion_id: newAsignacionId,
       });
+
+      if (!error) {
+        const currentAsig = asignaciones.find(a => a.id === editingId);
+        await saveReservacion(editingId, empresaId, currentAsig?.reservacion?.id);
+      }
+
       setSubmitting(false);
 
       if (error) {
@@ -154,28 +181,10 @@ export default function AsignacionesPrueba() {
       const vehiculoData = vehiculosDisponibles.find((v) => v.vehiculo_id === selectedVehiculo);
       if (!vehiculoData) return;
 
-      if (vehiculoData.ultimo_viaje) {
-        const ultimaFecha = new Date(vehiculoData.ultimo_viaje.fecha_salida);
-        const nuevaFecha = fechaSalida || new Date();
-        
-        const ultimaDateOnly = new Date(ultimaFecha.getFullYear(), ultimaFecha.getMonth(), ultimaFecha.getDate());
-        const nuevaDateOnly = new Date(nuevaFecha.getFullYear(), nuevaFecha.getMonth(), nuevaFecha.getDate());
-        
-        if (nuevaDateOnly < ultimaDateOnly) {
-          toast({ title: "Fecha no permitida", description: "La fecha de salida debe ser posterior a la última ruta asignada para este vehículo", variant: "destructive" });
-          return;
-        }
-        
-        if (nuevaDateOnly.getTime() === ultimaDateOnly.getTime() && horaSalida && vehiculoData.ultimo_viaje.hora_salida) {
-          if (horaSalida <= vehiculoData.ultimo_viaje.hora_salida) {
-            toast({ title: "Hora no permitida", description: "La hora de salida debe ser posterior a la última ruta asignada para este vehículo", variant: "destructive" });
-            return;
-          }
-        }
-      }
+      // No time/date restriction — allow multiple reservations at the same time
 
       setSubmitting(true);
-      const { error } = await crearAsignacionRuta({
+      const { data: viaje, error } = await crearAsignacionRuta({
         asignacion_id: vehiculoData.id,
         destino,
         origen,
@@ -186,6 +195,11 @@ export default function AsignacionesPrueba() {
         empresa_id: empresaId,
         fecha_salida: fechaSalida ? fechaSalida.toISOString() : new Date().toISOString(),
       });
+
+      if (!error && viaje) {
+        await saveReservacion(viaje.id, empresaId);
+      }
+
       setSubmitting(false);
 
       if (error) {
@@ -198,12 +212,27 @@ export default function AsignacionesPrueba() {
     }
   };
 
-  const handleEnviarWhatsApp = (a: RutaAsignada) => {
+  const handleEnviarWhatsApp = (a: any) => {
     const fechaStr = a.fecha_salida ? format(new Date(a.fecha_salida), "dd/MM/yyyy") : "—";
     const horaStr = a.hora_salida || "—";
-    const texto = `*FECHA Y HORA:* ${fechaStr} ${horaStr}\n*RUTA:* ${a.origen} → ${a.destino}\n*CANTIDAD DE PASAJEROS:* ${a.cantidad_pasajeros}\n*PRECIO TOTAL:* $${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n*TOTAL ENCOMIENDA:* $${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
+    const reserva = a.reservacion;
+
+    let texto = `*RESERVA DE VIAJE*\n`;
+    texto += `*FECHA Y HORA:* ${fechaStr} ${horaStr}\n`;
+    texto += `*RUTA:* ${a.origen} → ${a.destino}\n`;
+    if (reserva?.parada) texto += `*PARADA:* ${reserva.parada}\n`;
+    texto += `*CANTIDAD DE PASAJEROS:* ${a.cantidad_pasajeros}\n`;
+    if (reserva?.nombre_pasajero) texto += `*PASAJERO:* ${reserva.nombre_pasajero}\n`;
+    if (reserva?.celular_pasajero) texto += `*CELULAR PASAJERO:* ${reserva.celular_pasajero}\n`;
+    if (reserva?.detalle) texto += `*DETALLE:* ${reserva.detalle}\n`;
+    texto += `*PRECIO PASAJEROS:* $${a.ingresos?.pasajeros_monto?.toFixed(2) || "0.00"}\n`;
+    texto += `*ENCOMIENDA:* $${a.ingresos?.encomiendas_monto?.toFixed(2) || "0.00"}`;
+
+    // Send to conductor's WhatsApp number
+    const conductorCelular = a.conductor?.celular || "";
+    const phone = conductorCelular ? `593${conductorCelular.replace(/^0/, "")}` : "";
     const encoded = encodeURIComponent(texto);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/${phone}?text=${encoded}`, "_blank");
   };
 
   return (
@@ -284,7 +313,7 @@ export default function AsignacionesPrueba() {
                   <Input placeholder="Ciudad de destino" value={destino} onChange={(e) => setDestino(e.target.value)} />
                 </div>
 
-                {/* Parada - nuevo campo */}
+                {/* Parada */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground flex items-center gap-1">
                     <MapPinned className="w-3.5 h-3.5" />
@@ -416,8 +445,8 @@ export default function AsignacionesPrueba() {
             </div>
           ) : (() => {
             const filteredAsignaciones = asignaciones.filter(a => {
-              if (a.estado === "FINALIZADO" && (a as any).fecha_llegada) {
-                const finalizadoTime = new Date((a as any).fecha_llegada).getTime();
+              if (a.estado === "FINALIZADO" && a.fecha_llegada) {
+                const finalizadoTime = new Date(a.fecha_llegada).getTime();
                 if (Date.now() - finalizadoTime > 24 * 60 * 60 * 1000) return false;
               }
               return true;
@@ -431,10 +460,11 @@ export default function AsignacionesPrueba() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {filteredAsignaciones.map((a) => {
+              {filteredAsignaciones.map((a: any) => {
                 const badge = estadoBadge[a.estado] || { label: a.estado, variant: "secondary" as const };
-                const isFinalized24h = a.estado === "FINALIZADO" && (a as any).fecha_llegada && (Date.now() - new Date((a as any).fecha_llegada).getTime() > 24 * 60 * 60 * 1000);
+                const isFinalized24h = a.estado === "FINALIZADO" && a.fecha_llegada && (Date.now() - new Date(a.fecha_llegada).getTime() > 24 * 60 * 60 * 1000);
                 const canEdit = !isFinalized24h;
+                const reserva = a.reservacion;
                 return (
                   <Card key={a.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow ${editingId === a.id ? "ring-2 ring-amber-500" : ""}`}>
                     <CardContent className="p-5">
@@ -455,6 +485,12 @@ export default function AsignacionesPrueba() {
                                 <MapPin className="w-3 h-3" />
                                 {a.origen} → {a.destino}
                               </span>
+                              {reserva?.parada && (
+                                <span className="flex items-center gap-1">
+                                  <MapPinned className="w-3 h-3" />
+                                  Parada: {reserva.parada}
+                                </span>
+                              )}
                               {a.fecha_salida && (
                                 <span className="flex items-center gap-1">
                                   <CalendarIcon className="w-3 h-3" />
@@ -472,6 +508,29 @@ export default function AsignacionesPrueba() {
                                 {a.cantidad_pasajeros} pasajeros
                               </span>
                             </div>
+                            {/* Passenger info */}
+                            {(reserva?.nombre_pasajero || reserva?.celular_pasajero || reserva?.detalle) && (
+                              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
+                                {reserva?.nombre_pasajero && (
+                                  <span className="flex items-center gap-1">
+                                    <User className="w-3 h-3" />
+                                    {reserva.nombre_pasajero}
+                                  </span>
+                                )}
+                                {reserva?.celular_pasajero && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />
+                                    {reserva.celular_pasajero}
+                                  </span>
+                                )}
+                                {reserva?.detalle && (
+                                  <span className="flex items-center gap-1">
+                                    <FileText className="w-3 h-3" />
+                                    {reserva.detalle}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
                               <span className="flex items-center gap-1">
                                 <DollarSign className="w-3 h-3" />
