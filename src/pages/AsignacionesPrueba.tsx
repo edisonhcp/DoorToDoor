@@ -145,7 +145,8 @@ export default function AsignacionesPrueba() {
         nombre_pasajero: pasajeroNombre,
         celular_pasajero: pasajeroCelular,
         detalle: pasajeroDetalle,
-      }).eq("id", reservacionId);
+        direccion: pasajeroDireccion,
+      } as any).eq("id", reservacionId);
     } else {
       await supabase.from("reservaciones").insert({
         viaje_id: viajeId,
@@ -154,6 +155,7 @@ export default function AsignacionesPrueba() {
         nombre_pasajero: pasajeroNombre,
         celular_pasajero: pasajeroCelular,
         detalle: pasajeroDetalle,
+        direccion: pasajeroDireccion,
       } as any);
     }
   };
