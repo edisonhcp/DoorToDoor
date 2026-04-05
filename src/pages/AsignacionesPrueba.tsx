@@ -585,6 +585,18 @@ export default function AsignacionesPrueba() {
                                       <Pencil className="w-3.5 h-3.5" />
                                       Editar
                                     </Button>
+                                    <Button variant="destructive" size="sm" className="gap-1" onClick={async () => {
+                                      const { error } = await supabase.from("reservaciones").delete().eq("id", reserva.id);
+                                      if (error) {
+                                        toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
+                                      } else {
+                                        toast({ title: "Reserva eliminada" });
+                                        loadData();
+                                      }
+                                    }}>
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      Eliminar
+                                    </Button>
                                   </div>
                                 </div>
                               ))}
