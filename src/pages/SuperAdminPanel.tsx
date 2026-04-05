@@ -405,7 +405,7 @@ export default function SuperAdminPanel() {
                                     ) : (
                                       <Tabs defaultValue="vehiculos">
                                         <TabsList>
-                                          <TabsTrigger value="vehiculos" className="gap-1 text-xs"><Truck className="w-3 h-3" /> Vehículos ({detailVehiculos.length})</TabsTrigger>
+                                          <TabsTrigger value="vehiculos" className="gap-1 text-xs bg-orange-400"><Truck className="w-3 h-3" /> Vehículos ({detailVehiculos.length})</TabsTrigger>
                                           <TabsTrigger value="conductores" className="gap-1 text-xs"><Users className="w-3 h-3" /> Conductores ({detailConductores.length})</TabsTrigger>
                                           <TabsTrigger value="propietarios" className="gap-1 text-xs"><UserCheck className="w-3 h-3" /> Propietarios ({detailPropietarios.length})</TabsTrigger>
                                         </TabsList>
