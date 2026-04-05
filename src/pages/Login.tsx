@@ -116,8 +116,8 @@ export default function Login() {
           className="w-full max-w-md"
         >
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary">
-              <Truck className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden">
+              <img src={logoDoorToDoor} alt="DoorToDoor" className="w-full h-full object-contain" />
             </div>
             <span className="text-2xl font-display font-bold text-foreground">DoorToDoor</span>
           </div>
