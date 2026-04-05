@@ -434,7 +434,7 @@ export default function GestionGerencia() {
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Vehículos</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-sm font-normal h-10">
+                        <Button variant="outline" className="w-full justify-start text-xs sm:text-sm font-normal h-9 sm:h-10">
                           {selectedVehiculosLabel}
                         </Button>
                       </PopoverTrigger>

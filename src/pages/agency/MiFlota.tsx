@@ -280,20 +280,20 @@ export default function MiFlota() {
                 className="h-9 w-full md:w-44 text-sm"
               />
             </div>
-            <div className="relative">
+            <div className="relative w-[calc(50%-4px)] md:w-auto">
               <Input
                 placeholder="Placa..."
                 value={filterPlaca}
                 onChange={e => setFilterPlaca(e.target.value)}
-                className="h-9 w-36 text-sm"
+                className="h-9 w-full md:w-36 text-sm"
               />
             </div>
-            <div className="relative">
+            <div className="relative w-[calc(50%-4px)] md:w-auto">
               <Input
                 placeholder="Conductor..."
                 value={filterConductor}
                 onChange={e => setFilterConductor(e.target.value)}
-                className="h-9 w-44 text-sm"
+                className="h-9 w-full md:w-44 text-sm"
               />
             </div>
             {hasFilters && (

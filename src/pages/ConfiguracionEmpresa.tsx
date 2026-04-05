@@ -293,7 +293,7 @@ export default function ConfiguracionEmpresa() {
 
             <div>
               <Label className="mb-2 block">Frecuencia de Comisión</Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 sm:flex gap-2">
                 {[
                   { value: "SEMANAL", label: "Semanal" },
                   { value: "BISEMANAL", label: "Bisemanal" },
