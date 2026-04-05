@@ -109,7 +109,7 @@ export default function Invitaciones() {
 
   return (
     <DashboardLayout>
-      <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 max-w-full overflow-hidden">
         <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-3xl font-display font-bold text-foreground">Invitaciones</h1>
