@@ -417,7 +417,7 @@ export default function GestionGerencia() {
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Período</label>
                     <Select value={selectedPeriodKey} onValueChange={setSelectedPeriodKey}>
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                         <SelectValue placeholder="Todos los períodos" />
                       </SelectTrigger>
                       <SelectContent>
