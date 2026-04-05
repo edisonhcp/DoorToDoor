@@ -115,10 +115,9 @@ export default function AsignacionesPrueba() {
     setPasajeroNombre(a.reservacion?.nombre_pasajero || "");
     setPasajeroCelular(a.reservacion?.celular_pasajero || "");
     setPasajeroDetalle(a.reservacion?.detalle || "");
+    setPasajeroDireccion(a.reservacion?.direccion || "");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-
-  // Edit a specific reservacion within a viaje
 
   const handleEditReservacion = (viaje: any, reserva: any) => {
     setEditingId(viaje.id);
