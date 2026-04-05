@@ -448,6 +448,63 @@ export type Database = {
           },
         ]
       }
+      pasajeros: {
+        Row: {
+          apellidos: string
+          cantidad_pasajeros: number
+          celular: string
+          created_at: string
+          detalle: string
+          direccion: string
+          email: string
+          empresa_id: string
+          encomiendas_monto: number
+          id: string
+          identificacion: string
+          nombre: string
+          parada: string
+          pasajeros_monto: number
+          reservacion_id: string
+          updated_at: string
+        }
+        Insert: {
+          apellidos?: string
+          cantidad_pasajeros?: number
+          celular?: string
+          created_at?: string
+          detalle?: string
+          direccion?: string
+          email?: string
+          empresa_id: string
+          encomiendas_monto?: number
+          id?: string
+          identificacion?: string
+          nombre?: string
+          parada?: string
+          pasajeros_monto?: number
+          reservacion_id: string
+          updated_at?: string
+        }
+        Update: {
+          apellidos?: string
+          cantidad_pasajeros?: number
+          celular?: string
+          created_at?: string
+          detalle?: string
+          direccion?: string
+          email?: string
+          empresa_id?: string
+          encomiendas_monto?: number
+          id?: string
+          identificacion?: string
+          nombre?: string
+          parada?: string
+          pasajeros_monto?: number
+          reservacion_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           activo: boolean
