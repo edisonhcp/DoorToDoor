@@ -16,7 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { fetchConductorData, deleteConductorAccount } from "@/services/conductoresService";
+import { fetchConductorData } from "@/services/conductoresService";
 import { deletePropietarioAccount } from "@/services/propietariosService";
 import { fetchPropietarioVehiculos, deleteVehiculo } from "@/services/vehiculosService";
 import { fetchDashboardStats, fetchEmpresaNombre, fetchEmpresaInfo, fetchViajesActivosConVehiculo, buildDespachoBoard, type DashboardStats, type VehiculoDespacho } from "@/services/dashboardService";
