@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Truck, Users, Route, ClipboardList,
   Settings, LogOut, Menu, X, Building2, Shield, Link2, UserCheck, FileText, Layers, HeadsetIcon
 } from "lucide-react";
+import logoDoorToDoor from "@/assets/logo-doortodoor.png";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
