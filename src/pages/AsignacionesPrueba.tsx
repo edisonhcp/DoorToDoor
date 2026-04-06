@@ -129,9 +129,18 @@ export default function AsignacionesPrueba() {
   // Close suggestions on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (sugerenciasRef.current && !sugerenciasRef.current.contains(e.target as Node) &&
-          nombreInputRef.current && !nombreInputRef.current.contains(e.target as Node)) {
+      const t = e.target as Node;
+      if (sugerenciasRef.current && !sugerenciasRef.current.contains(t) &&
+          nombreInputRef.current && !nombreInputRef.current.contains(t)) {
         setShowSugerencias(false);
+      }
+      if (origenSugRef.current && !origenSugRef.current.contains(t) &&
+          origenInputRef.current && !origenInputRef.current.contains(t)) {
+        setShowSugerenciasOrigen(false);
+      }
+      if (destinoSugRef.current && !destinoSugRef.current.contains(t) &&
+          destinoInputRef.current && !destinoInputRef.current.contains(t)) {
+        setShowSugerenciasDestino(false);
       }
     };
     document.addEventListener("mousedown", handler);
