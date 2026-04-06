@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Route, Truck, Plus, Clock, MapPin, Users, DollarSign, Package, Pencil, X, CalendarIcon, Copy, User, Phone, FileText, MapPinned, Trash2 } from "lucide-react";
 import { format } from "date-fns";
@@ -67,6 +67,49 @@ export default function AsignacionesPrueba() {
   const [pasajeroCelular, setPasajeroCelular] = useState("");
   const [pasajeroDetalle, setPasajeroDetalle] = useState("");
   const [pasajeroDireccion, setPasajeroDireccion] = useState("");
+  const [sugerenciasPasajeros, setSugerenciasPasajeros] = useState<any[]>([]);
+  const [showSugerencias, setShowSugerencias] = useState(false);
+  const nombreInputRef = useRef<HTMLInputElement>(null);
+  const sugerenciasRef = useRef<HTMLDivElement>(null);
+
+  // Search passengers by name for autocomplete
+  const buscarPasajeros = useCallback(async (query: string) => {
+    if (!empresaId || query.length < 2) {
+      setSugerenciasPasajeros([]);
+      setShowSugerencias(false);
+      return;
+    }
+    const { data } = await supabase
+      .from("pasajeros")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .ilike("nombre", `%${query}%`)
+      .limit(8);
+    setSugerenciasPasajeros(data || []);
+    setShowSugerencias((data || []).length > 0);
+  }, [empresaId]);
+
+  const seleccionarPasajero = (p: any) => {
+    setPasajeroNombre(p.nombre || "");
+    setPasajeroCelular(p.celular || "");
+    setPasajeroDetalle(p.detalle || "");
+    setPasajeroDireccion(p.direccion || "");
+    setParada(p.parada || "");
+    setCantidadPasajeros(String(p.cantidad_pasajeros || 1));
+    setShowSugerencias(false);
+  };
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (sugerenciasRef.current && !sugerenciasRef.current.contains(e.target as Node) &&
+          nombreInputRef.current && !nombreInputRef.current.contains(e.target as Node)) {
+        setShowSugerencias(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const clearForm = () => {
     setSelectedVehiculo("");
@@ -157,6 +200,44 @@ export default function AsignacionesPrueba() {
         detalle: pasajeroDetalle,
         direccion: pasajeroDireccion,
       } as any);
+    }
+
+    // Save/update passenger in pasajeros table for autocomplete
+    if (pasajeroNombre.trim() && empresaIdVal) {
+      const pasajeroData = {
+        nombre: pasajeroNombre,
+        celular: pasajeroCelular,
+        detalle: pasajeroDetalle,
+        direccion: pasajeroDireccion,
+        parada,
+        cantidad_pasajeros: parseInt(cantidadPasajeros) || 1,
+        pasajeros_monto: parseFloat(valorPasajeros) || 0,
+        encomiendas_monto: parseFloat(valorEncomienda) || 0,
+        empresa_id: empresaIdVal,
+        reservacion_id: reservacionId || viajeId,
+      };
+
+      // Check if passenger exists by name + empresa
+      const { data: existing } = await supabase
+        .from("pasajeros")
+        .select("id")
+        .eq("empresa_id", empresaIdVal)
+        .ilike("nombre", pasajeroNombre.trim())
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        await supabase.from("pasajeros").update({
+          celular: pasajeroCelular,
+          detalle: pasajeroDetalle,
+          direccion: pasajeroDireccion,
+          parada,
+          cantidad_pasajeros: parseInt(cantidadPasajeros) || 1,
+          pasajeros_monto: parseFloat(valorPasajeros) || 0,
+          encomiendas_monto: parseFloat(valorEncomienda) || 0,
+        }).eq("id", existing[0].id);
+      } else {
+        await supabase.from("pasajeros").insert(pasajeroData as any);
+      }
     }
   };
 
@@ -443,12 +524,42 @@ export default function AsignacionesPrueba() {
                       Datos del pasajero
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
+                      <div className="space-y-2 relative">
                         <Label className="text-muted-foreground flex items-center gap-1">
                           <User className="w-3.5 h-3.5" />
                           Nombre
                         </Label>
-                        <Input placeholder="Nombre del pasajero" value={pasajeroNombre} onChange={(e) => setPasajeroNombre(e.target.value)} />
+                        <Input
+                          ref={nombreInputRef}
+                          placeholder="Nombre del pasajero"
+                          value={pasajeroNombre}
+                          onChange={(e) => {
+                            setPasajeroNombre(e.target.value);
+                            buscarPasajeros(e.target.value);
+                          }}
+                          onFocus={() => {
+                            if (pasajeroNombre.length >= 2) buscarPasajeros(pasajeroNombre);
+                          }}
+                          autoComplete="off"
+                        />
+                        {showSugerencias && sugerenciasPasajeros.length > 0 && (
+                          <div
+                            ref={sugerenciasRef}
+                            className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md"
+                          >
+                            {sugerenciasPasajeros.map((p) => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors flex flex-col"
+                                onClick={() => seleccionarPasajero(p)}
+                              >
+                                <span className="font-medium">{p.nombre}</span>
+                                {p.celular && <span className="text-xs text-muted-foreground">{p.celular}</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label className="text-muted-foreground flex items-center gap-1">
