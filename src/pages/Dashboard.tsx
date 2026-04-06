@@ -96,11 +96,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
     else { toast({ title: "Ruta finalizada" }); loadRutas(); }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!user?.id) return;
-    await deleteConductorAccount(user.id);
-    toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
-  };
+
 
   return (
     <DashboardLayout>
