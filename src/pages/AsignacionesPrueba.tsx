@@ -201,6 +201,44 @@ export default function AsignacionesPrueba() {
         direccion: pasajeroDireccion,
       } as any);
     }
+
+    // Save/update passenger in pasajeros table for autocomplete
+    if (pasajeroNombre.trim() && empresaIdVal) {
+      const pasajeroData = {
+        nombre: pasajeroNombre,
+        celular: pasajeroCelular,
+        detalle: pasajeroDetalle,
+        direccion: pasajeroDireccion,
+        parada,
+        cantidad_pasajeros: parseInt(cantidadPasajeros) || 1,
+        pasajeros_monto: parseFloat(valorPasajeros) || 0,
+        encomiendas_monto: parseFloat(valorEncomienda) || 0,
+        empresa_id: empresaIdVal,
+        reservacion_id: reservacionId || viajeId,
+      };
+
+      // Check if passenger exists by name + empresa
+      const { data: existing } = await supabase
+        .from("pasajeros")
+        .select("id")
+        .eq("empresa_id", empresaIdVal)
+        .ilike("nombre", pasajeroNombre.trim())
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        await supabase.from("pasajeros").update({
+          celular: pasajeroCelular,
+          detalle: pasajeroDetalle,
+          direccion: pasajeroDireccion,
+          parada,
+          cantidad_pasajeros: parseInt(cantidadPasajeros) || 1,
+          pasajeros_monto: parseFloat(valorPasajeros) || 0,
+          encomiendas_monto: parseFloat(valorEncomienda) || 0,
+        }).eq("id", existing[0].id);
+      } else {
+        await supabase.from("pasajeros").insert(pasajeroData as any);
+      }
+    }
   };
 
   const handleSubmit = async () => {
