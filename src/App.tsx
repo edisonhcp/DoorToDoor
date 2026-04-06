@@ -24,7 +24,7 @@ import PropietarioVehiculos from "./pages/PropietarioVehiculos";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import Asignaciones from "./pages/Asignaciones";
-import AsignacionesPrueba from "./pages/AsignacionesPrueba";
+
 import GerenciaViajes from "./pages/GerenciaViajes";
 import ConductorAsignaciones from "./pages/conductor/ConductorAsignaciones";
 import ConductorRutas from "./pages/conductor/ConductorRutas";
