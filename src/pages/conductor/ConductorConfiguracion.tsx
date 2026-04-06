@@ -334,12 +334,29 @@ export default function ConductorConfiguracion() {
           onTraseraChange={e => handleFileChange(e.target.files?.[0], setLicenciaTraseraFile, setLicenciaTraseraPreview)}
         />
 
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          <Button variant="destructive" size="sm" className="gap-2" onClick={() => setDeleteAccountAlert(true)}>
+            <Trash2 className="w-4 h-4" />
+            Eliminar mi cuenta
+          </Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="w-4 h-4" />
             {saving ? "Guardando..." : "Guardar Cambios"}
           </Button>
         </div>
+
+        <AlertDialog open={deleteAccountAlert} onOpenChange={setDeleteAccountAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar tu cuenta?</AlertDialogTitle>
+              <AlertDialogDescription>Esta acción eliminará tu perfil de conductor. Podrás registrarte en otra compañía con un nuevo link de invitación.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar cuenta</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </motion.div>
     </DashboardLayout>
   );
