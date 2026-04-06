@@ -115,28 +115,35 @@ export function matchCity(destino: string): string {
 
 export async function fetchViajesActivosConVehiculo(empresaId: string) {
   // Get viajes and current active assignments to show correct conductor
-  const [viajesRes, asigRes] = await Promise.all([
+  // Fetch viajes + asignacion details separately to avoid FK hint issues
+  const [viajesRes, asigAllRes] = await Promise.all([
     supabase
       .from("viajes")
-      .select(`
-        id, destino, estado, fecha_llegada, fecha_salida,
-        asignacion_id,
-        asignaciones!viajes_asignacion_id_fkey (
-          vehiculo_id,
-          conductor_id,
-          vehiculos!asignaciones_vehiculo_id_fkey ( id, placa, marca, modelo ),
-          conductores!asignaciones_conductor_id_fkey ( id, nombres, apellidos )
-        )
-      `)
+      .select("id, destino, estado, fecha_llegada, fecha_salida, asignacion_id")
       .eq("empresa_id", empresaId)
       .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
       .order("fecha_llegada", { ascending: false }),
     supabase
       .from("asignaciones")
-      .select("vehiculo_id, conductor_id, conductores!asignaciones_conductor_id_fkey ( id, nombres, apellidos )")
-      .eq("empresa_id", empresaId)
-      .eq("estado", "ACTIVA"),
+      .select("id, vehiculo_id, conductor_id, estado")
+      .eq("empresa_id", empresaId),
   ]);
+
+  // Build lookup maps for asignaciones, vehiculos, conductores
+  const asignacionMap: Record<string, any> = {};
+  for (const a of (asigAllRes.data || [])) {
+    asignacionMap[a.id] = a;
+  }
+
+  // Get vehiculos and conductores for enrichment
+  const [vehRes, condRes] = await Promise.all([
+    supabase.from("vehiculos").select("id, placa, marca, modelo").eq("empresa_id", empresaId),
+    supabase.from("conductores").select("id, nombres, apellidos").eq("empresa_id", empresaId),
+  ]);
+  const vehMap: Record<string, any> = {};
+  for (const v of (vehRes.data || [])) vehMap[v.id] = v;
+  const condMap: Record<string, any> = {};
+  for (const c of (condRes.data || [])) condMap[c.id] = c;
 
   if (viajesRes.error) return { viajes: [], activeAssignments: [] };
 
