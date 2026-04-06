@@ -241,20 +241,9 @@ export default function ConductorAsignaciones() {
         ) : (
           <div className="space-y-4">
             {(() => {
-              // Only show non-FINALIZADO trips as active cards
-              const activeViajes = filteredViajes.filter(v => v.estado !== "FINALIZADO");
-              
-              if (activeViajes.length === 0) return (
-                <Card className="border-0 shadow-sm">
-                  <CardContent className="py-12 text-center">
-                    <Route className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-                    <p className="text-muted-foreground">No tienes rutas activas</p>
-                  </CardContent>
-                </Card>
-              );
-
+              // Show all non-hidden viajes (FINALIZADO within 24h stays visible for egresos)
               const groups: Record<string, any[]> = {};
-              for (const v of activeViajes) {
+              for (const v of filteredViajes) {
                 const fechaStr = v.fecha_salida ? new Date(v.fecha_salida).toLocaleDateString("es-EC") : "";
                 const key = `${v.asignacion_id || ""}_${v.origen}_${v.destino}_${fechaStr}_${v.hora_salida || ""}`;
                 if (!groups[key]) groups[key] = [];
