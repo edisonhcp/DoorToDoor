@@ -11,6 +11,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { deleteConductorAccount } from "@/services/conductoresService";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ConductorConfiguracion() {
   const { role, user, profile } = useAuth();
@@ -24,6 +36,7 @@ export default function ConductorConfiguracion() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [conductorId, setConductorId] = useState<string | null>(null);
+  const [deleteAccountAlert, setDeleteAccountAlert] = useState(false);
 
   const [form, setForm] = useState({
     nombres: "", apellidos: "", identificacion: "", celular: "",
@@ -124,6 +137,12 @@ export default function ConductorConfiguracion() {
       setLicenciaFrontalFile(null);
       setLicenciaTraseraFile(null);
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user?.id) return;
+    await deleteConductorAccount(user.id);
+    toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
   };
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -315,12 +334,29 @@ export default function ConductorConfiguracion() {
           onTraseraChange={e => handleFileChange(e.target.files?.[0], setLicenciaTraseraFile, setLicenciaTraseraPreview)}
         />
 
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          <Button variant="destructive" size="sm" className="gap-2" onClick={() => setDeleteAccountAlert(true)}>
+            <Trash2 className="w-4 h-4" />
+            Eliminar mi cuenta
+          </Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="w-4 h-4" />
             {saving ? "Guardando..." : "Guardar Cambios"}
           </Button>
         </div>
+
+        <AlertDialog open={deleteAccountAlert} onOpenChange={setDeleteAccountAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar tu cuenta?</AlertDialogTitle>
+              <AlertDialogDescription>Esta acción eliminará tu perfil de conductor. Podrás registrarte en otra compañía con un nuevo link de invitación.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar cuenta</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </motion.div>
     </DashboardLayout>
   );

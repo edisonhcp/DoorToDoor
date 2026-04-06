@@ -16,7 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { fetchConductorData, deleteConductorAccount } from "@/services/conductoresService";
+import { fetchConductorData } from "@/services/conductoresService";
 import { deletePropietarioAccount } from "@/services/propietariosService";
 import { fetchPropietarioVehiculos, deleteVehiculo } from "@/services/vehiculosService";
 import { fetchDashboardStats, fetchEmpresaNombre, fetchEmpresaInfo, fetchViajesActivosConVehiculo, buildDespachoBoard, type DashboardStats, type VehiculoDespacho } from "@/services/dashboardService";
@@ -60,7 +60,6 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
   const [conductorInfo, setConductorInfo] = useState<any>(null);
   const [rutasAsignadas, setRutasAsignadas] = useState<RutaAsignada[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteAccountAlert, setDeleteAccountAlert] = useState(false);
   const [empresaInfo, setEmpresaInfo] = useState<any>(null);
 
   const loadRutas = async () => {
@@ -96,11 +95,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
     else { toast({ title: "Ruta finalizada" }); loadRutas(); }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!user?.id) return;
-    await deleteConductorAccount(user.id);
-    toast({ title: "Cuenta eliminada. Puede registrarse en otra compañía." });
-  };
+
 
   return (
     <DashboardLayout>
@@ -287,26 +282,7 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
           );
         })()}
 
-        <motion.div variants={item}>
-          <Button variant="destructive" size="sm" className="gap-2" onClick={() => setDeleteAccountAlert(true)}>
-            <Trash2 className="w-4 h-4" />
-            Eliminar mi cuenta
-          </Button>
-        </motion.div>
       </motion.div>
-
-      <AlertDialog open={deleteAccountAlert} onOpenChange={setDeleteAccountAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar tu cuenta?</AlertDialogTitle>
-            <AlertDialogDescription>Esta acción eliminará tu perfil de conductor. Podrás registrarte en otra compañía con un nuevo link de invitación.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar cuenta</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </DashboardLayout>
   );
 }
