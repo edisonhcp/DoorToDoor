@@ -410,6 +410,7 @@ export type Database = {
       invitaciones: {
         Row: {
           created_at: string
+          created_by_user_id: string | null
           empresa_id: string
           expires_at: string
           id: string
@@ -420,6 +421,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by_user_id?: string | null
           empresa_id: string
           expires_at: string
           id?: string
@@ -430,6 +432,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by_user_id?: string | null
           empresa_id?: string
           expires_at?: string
           id?: string
@@ -1074,13 +1077,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_conductor_id: { Args: { _user_id: string }; Returns: string }
       get_user_empresa_id: { Args: { _user_id: string }; Returns: string }
+      get_user_propietario_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      insert_audit_log: {
+        Args: {
+          _accion: Database["public"]["Enums"]["accion_audit"]
+          _antes?: Json
+          _despues?: Json
+          _dia_operacion_id?: string
+          _empresa_id: string
+          _semana_id?: string
+          _vehiculo_id?: string
+          _viaje_id?: string
+        }
+        Returns: undefined
       }
       storage_conductor_check: { Args: { file_path: string }; Returns: boolean }
       storage_propietario_check: {
