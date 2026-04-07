@@ -296,7 +296,7 @@ export default function ConductorConfiguracion() {
             </div>
             <div className="space-y-2">
               <Label>Tipo de Licencia</Label>
-              <Input value={form.tipo_licencia} onChange={e => update("tipo_licencia", e.target.value)} />
+              <Input value={form.tipo_licencia} onChange={e => update("tipo_licencia", e.target.value.toUpperCase())} />
             </div>
             <div className="space-y-2">
               <Label>Fecha Caducidad Licencia</Label>

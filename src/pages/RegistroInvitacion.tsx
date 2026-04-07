@@ -297,7 +297,7 @@ export default function RegistroInvitacion() {
                       <div><Label>Identificación</Label><Input value={datos.identificacion} onChange={e => setDatos({ ...datos, identificacion: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
                       <div><Label>Celular</Label><Input value={datos.celular} onChange={e => setDatos({ ...datos, celular: e.target.value.replace(/\D/g, "").slice(0, 10) })} maxLength={10} inputMode="numeric" pattern="[0-9]*" required /></div>
                       <div className="col-span-2"><Label>Domicilio</Label><Input value={datos.domicilio} onChange={e => setDatos({ ...datos, domicilio: e.target.value })} /></div>
-                      <div><Label>Tipo de licencia</Label><Input value={datos.tipo_licencia} onChange={e => setDatos({ ...datos, tipo_licencia: e.target.value })} /></div>
+                      <div><Label>Tipo de licencia</Label><Input value={datos.tipo_licencia} onChange={e => setDatos({ ...datos, tipo_licencia: e.target.value.toUpperCase() })} /></div>
                       <div className="space-y-2">
                         <Label>Estado civil</Label>
                         <Select value={datos.estado_civil} onValueChange={v => setDatos({ ...datos, estado_civil: v })}>
