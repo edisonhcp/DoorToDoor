@@ -1077,6 +1077,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_conductor_vehicle_ids: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
+      get_propietario_vehicle_ids: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
       get_user_conductor_id: { Args: { _user_id: string }; Returns: string }
       get_user_empresa_id: { Args: { _user_id: string }; Returns: string }
       get_user_propietario_id: { Args: { _user_id: string }; Returns: string }
