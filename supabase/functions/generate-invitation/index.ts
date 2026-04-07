@@ -116,6 +116,7 @@ Deno.serve(async (req) => {
         token,
         rol,
         expires_at: expiresAt.toISOString(),
+        created_by_user_id: user.id,
       });
 
     if (insertError) {

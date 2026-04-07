@@ -74,17 +74,15 @@ export async function insertAuditLog(params: {
   semana_id?: string;
   dia_operacion_id?: string;
 }) {
-  const { error } = await supabase.from("audit_logs").insert({
-    empresa_id: params.empresa_id,
-    accion: params.accion as any,
-    user_id: params.user_id || null,
-    rol: params.rol || null,
-    antes: params.antes || null,
-    despues: params.despues || null,
-    vehiculo_id: params.vehiculo_id || null,
-    viaje_id: params.viaje_id || null,
-    semana_id: params.semana_id || null,
-    dia_operacion_id: params.dia_operacion_id || null,
+  const { error } = await supabase.rpc("insert_audit_log", {
+    _empresa_id: params.empresa_id,
+    _accion: params.accion,
+    _antes: params.antes || null,
+    _despues: params.despues || null,
+    _vehiculo_id: params.vehiculo_id || null,
+    _viaje_id: params.viaje_id || null,
+    _semana_id: params.semana_id || null,
+    _dia_operacion_id: params.dia_operacion_id || null,
   });
   return { error };
 }
