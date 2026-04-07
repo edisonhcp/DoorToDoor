@@ -103,7 +103,7 @@ export default function PropietarioConfiguracion() {
       if (url) updates.foto_url = url;
     }
 
-    const { error } = await supabase.from("propietarios").update(updates).eq("id", propietarioId);
+    const { error } = await supabase.from("propietarios").update(updates as any).eq("id", propietarioId);
     setSaving(false);
 
     if (error) {
@@ -145,7 +145,7 @@ export default function PropietarioConfiguracion() {
       if (url) updates.foto_url = url;
     }
 
-    const { error } = await supabase.from("vehiculos").update(updates).eq("id", editVehiculo.id);
+    const { error } = await supabase.from("vehiculos").update(updates as any).eq("id", editVehiculo.id);
     setSavingVehiculo(false);
 
     if (error) {

@@ -124,7 +124,7 @@ export default function ConductorConfiguracion() {
       }
     }
 
-    const { error } = await supabase.from("conductores").update(updates).eq("id", conductorId);
+    const { error } = await supabase.from("conductores").update(updates as any).eq("id", conductorId);
     setSaving(false);
 
     if (error) {
