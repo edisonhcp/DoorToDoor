@@ -76,7 +76,7 @@ export async function insertAuditLog(params: {
 }) {
   const { error } = await supabase.rpc("insert_audit_log", {
     _empresa_id: params.empresa_id,
-    _accion: params.accion,
+    _accion: params.accion as any,
     _antes: params.antes || null,
     _despues: params.despues || null,
     _vehiculo_id: params.vehiculo_id || null,
