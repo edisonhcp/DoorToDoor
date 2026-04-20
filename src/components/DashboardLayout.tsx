@@ -106,21 +106,30 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const navItems = getNavItems();
 
+  const expanded = hoverExpanded || sidebarOpen;
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
       <aside
+        onMouseEnter={() => setHoverExpanded(true)}
+        onMouseLeave={() => setHoverExpanded(false)}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar flex flex-col transition-all duration-300 lg:translate-x-0 lg:static overflow-hidden",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "lg:w-16",
+          expanded && "lg:w-64"
         )}
       >
         {/* Logo */}
         <div className="h-16 flex items-center gap-3 px-6 border-b border-sidebar-border">
-          <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
             <img src={logoDoorToDoor} alt="DoorToDoor" className="w-full h-full object-cover" />
           </div>
-          <span className="font-display font-bold text-lg text-sidebar-foreground">DoorToDoor</span>
+          <span className={cn(
+            "font-display font-bold text-lg text-sidebar-foreground whitespace-nowrap transition-opacity",
+            !expanded && "lg:opacity-0"
+          )}>DoorToDoor</span>
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-sidebar-foreground">
             <X className="w-5 h-5" />
           </button>
