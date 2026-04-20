@@ -157,14 +157,16 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
             <Card className="border-0 shadow-sm">
               <CardContent className="p-8">
                 <div className="flex items-start gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Users className="w-8 h-8 text-primary" />
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                    <StorageImage
+                      src={conductorInfo?.conductor?.foto_url}
+                      alt={conductorInfo?.conductor ? `${conductorInfo.conductor.nombres} ${conductorInfo.conductor.apellidos}` : "Conductor"}
+                      className="w-full h-full object-cover"
+                      fallback={<Users className="w-8 h-8 text-primary" />}
+                    />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-display font-bold text-foreground">
-                      {conductorInfo?.conductor ? `${conductorInfo.conductor.nombres} ${conductorInfo.conductor.apellidos}` : profile?.username || "Conductor"}
-                    </h2>
-                    <p className="text-muted-foreground mt-1">
+                    <p className="text-muted-foreground">
                       {conductorInfo?.conductor?.tipo_licencia && `Licencia: ${conductorInfo.conductor.tipo_licencia}`}
                       {conductorInfo?.conductor?.celular && ` · ${conductorInfo.conductor.celular}`}
                     </p>
@@ -172,7 +174,14 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                     {conductorInfo?.vehiculo ? (
                       <div className={`mt-4 p-4 rounded-xl border ${conductorInfo.vehiculo.estado === "INHABILITADO" ? "bg-destructive/5 border-destructive/30" : "bg-muted/50 border-border"}`}>
                         <div className="flex items-center gap-3">
-                          <Truck className={`w-6 h-6 ${conductorInfo.vehiculo.estado === "INHABILITADO" ? "text-destructive" : "text-primary"}`} />
+                          <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-background shrink-0">
+                            <StorageImage
+                              src={conductorInfo.vehiculo.foto_url}
+                              alt={`${conductorInfo.vehiculo.marca} ${conductorInfo.vehiculo.modelo}`}
+                              className="w-full h-full object-cover"
+                              fallback={<Truck className={`w-6 h-6 ${conductorInfo.vehiculo.estado === "INHABILITADO" ? "text-destructive" : "text-primary"}`} />}
+                            />
+                          </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="font-display font-semibold text-foreground">
