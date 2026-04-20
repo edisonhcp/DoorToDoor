@@ -137,6 +137,14 @@
   /* Show print-only elements */
   .print-header {
     display: block !important;
+    background: white !important;
+  }
+
+  /* Ensure no gray/muted backgrounds bleed into the print header area */
+  .print-header,
+  .print-header * {
+    background-color: transparent !important;
+    background-image: none !important;
   }
 
   /* Remove card styling for clean print */
