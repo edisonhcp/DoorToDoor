@@ -515,7 +515,7 @@ export default function Asignaciones() {
                           : "text-muted-foreground";
                         return (
                           <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
-                            <span>{v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})</span>
+                            <span>{v.marca} {v.modelo} ({v.conductor_nombre})</span>
                             <span className={`ml-2 text-xs font-medium ${estadoColor}`}>• {estadoLabel}</span>
                           </SelectItem>
                         );
@@ -811,7 +811,7 @@ export default function Asignaciones() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-display font-semibold text-foreground">
-                                  {first.vehiculo?.placa || "—"} · {first.vehiculo?.marca} {first.vehiculo?.modelo}
+                                  {first.vehiculo?.marca} {first.vehiculo?.modelo}
                                 </span>
                                 <Badge variant={badge.variant}>{badge.label}</Badge>
                               </div>
