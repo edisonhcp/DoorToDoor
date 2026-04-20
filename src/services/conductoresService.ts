@@ -72,7 +72,7 @@ export async function fetchConductorData(userId: string) {
   const [condRes, asigRes] = await Promise.all([
     supabase.from("conductores").select("*").eq("id", profileData.conductor_id).single(),
     supabase.from("asignaciones")
-      .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, estado, propietarios(nombres, apellidos))")
+      .select("*, vehiculos(placa, marca, modelo, anio, color, tipo, estado, foto_url, propietarios(nombres, apellidos))")
       .eq("conductor_id", profileData.conductor_id)
       .eq("estado", "ACTIVA")
       .single(),
