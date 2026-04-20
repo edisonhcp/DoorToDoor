@@ -46,6 +46,7 @@ const superAdminNavItems = [
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hoverExpanded, setHoverExpanded] = useState(false);
   const { profile, role, empresaId, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -105,21 +106,30 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const navItems = getNavItems();
 
+  const expanded = hoverExpanded || sidebarOpen;
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
       <aside
+        onMouseEnter={() => setHoverExpanded(true)}
+        onMouseLeave={() => setHoverExpanded(false)}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar flex flex-col transition-all duration-300 lg:translate-x-0 lg:static overflow-hidden",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "lg:w-16",
+          expanded && "lg:w-64"
         )}
       >
         {/* Logo */}
         <div className="h-16 flex items-center gap-3 px-6 border-b border-sidebar-border">
-          <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
             <img src={logoDoorToDoor} alt="DoorToDoor" className="w-full h-full object-cover" />
           </div>
-          <span className="font-display font-bold text-lg text-sidebar-foreground">DoorToDoor</span>
+          <span className={cn(
+            "font-display font-bold text-lg text-sidebar-foreground whitespace-nowrap transition-opacity",
+            !expanded && "lg:opacity-0"
+          )}>DoorToDoor</span>
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-sidebar-foreground">
             <X className="w-5 h-5" />
           </button>
@@ -128,7 +138,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Nav */}
         <nav className="flex-1 p-4 space-y-1">
           {role === "SUPER_ADMIN" && (
-            <div className="px-3 mb-3">
+            <div className={cn("px-3 mb-3", !expanded && "lg:hidden")}>
               <span className="text-xs font-semibold text-sidebar-foreground/40 uppercase tracking-wider flex items-center gap-1.5">
                 <Shield className="w-3 h-3" /> Admin
               </span>
@@ -141,6 +151,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 key={item.href}
                 to={item.href}
                 onClick={() => setSidebarOpen(false)}
+                title={item.label}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
@@ -148,8 +159,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                 )}
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <item.icon className="w-5 h-5 shrink-0" />
+                <span className={cn("whitespace-nowrap", !expanded && "lg:hidden")}>{item.label}</span>
               </Link>
             );
           })}
@@ -158,7 +169,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         {/* User section */}
         <div className="p-4 border-t border-sidebar-border">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center overflow-hidden shrink-0">
               {propietarioFotoUrl ? (
                 <StorageImage src={propietarioFotoUrl} alt="Propietario" className="w-full h-full object-cover" />
               ) : conductorFotoUrl ? (
@@ -171,7 +182,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 </span>
               )}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className={cn("flex-1 min-w-0", !expanded && "lg:hidden")}>
               <p className="text-sm font-medium text-sidebar-foreground truncate">
                 {role === "CONDUCTOR"
                   ? (conductorNombre || profile?.username || "Conductor")
@@ -189,9 +200,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             size="sm"
             onClick={handleSignOut}
             className="w-full justify-start gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent mt-1"
+            title="Cerrar sesión"
           >
-            <LogOut className="w-4 h-4" />
-            Cerrar sesión
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span className={cn("whitespace-nowrap", !expanded && "lg:hidden")}>Cerrar sesión</span>
           </Button>
         </div>
       </aside>
