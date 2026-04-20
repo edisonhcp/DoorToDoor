@@ -116,7 +116,14 @@ export default function ConductorAsignaciones() {
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
 
   // Filter out FINALIZADO trips that should be hidden based on cutoff + 24h
-  const filteredViajes = viajes.filter(v => !shouldHideFinalizadoViaje(v));
+  const filteredViajes = viajes
+    .filter(v => !shouldHideFinalizadoViaje(v))
+    .sort((a, b) => {
+      const da = a.fecha_salida ? new Date(a.fecha_salida).getTime() : 0;
+      const db = b.fecha_salida ? new Date(b.fecha_salida).getTime() : 0;
+      if (da !== db) return da - db;
+      return (a.hora_salida || "").localeCompare(b.hora_salida || "");
+    });
 
   const handleIniciarRuta = async (viajeId: string) => {
     const { error } = await iniciarRuta(viajeId);
