@@ -163,6 +163,7 @@ export default function GestionGerencia() {
         id, fecha_salida, estado,
         ingresos_viaje(total_ingreso, pasajeros_monto, encomiendas_monto),
         asignaciones(
+          vehiculo_id,
           vehiculos(id, placa, marca, modelo, propietario_id,
             propietarios(nombres, apellidos, identificacion)
           )
@@ -179,9 +180,34 @@ export default function GestionGerencia() {
       return;
     }
 
+    // Recolectar vehiculo_ids huérfanos (asignación existe pero vehiculo fue eliminado)
+    const huerfanoVehIds = new Set<string>();
+    for (const v of viajes as any[]) {
+      const asig = v.asignaciones;
+      if (asig?.vehiculo_id && !asig.vehiculos) {
+        huerfanoVehIds.add(asig.vehiculo_id);
+      }
+    }
+
+    // Buscar info histórica de vehículos eliminados (puede que el registro siga existiendo
+    // pero la FK se rompió; si no existe, quedará vacío)
+    const vehHistorico = new Map<string, any>();
+    if (huerfanoVehIds.size > 0) {
+      const { data: vehs } = await supabase
+        .from("vehiculos")
+        .select("id, placa, marca, modelo, propietario_id, propietarios(nombres, apellidos, identificacion)")
+        .in("id", Array.from(huerfanoVehIds));
+      for (const v of (vehs || []) as any[]) vehHistorico.set(v.id, v);
+    }
+
     const vehSet = new Map<string, string>();
     const parsed: ViajeData[] = viajes.map(v => {
-      const veh = (v as any).asignaciones?.vehiculos;
+      const asig = (v as any).asignaciones;
+      let veh = asig?.vehiculos;
+      // Fallback: vehículo huérfano (asignación existe pero veh embebido es null)
+      if (!veh && asig?.vehiculo_id) {
+        veh = vehHistorico.get(asig.vehiculo_id) || null;
+      }
       const prop = veh?.propietarios;
       const ingreso = (v as any).ingresos_viaje?.total_ingreso ||
         ((v as any).ingresos_viaje?.pasajeros_monto || 0) + ((v as any).ingresos_viaje?.encomiendas_monto || 0);
