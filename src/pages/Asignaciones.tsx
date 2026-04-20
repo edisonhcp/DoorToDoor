@@ -595,11 +595,11 @@ export default function Asignaciones() {
                       <div className="space-y-2 relative">
                         <Label className="text-muted-foreground flex items-center gap-1">
                           <User className="w-3.5 h-3.5" />
-                          Nombre
+                          Apellido y nombre
                         </Label>
                         <Input
                           ref={nombreInputRef}
-                          placeholder="Nombre del pasajero"
+                          placeholder="Apellido y nombre del pasajero"
                           value={pasajeroNombre}
                           onChange={(e) => {
                             setPasajeroNombre(e.target.value);
