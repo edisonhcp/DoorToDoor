@@ -472,17 +472,18 @@ export default function GestionGerencia() {
           ) : (
             <Card>
               <CardContent className="pt-4">
-                <div className="overflow-auto">
+                <div className="border-2 border-foreground rounded-lg overflow-hidden [&_th]:border [&_th]:border-foreground [&_td]:border [&_td]:border-foreground">
+                  <div className="overflow-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
+                      <TableRow className="bg-muted/70 [&_th]:text-center [&_th]:font-bold [&_th]:text-foreground">
                         <TableHead className="w-12">#</TableHead>
                         <TableHead>Apellidos y Nombre</TableHead>
                         <TableHead>Cédula</TableHead>
                         <TableHead>Marca</TableHead>
                         <TableHead>Modelo</TableHead>
                         <TableHead>Placa</TableHead>
-                        <TableHead className="text-right">Ganancia Compañía</TableHead>
+                        <TableHead>Ganancia Compañía</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -505,7 +506,7 @@ export default function GestionGerencia() {
                       ))}
                     </TableBody>
                     <TableFooter>
-                      <TableRow>
+                      <TableRow className="bg-muted/80">
                         <TableCell colSpan={6} className="font-bold">TOTAL</TableCell>
                         <TableCell className="text-right font-bold">
                           ${totalGanancia.toFixed(2)}
@@ -513,6 +514,7 @@ export default function GestionGerencia() {
                       </TableRow>
                     </TableFooter>
                   </Table>
+                  </div>
                 </div>
               </CardContent>
             </Card>
