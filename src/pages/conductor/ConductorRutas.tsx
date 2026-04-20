@@ -211,16 +211,31 @@ export default function ConductorRutas() {
       ? selectedMonths.map(k => { const [y, m] = k.split("-").map(Number); return `${MONTH_NAMES[m].substring(0, 3)} ${y}`; }).join(", ")
       : `${selectedMonths.length} meses`;
 
+  const periodoImpresion = selectedPeriodKey !== "__all__"
+    ? availablePeriods.find(p => p.key === selectedPeriodKey)?.label
+    : selectedMonthsLabel;
 
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item}>
-          <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
-          <p className="text-muted-foreground mt-1">
-            Historial de viajes — Corte {frecuenciaLabel[frecuencia] || frecuencia}
-          </p>
+        <motion.div variants={item} className="flex items-start justify-between gap-4 no-print">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
+            <p className="text-muted-foreground mt-1">
+              Historial de viajes — Corte {frecuenciaLabel[frecuencia] || frecuencia}
+            </p>
+          </div>
+          <Button onClick={() => window.print()} variant="outline" className="gap-2">
+            <Printer className="w-4 h-4" />
+            Imprimir
+          </Button>
         </motion.div>
+
+        <PrintHeader
+          reportTitle="Consolidado de Rutas"
+          subtitle={`Corte ${frecuenciaLabel[frecuencia] || frecuencia}`}
+          periodInfo={periodoImpresion}
+        />
 
         {/* Filters card */}
         {!loading && (
