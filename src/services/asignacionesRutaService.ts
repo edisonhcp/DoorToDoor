@@ -116,6 +116,10 @@ export async function crearAsignacionRuta(params: {
 }
 
 export async function fetchAsignacionesActivas(empresaId: string) {
+  // Filtrar reservaciones con fecha_salida desde hace 8 días en adelante
+  const ochoDiasAtras = new Date();
+  ochoDiasAtras.setDate(ochoDiasAtras.getDate() - 8);
+
   const { data, error } = await supabase
     .from("viajes")
     .select(`
@@ -130,7 +134,9 @@ export async function fetchAsignacionesActivas(empresaId: string) {
     `)
     .eq("empresa_id", empresaId)
     .in("estado", ["ASIGNADO", "EN_RUTA", "FINALIZADO"] as any)
-    .order("created_at", { ascending: false });
+    .gte("fecha_salida", ochoDiasAtras.toISOString())
+    .order("fecha_salida", { ascending: true })
+    .order("hora_salida", { ascending: true, nullsFirst: true });
 
   return {
     data: (data || []).map((v: any) => ({
