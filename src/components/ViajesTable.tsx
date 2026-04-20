@@ -160,7 +160,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                       <TableCell className="text-xs text-right font-medium">{totalIngreso.toFixed(2)}</TableCell>
                       {showEgresos && (
                         <>
-                          <TableCell className="text-xs text-center border-l border-border">
+                          <TableCell className="text-xs text-center border-l border-border bg-destructive/5">
                             {alimParts.length > 0 ? (
                               <div className="flex items-center gap-1 justify-center">
                                 <div className="flex gap-0.5">
@@ -172,12 +172,12 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                               </div>
                             ) : "—"}
                           </TableCell>
-                          <TableCell className="text-xs text-right">{(eg?.peaje || 0).toFixed(2)}</TableCell>
-                          <TableCell className="text-xs text-right">{(eg?.hotel || 0).toFixed(2)}</TableCell>
+                          <TableCell className="text-xs text-right bg-destructive/5">{(eg?.peaje || 0).toFixed(2)}</TableCell>
+                          <TableCell className="text-xs text-right bg-destructive/5">{(eg?.hotel || 0).toFixed(2)}</TableCell>
                           {showConductorColumn && (
-                            <TableCell className="text-xs text-right">{(eg?.pago_conductor || 0).toFixed(2)}</TableCell>
+                            <TableCell className="text-xs text-right bg-destructive/5">{(eg?.pago_conductor || 0).toFixed(2)}</TableCell>
                           )}
-                          <TableCell className="text-xs text-right">
+                          <TableCell className="text-xs text-right bg-destructive/5">
                             <div className="flex items-center justify-end gap-1">
                               {(eg?.combustible || 0).toFixed(2)}
                               {eg?.combustible_foto_url && (
@@ -187,7 +187,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs text-right">
+                          <TableCell className="text-xs text-right bg-destructive/5">
                             <div className="flex items-center justify-end gap-1">
                               {(eg?.varios || 0).toFixed(2)}
                               {eg?.varios_foto_url && (
@@ -200,9 +200,9 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs text-right font-medium">{rowTotalEgreso.toFixed(2)}</TableCell>
+                          <TableCell className="text-xs text-right font-medium bg-destructive/10">{rowTotalEgreso.toFixed(2)}</TableCell>
                           {!showConductorColumn && (
-                            <TableCell className="text-xs text-right">{(eg?.pago_conductor || 0).toFixed(2)}</TableCell>
+                            <TableCell className="text-xs text-right bg-destructive/5">{(eg?.pago_conductor || 0).toFixed(2)}</TableCell>
                           )}
                           <TableCell className="text-xs text-center">
                             <Badge variant={v.estado === "FINALIZADO" ? "default" : v.estado === "EN_RUTA" ? "secondary" : "outline"} className="text-[10px]">
