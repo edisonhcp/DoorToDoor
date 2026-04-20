@@ -25,6 +25,22 @@ import {
   type RutaAsignada,
 } from "@/services/asignacionesRutaService";
 
+// Lista predefinida de ciudades frecuentes (orden alfabético)
+const CIUDADES_PREDEFINIDAS = [
+  "AMBATO",
+  "CUENCA",
+  "ESMERALDAS",
+  "GUAYAQUIL",
+  "IBARRA",
+  "LA CONCORDIA",
+  "MANTA",
+  "PORTOVIEJO",
+  "QUININDE",
+  "QUITO",
+  "RIOBAMBA",
+  "STO DGO",
+];
+
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08 } },
