@@ -50,6 +50,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Resolve caller's empresa (needed for GERENCIA scoping)
+    const { data: callerProfile } = await adminClient
+      .from('profiles')
+      .select('empresa_id')
+      .eq('user_id', caller.id)
+      .single();
+
     const { email } = await req.json();
 
     if (!email) {
@@ -77,6 +84,29 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true, message: 'No se encontró cuenta de autenticación' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Empresa scoping: GERENCIA can only delete users from their own empresa.
+    // Also block GERENCIA from deleting SUPER_ADMIN accounts.
+    if (roleData.role === 'GERENCIA') {
+      const [{ data: targetProfile }, { data: targetRole }] = await Promise.all([
+        adminClient.from('profiles').select('empresa_id').eq('user_id', targetUser.id).maybeSingle(),
+        adminClient.from('user_roles').select('role').eq('user_id', targetUser.id).maybeSingle(),
+      ]);
+
+      if (targetRole?.role === 'SUPER_ADMIN') {
+        console.warn('GERENCIA attempted to delete SUPER_ADMIN:', caller.id);
+        return new Response(JSON.stringify({ error: 'No autorizado' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!callerProfile?.empresa_id || targetProfile?.empresa_id !== callerProfile.empresa_id) {
+        console.warn('Cross-tenant deletion blocked. caller:', caller.id, 'target:', targetUser.id);
+        return new Response(JSON.stringify({ error: 'No autorizado' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Delete profile and user_roles first (they reference auth.users)
