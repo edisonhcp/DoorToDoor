@@ -145,6 +145,8 @@ export default function ConductorConfiguracion() {
       setCedulaTraseraFile(null);
       setLicenciaFrontalFile(null);
       setLicenciaTraseraFile(null);
+      // Recargar desde BD para asegurar que las imágenes se muestren con URLs frescas
+      await loadConductor(conductorId);
     }
   };
 
