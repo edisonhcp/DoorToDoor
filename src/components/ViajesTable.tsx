@@ -226,14 +226,14 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                   <TableCell className="text-right">{totals.totalIngreso.toFixed(2)}</TableCell>
                   {showEgresos && (
                     <>
-                      <TableCell className="text-center border-l border-border">{totals.alimentacion.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{totals.peaje.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{totals.hotel.toFixed(2)}</TableCell>
-                      {showConductorColumn && <TableCell className="text-right">{totals.conductor.toFixed(2)}</TableCell>}
-                      <TableCell className="text-right">{totals.combustible.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{totals.varios.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{totals.totalEgreso.toFixed(2)}</TableCell>
-                      {!showConductorColumn && <TableCell className="text-right">{totals.conductor.toFixed(2)}</TableCell>}
+                      <TableCell className="text-center border-l border-border bg-destructive/15">{totals.alimentacion.toFixed(2)}</TableCell>
+                      <TableCell className="text-right bg-destructive/15">{totals.peaje.toFixed(2)}</TableCell>
+                      <TableCell className="text-right bg-destructive/15">{totals.hotel.toFixed(2)}</TableCell>
+                      {showConductorColumn && <TableCell className="text-right bg-destructive/15">{totals.conductor.toFixed(2)}</TableCell>}
+                      <TableCell className="text-right bg-destructive/15">{totals.combustible.toFixed(2)}</TableCell>
+                      <TableCell className="text-right bg-destructive/15">{totals.varios.toFixed(2)}</TableCell>
+                      <TableCell className="text-right bg-destructive/20 font-semibold">{totals.totalEgreso.toFixed(2)}</TableCell>
+                      {!showConductorColumn && <TableCell className="text-right bg-destructive/15">{totals.conductor.toFixed(2)}</TableCell>}
                       <TableCell></TableCell>
                     </>
                   )}
