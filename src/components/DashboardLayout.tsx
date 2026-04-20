@@ -53,6 +53,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [empresaNombre, setEmpresaNombre] = useState<string | null>(null);
   const [propietarioFotoUrl, setPropietarioFotoUrl] = useState<string | null>(null);
   const [conductorFotoUrl, setConductorFotoUrl] = useState<string | null>(null);
+  const [conductorNombre, setConductorNombre] = useState<string | null>(null);
+  const [propietarioNombre, setPropietarioNombre] = useState<string | null>(null);
 
   useEffect(() => {
     if (!empresaId || role === "SUPER_ADMIN") return;
@@ -64,15 +66,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (role !== "PROPIETARIO" || !profile?.propietario_id) return;
-    supabase.from("propietarios").select("foto_url").eq("id", profile.propietario_id).single().then(({ data }) => {
+    supabase.from("propietarios").select("foto_url, nombres, apellidos").eq("id", profile.propietario_id).single().then(({ data }) => {
       if (data?.foto_url) setPropietarioFotoUrl(data.foto_url);
+      if (data) setPropietarioNombre(`${data.apellidos || ""} ${data.nombres || ""}`.trim());
     });
   }, [role, profile?.propietario_id]);
 
   useEffect(() => {
     if (role !== "CONDUCTOR" || !profile?.conductor_id) return;
-    supabase.from("conductores").select("foto_url").eq("id", profile.conductor_id).single().then(({ data }) => {
+    supabase.from("conductores").select("foto_url, nombres, apellidos").eq("id", profile.conductor_id).single().then(({ data }) => {
       if (data?.foto_url) setConductorFotoUrl(data.foto_url);
+      if (data) setConductorNombre(`${data.apellidos || ""} ${data.nombres || ""}`.trim());
     });
   }, [role, profile?.conductor_id]);
 
@@ -169,7 +173,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {empresaNombre || profile?.username || "Usuario"}
+                {role === "CONDUCTOR"
+                  ? (conductorNombre || profile?.username || "Conductor")
+                  : role === "PROPIETARIO"
+                    ? (propietarioNombre || profile?.username || "Propietario")
+                    : (empresaNombre || profile?.username || "Usuario")}
               </p>
               <p className="text-xs text-sidebar-foreground/50">
                 {role ? roleBadge[role] : ""}
