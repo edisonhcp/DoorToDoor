@@ -118,6 +118,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                     <TableHead className="text-xs font-semibold text-right">Combust.</TableHead>
                     <TableHead className="text-xs font-semibold text-right">Varios</TableHead>
                     <TableHead className="text-xs font-semibold text-right">Total Eg.</TableHead>
+                    {!showConductorColumn && <TableHead className="text-xs font-semibold text-right">Pag. Conductor</TableHead>}
                     <TableHead className="text-xs font-semibold text-center">Estado</TableHead>
                   </>
                 )}
