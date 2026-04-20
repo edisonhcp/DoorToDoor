@@ -110,17 +110,24 @@ export default function ConductorConfiguracion() {
     const updates: Record<string, any> = { ...form };
 
     const uploads = [
-      { file: fotoFile, folder: "foto", key: "foto_url" },
-      { file: cedulaFrontalFile, folder: "cedula_frontal", key: "cedula_frontal_url" },
-      { file: cedulaTraseraFile, folder: "cedula_trasera", key: "cedula_trasera_url" },
-      { file: licenciaFrontalFile, folder: "licencia_frontal", key: "licencia_frontal_url" },
-      { file: licenciaTraseraFile, folder: "licencia_trasera", key: "licencia_trasera_url" },
+      { file: fotoFile, folder: "foto", key: "foto_url", setPreview: setFotoPreview },
+      { file: cedulaFrontalFile, folder: "cedula_frontal", key: "cedula_frontal_url", setPreview: setCedulaFrontalPreview },
+      { file: cedulaTraseraFile, folder: "cedula_trasera", key: "cedula_trasera_url", setPreview: setCedulaTraseraPreview },
+      { file: licenciaFrontalFile, folder: "licencia_frontal", key: "licencia_frontal_url", setPreview: setLicenciaFrontalPreview },
+      { file: licenciaTraseraFile, folder: "licencia_trasera", key: "licencia_trasera_url", setPreview: setLicenciaTraseraPreview },
     ];
 
-    for (const { file, folder, key } of uploads) {
+    for (const { file, folder, key, setPreview } of uploads) {
       if (file) {
         const url = await uploadDoc(file, folder);
-        if (url) updates[key] = url;
+        if (url) {
+          updates[key] = url;
+          setPreview(url);
+        } else {
+          toast({ title: "Error al subir imagen", description: `No se pudo subir ${folder}`, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
       }
     }
 
