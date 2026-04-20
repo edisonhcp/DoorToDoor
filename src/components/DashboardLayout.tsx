@@ -169,7 +169,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         {/* User section */}
         <div className="p-4 border-t border-sidebar-border">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center overflow-hidden shrink-0">
               {propietarioFotoUrl ? (
                 <StorageImage src={propietarioFotoUrl} alt="Propietario" className="w-full h-full object-cover" />
               ) : conductorFotoUrl ? (
@@ -182,7 +182,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 </span>
               )}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className={cn("flex-1 min-w-0", !expanded && "lg:hidden")}>
               <p className="text-sm font-medium text-sidebar-foreground truncate">
                 {role === "CONDUCTOR"
                   ? (conductorNombre || profile?.username || "Conductor")
@@ -200,9 +200,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             size="sm"
             onClick={handleSignOut}
             className="w-full justify-start gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent mt-1"
+            title="Cerrar sesión"
           >
-            <LogOut className="w-4 h-4" />
-            Cerrar sesión
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span className={cn("whitespace-nowrap", !expanded && "lg:hidden")}>Cerrar sesión</span>
           </Button>
         </div>
       </aside>
