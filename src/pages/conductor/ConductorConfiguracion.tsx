@@ -55,31 +55,33 @@ export default function ConductorConfiguracion() {
   const [licenciaTraseraPreview, setLicenciaTraseraPreview] = useState<string | null>(null);
   const [licenciaTraseraFile, setLicenciaTraseraFile] = useState<File | null>(null);
 
+  const loadConductor = async (id: string) => {
+    const { data } = await supabase.from("conductores").select("*").eq("id", id).single();
+    if (data) {
+      setForm({
+        nombres: data.nombres || "",
+        apellidos: data.apellidos || "",
+        identificacion: data.identificacion || "",
+        celular: data.celular || "",
+        domicilio: data.domicilio || "",
+        nacionalidad: data.nacionalidad || "",
+        estado_civil: data.estado_civil || "",
+        fecha_nacimiento: data.fecha_nacimiento || "",
+        tipo_licencia: data.tipo_licencia || "",
+        fecha_caducidad_licencia: data.fecha_caducidad_licencia || "",
+      });
+      setFotoPreview((data as any).foto_url || null);
+      setCedulaFrontalPreview((data as any).cedula_frontal_url || null);
+      setCedulaTraseraPreview((data as any).cedula_trasera_url || null);
+      setLicenciaFrontalPreview((data as any).licencia_frontal_url || null);
+      setLicenciaTraseraPreview((data as any).licencia_trasera_url || null);
+    }
+  };
+
   useEffect(() => {
     if (!user?.id || !profile?.conductor_id) return;
     setConductorId(profile.conductor_id);
-    supabase.from("conductores").select("*").eq("id", profile.conductor_id).single().then(({ data }) => {
-      if (data) {
-        setForm({
-          nombres: data.nombres || "",
-          apellidos: data.apellidos || "",
-          identificacion: data.identificacion || "",
-          celular: data.celular || "",
-          domicilio: data.domicilio || "",
-          nacionalidad: data.nacionalidad || "",
-          estado_civil: data.estado_civil || "",
-          fecha_nacimiento: data.fecha_nacimiento || "",
-          tipo_licencia: data.tipo_licencia || "",
-          fecha_caducidad_licencia: data.fecha_caducidad_licencia || "",
-        });
-        if ((data as any).foto_url) setFotoPreview((data as any).foto_url);
-        if ((data as any).cedula_frontal_url) setCedulaFrontalPreview((data as any).cedula_frontal_url);
-        if ((data as any).cedula_trasera_url) setCedulaTraseraPreview((data as any).cedula_trasera_url);
-        if ((data as any).licencia_frontal_url) setLicenciaFrontalPreview((data as any).licencia_frontal_url);
-        if ((data as any).licencia_trasera_url) setLicenciaTraseraPreview((data as any).licencia_trasera_url);
-      }
-      setLoading(false);
-    });
+    loadConductor(profile.conductor_id).finally(() => setLoading(false));
   }, [user, profile]);
 
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
