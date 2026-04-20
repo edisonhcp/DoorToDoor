@@ -118,6 +118,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                     <TableHead className="text-xs font-semibold text-right">Combust.</TableHead>
                     <TableHead className="text-xs font-semibold text-right">Varios</TableHead>
                     <TableHead className="text-xs font-semibold text-right">Total Eg.</TableHead>
+                    {!showConductorColumn && <TableHead className="text-xs font-semibold text-right">Pag. Conductor</TableHead>}
                     <TableHead className="text-xs font-semibold text-center">Estado</TableHead>
                   </>
                 )}
@@ -200,6 +201,9 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                             </div>
                           </TableCell>
                           <TableCell className="text-xs text-right font-medium">{rowTotalEgreso.toFixed(2)}</TableCell>
+                          {!showConductorColumn && (
+                            <TableCell className="text-xs text-right">{(eg?.pago_conductor || 0).toFixed(2)}</TableCell>
+                          )}
                           <TableCell className="text-xs text-center">
                             <Badge variant={v.estado === "FINALIZADO" ? "default" : v.estado === "EN_RUTA" ? "secondary" : "outline"} className="text-[10px]">
                               {v.estado === "FINALIZADO" ? "Finalizado" : v.estado === "EN_RUTA" ? "En Ruta" : v.estado || "—"}
@@ -229,6 +233,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                       <TableCell className="text-right">{totals.combustible.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{totals.varios.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{totals.totalEgreso.toFixed(2)}</TableCell>
+                      {!showConductorColumn && <TableCell className="text-right">{totals.conductor.toFixed(2)}</TableCell>}
                       <TableCell></TableCell>
                     </>
                   )}
