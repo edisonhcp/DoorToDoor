@@ -52,6 +52,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [empresaNombre, setEmpresaNombre] = useState<string | null>(null);
   const [propietarioFotoUrl, setPropietarioFotoUrl] = useState<string | null>(null);
+  const [conductorFotoUrl, setConductorFotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!empresaId || role === "SUPER_ADMIN") return;
@@ -67,6 +68,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       if (data?.foto_url) setPropietarioFotoUrl(data.foto_url);
     });
   }, [role, profile?.propietario_id]);
+
+  useEffect(() => {
+    if (role !== "CONDUCTOR" || !profile?.conductor_id) return;
+    supabase.from("conductores").select("foto_url").eq("id", profile.conductor_id).single().then(({ data }) => {
+      if (data?.foto_url) setConductorFotoUrl(data.foto_url);
+    });
+  }, [role, profile?.conductor_id]);
 
   const handleSignOut = async () => {
     await signOut();
