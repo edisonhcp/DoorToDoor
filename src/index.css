@@ -157,4 +157,24 @@
   table {
     font-size: 9pt;
   }
+
+  /* Remove scrollbars and overflow constraints in print preview */
+  .overflow-x-auto,
+  .overflow-y-auto,
+  .overflow-auto,
+  .overflow-x-hidden,
+  .overflow-hidden {
+    overflow: visible !important;
+    max-height: none !important;
+    max-width: none !important;
+  }
+
+  * {
+    scrollbar-width: none !important;
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
 }
