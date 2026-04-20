@@ -128,7 +128,6 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
               {viajes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={showEgresos ? (showConductorColumn ? 16 : 15) : 8} className="text-center py-8 text-muted-foreground">
-                   
                     No hay viajes registrados
                   </TableCell>
                 </TableRow>
@@ -202,6 +201,9 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                             </div>
                           </TableCell>
                           <TableCell className="text-xs text-right font-medium">{rowTotalEgreso.toFixed(2)}</TableCell>
+                          {!showConductorColumn && (
+                            <TableCell className="text-xs text-right">{(eg?.pago_conductor || 0).toFixed(2)}</TableCell>
+                          )}
                           <TableCell className="text-xs text-center">
                             <Badge variant={v.estado === "FINALIZADO" ? "default" : v.estado === "EN_RUTA" ? "secondary" : "outline"} className="text-[10px]">
                               {v.estado === "FINALIZADO" ? "Finalizado" : v.estado === "EN_RUTA" ? "En Ruta" : v.estado || "—"}
