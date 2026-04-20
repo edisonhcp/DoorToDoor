@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Filter, Truck } from "lucide-react";
+import { Filter, Truck, Printer } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { fetchConductorViajes } from "@/services/egresosService";
 import { fetchEmpresaInfo } from "@/services/dashboardService";
 import { ViajesTable } from "@/components/ViajesTable";
+import { PrintHeader } from "@/components/PrintHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
