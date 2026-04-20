@@ -17,6 +17,7 @@ export interface RutaAsignada {
     placa: string;
     marca: string;
     modelo: string;
+    foto_url?: string | null;
   };
   conductor?: {
     nombres: string;
@@ -122,7 +123,7 @@ export async function fetchAsignacionesActivas(empresaId: string) {
       asignacion_id,
       ingresos_viaje(pasajeros_monto, encomiendas_monto),
       asignaciones(
-        vehiculos(placa, marca, modelo),
+        vehiculos(placa, marca, modelo, foto_url),
         conductores(nombres, apellidos, celular)
       ),
       reservaciones(id, parada, nombre_pasajero, celular_pasajero, detalle)
