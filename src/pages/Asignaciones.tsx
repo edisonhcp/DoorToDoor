@@ -515,7 +515,7 @@ export default function Asignaciones() {
                           : "text-muted-foreground";
                         return (
                           <SelectItem key={v.vehiculo_id} value={v.vehiculo_id}>
-                            <span>{v.placa} — {v.marca} {v.modelo} ({v.conductor_nombre})</span>
+                            <span>{v.marca} {v.modelo} ({v.conductor_nombre})</span>
                             <span className={`ml-2 text-xs font-medium ${estadoColor}`}>• {estadoLabel}</span>
                           </SelectItem>
                         );
