@@ -500,7 +500,14 @@ export default function GestionGerencia() {
                           <TableCell>{row.marca}</TableCell>
                           <TableCell>{row.modelo}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">{row.placa}</Badge>
+                            <div className="flex flex-col items-center gap-1">
+                              <Badge variant="outline">{row.placa}</Badge>
+                              {row.eliminado && (
+                                <span className="text-[10px] text-destructive font-medium">
+                                  Vehículo eliminado
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             ${row.comision.toFixed(2)}
