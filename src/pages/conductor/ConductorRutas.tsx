@@ -179,7 +179,12 @@ export default function ConductorRutas() {
         });
       }
     }
-    return result;
+    return result.slice().sort((a, b) => {
+      const da = a.fecha_salida ? new Date(a.fecha_salida).getTime() : 0;
+      const db = b.fecha_salida ? new Date(b.fecha_salida).getTime() : 0;
+      if (da !== db) return da - db;
+      return (a.hora_salida || "").localeCompare(b.hora_salida || "");
+    });
   }, [allViajes, selectedMonths, selectedPeriodKey, availablePeriods]);
 
   if (role !== "CONDUCTOR") return <Navigate to="/dashboard" replace />;
