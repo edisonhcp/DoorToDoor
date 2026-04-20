@@ -78,7 +78,10 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
   const comisionCompania = tipoComision === "PORCENTAJE" 
     ? totals.totalIngreso * comisionPct 
     : comisionFija;
-  const totalPropietario = totals.totalIngreso - totals.totalEgreso - comisionCompania;
+  // Si la columna de conductor está oculta (perfil Conductor), el pago_conductor NO está incluido
+  // en totals.totalEgreso, por lo que debe restarse adicionalmente para obtener el total del propietario.
+  const pagoConductorExtra = showConductorColumn ? 0 : totals.conductor;
+  const totalPropietario = totals.totalIngreso - totals.totalEgreso - comisionCompania - pagoConductorExtra;
 
   const frecuenciaLabel: Record<string, string> = {
     SEMANAL: "Semanal",
