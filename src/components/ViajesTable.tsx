@@ -128,6 +128,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
               {viajes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={showEgresos ? (showConductorColumn ? 16 : 15) : 8} className="text-center py-8 text-muted-foreground">
+                   
                     No hay viajes registrados
                   </TableCell>
                 </TableRow>
