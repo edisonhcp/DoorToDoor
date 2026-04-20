@@ -157,6 +157,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center overflow-hidden">
               {propietarioFotoUrl ? (
                 <StorageImage src={propietarioFotoUrl} alt="Propietario" className="w-full h-full object-cover" />
+              ) : conductorFotoUrl ? (
+                <StorageImage src={conductorFotoUrl} alt="Conductor" className="w-full h-full object-cover" />
               ) : logoUrl ? (
                 <StorageImage src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
               ) : (
