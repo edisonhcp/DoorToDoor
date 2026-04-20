@@ -25,6 +25,22 @@ import {
   type RutaAsignada,
 } from "@/services/asignacionesRutaService";
 
+// Lista predefinida de ciudades frecuentes (orden alfabético)
+const CIUDADES_PREDEFINIDAS = [
+  "AMBATO",
+  "CUENCA",
+  "ESMERALDAS",
+  "GUAYAQUIL",
+  "IBARRA",
+  "LA CONCORDIA",
+  "MANTA",
+  "PORTOVIEJO",
+  "QUININDE",
+  "QUITO",
+  "RIOBAMBA",
+  "STO DGO",
+];
+
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -101,20 +117,34 @@ export default function Asignaciones() {
 
   // Search cities for autocomplete (from viajes table)
   const buscarCiudades = useCallback(async (query: string, field: "origen" | "destino") => {
-    if (!empresaId || query.length < 2) {
-      if (field === "origen") { setSugerenciasOrigen([]); setShowSugerenciasOrigen(false); }
-      else { setSugerenciasDestino([]); setShowSugerenciasDestino(false); }
+    const q = query.trim().toUpperCase();
+    // Filtrar ciudades predefinidas (búsqueda inmediata desde 1 letra)
+    const predef = q.length >= 1
+      ? CIUDADES_PREDEFINIDAS.filter((c) => c.includes(q))
+      : [...CIUDADES_PREDEFINIDAS];
+
+    if (!empresaId || q.length < 1) {
+      const sorted = [...CIUDADES_PREDEFINIDAS];
+      if (field === "origen") { setSugerenciasOrigen(sorted); setShowSugerenciasOrigen(false); }
+      else { setSugerenciasDestino(sorted); setShowSugerenciasDestino(false); }
       return;
     }
+    // También buscar en BD para incluir ciudades nuevas guardadas
     const { data } = await supabase
       .from("viajes")
       .select(field)
       .eq("empresa_id", empresaId)
       .ilike(field, `%${query}%`)
       .limit(50);
-    const unique = [...new Set((data || []).map((d: any) => d[field]).filter(Boolean))].slice(0, 8);
-    if (field === "origen") { setSugerenciasOrigen(unique); setShowSugerenciasOrigen(unique.length > 0); }
-    else { setSugerenciasDestino(unique); setShowSugerenciasDestino(unique.length > 0); }
+    const fromDb = (data || [])
+      .map((d: any) => (d[field] || "").toString().toUpperCase())
+      .filter(Boolean);
+    const merged = [...new Set<string>([...predef, ...fromDb])]
+      .filter((c) => c.includes(q))
+      .sort((a, b) => a.localeCompare(b))
+      .slice(0, 12);
+    if (field === "origen") { setSugerenciasOrigen(merged); setShowSugerenciasOrigen(merged.length > 0); }
+    else { setSugerenciasDestino(merged); setShowSugerenciasDestino(merged.length > 0); }
   }, [empresaId]);
 
   const seleccionarPasajero = (p: any) => {
@@ -505,8 +535,19 @@ export default function Asignaciones() {
                     ref={origenInputRef}
                     placeholder="Ciudad de origen"
                     value={origen}
-                    onChange={(e) => { setOrigen(e.target.value); buscarCiudades(e.target.value, "origen"); }}
-                    onFocus={() => { if (origen.length >= 2) buscarCiudades(origen, "origen"); }}
+                    onChange={(e) => {
+                      const v = e.target.value.toUpperCase();
+                      setOrigen(v);
+                      buscarCiudades(v, "origen");
+                    }}
+                    onFocus={() => {
+                      if (origen.length >= 1) {
+                        buscarCiudades(origen, "origen");
+                      } else {
+                        setSugerenciasOrigen([...CIUDADES_PREDEFINIDAS]);
+                        setShowSugerenciasOrigen(true);
+                      }
+                    }}
                     autoComplete="off"
                   />
                   {showSugerenciasOrigen && sugerenciasOrigen.length > 0 && (
@@ -527,8 +568,19 @@ export default function Asignaciones() {
                     ref={destinoInputRef}
                     placeholder="Ciudad de destino"
                     value={destino}
-                    onChange={(e) => { setDestino(e.target.value); buscarCiudades(e.target.value, "destino"); }}
-                    onFocus={() => { if (destino.length >= 2) buscarCiudades(destino, "destino"); }}
+                    onChange={(e) => {
+                      const v = e.target.value.toUpperCase();
+                      setDestino(v);
+                      buscarCiudades(v, "destino");
+                    }}
+                    onFocus={() => {
+                      if (destino.length >= 1) {
+                        buscarCiudades(destino, "destino");
+                      } else {
+                        setSugerenciasDestino([...CIUDADES_PREDEFINIDAS]);
+                        setShowSugerenciasDestino(true);
+                      }
+                    }}
                     autoComplete="off"
                   />
                   {showSugerenciasDestino && sugerenciasDestino.length > 0 && (
