@@ -96,30 +96,30 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
 
   return (
     <div className="space-y-4">
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border-2 border-foreground rounded-lg overflow-hidden [&_th]:border [&_th]:border-foreground [&_td]:border [&_td]:border-foreground">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-xs font-semibold w-12">#</TableHead>
-                <TableHead className="text-xs font-semibold">Fecha</TableHead>
-                <TableHead className="text-xs font-semibold">Hora</TableHead>
-                <TableHead className="text-xs font-semibold">Ruta</TableHead>
-                <TableHead className="text-xs font-semibold text-right">Pasaj.</TableHead>
-                <TableHead className="text-xs font-semibold text-right">Valor ($)</TableHead>
-                <TableHead className="text-xs font-semibold text-right">Encom. ($)</TableHead>
-                <TableHead className="text-xs font-semibold text-right">Total ($)</TableHead>
+              <TableRow className="bg-muted/70 [&_th]:text-center [&_th]:font-bold [&_th]:text-foreground">
+                <TableHead className="text-xs w-12">#</TableHead>
+                <TableHead className="text-xs">Fecha</TableHead>
+                <TableHead className="text-xs">Hora</TableHead>
+                <TableHead className="text-xs">Ruta</TableHead>
+                <TableHead className="text-xs">Pasaj.</TableHead>
+                <TableHead className="text-xs">Valor ($)</TableHead>
+                <TableHead className="text-xs">Encom. ($)</TableHead>
+                <TableHead className="text-xs">Total ($)</TableHead>
                 {showEgresos && (
                   <>
-                    <TableHead className="text-xs font-semibold text-center border-l border-border">Alim. ($)</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Peaje</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Hotel</TableHead>
-                    {showConductorColumn && <TableHead className="text-xs font-semibold text-right">Conductor</TableHead>}
-                    <TableHead className="text-xs font-semibold text-right">Combust.</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Varios</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">Total Eg.</TableHead>
-                    {!showConductorColumn && <TableHead className="text-xs font-semibold text-right">Pag. Conductor</TableHead>}
-                    <TableHead className="text-xs font-semibold text-center">Estado</TableHead>
+                    <TableHead className="text-xs">Alim. ($)</TableHead>
+                    <TableHead className="text-xs">Peaje</TableHead>
+                    <TableHead className="text-xs">Hotel</TableHead>
+                    {showConductorColumn && <TableHead className="text-xs">Conductor</TableHead>}
+                    <TableHead className="text-xs">Combust.</TableHead>
+                    <TableHead className="text-xs">Varios</TableHead>
+                    <TableHead className="text-xs">Total Eg.</TableHead>
+                    {!showConductorColumn && <TableHead className="text-xs">Pag. Conductor</TableHead>}
+                    <TableHead className="text-xs">Estado</TableHead>
                   </>
                 )}
               </TableRow>
