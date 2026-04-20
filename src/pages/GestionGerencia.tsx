@@ -291,30 +291,33 @@ export default function GestionGerencia() {
       : availablePeriods.filter(p => p.key === selectedPeriodKey);
 
     // Build per-vehicle per-period income map
-    const vehInfo = new Map<string, { placa: string; marca: string; modelo: string; propNombres: string; propApellidos: string; propId: string }>();
+    const vehInfo = new Map<string, { placa: string; marca: string; modelo: string; propNombres: string; propApellidos: string; propId: string; eliminado: boolean }>();
     const vehPeriodIncome = new Map<string, Map<string, number>>(); // vehicleKey -> periodKey -> income
 
     for (const v of filteredViajes) {
-      if (!vehInfo.has(v.placa)) {
-        vehInfo.set(v.placa, {
+      // Agrupar huérfanos (sin vehiculoId) bajo una clave única para no mezclarlos
+      const key = v.vehiculoId || `__huerfano__${v.id}`;
+      if (!vehInfo.has(key)) {
+        vehInfo.set(key, {
           placa: v.placa, marca: v.marca, modelo: v.modelo,
           propNombres: v.propietarioNombres, propApellidos: v.propietarioApellidos,
           propId: v.propietarioIdentificacion,
+          eliminado: !v.vehiculoId,
         });
       }
-      if (!vehPeriodIncome.has(v.placa)) vehPeriodIncome.set(v.placa, new Map());
+      if (!vehPeriodIncome.has(key)) vehPeriodIncome.set(key, new Map());
       const vDate = new Date(v.fecha_salida);
       for (const period of periodsToEval) {
         if (vDate >= period.start && vDate <= period.end) {
-          const pm = vehPeriodIncome.get(v.placa)!;
+          const pm = vehPeriodIncome.get(key)!;
           pm.set(period.key, (pm.get(period.key) || 0) + v.totalIngreso);
           break;
         }
       }
     }
 
-    return Array.from(vehInfo.entries()).map(([placa, info]) => {
-      const periodMap = vehPeriodIncome.get(placa) || new Map<string, number>();
+    return Array.from(vehInfo.entries()).map(([key, info]) => {
+      const periodMap = vehPeriodIncome.get(key) || new Map<string, number>();
       let totalIngreso = 0;
       let comision = 0;
 
@@ -497,7 +500,14 @@ export default function GestionGerencia() {
                           <TableCell>{row.marca}</TableCell>
                           <TableCell>{row.modelo}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">{row.placa}</Badge>
+                            <div className="flex flex-col items-center gap-1">
+                              <Badge variant="outline">{row.placa}</Badge>
+                              {row.eliminado && (
+                                <span className="text-[10px] text-destructive font-medium">
+                                  Vehículo eliminado
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             ${row.comision.toFixed(2)}
