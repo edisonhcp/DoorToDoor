@@ -46,6 +46,7 @@ const superAdminNavItems = [
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hoverExpanded, setHoverExpanded] = useState(false);
   const { profile, role, empresaId, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
