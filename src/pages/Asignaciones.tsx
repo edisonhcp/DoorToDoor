@@ -535,8 +535,19 @@ export default function Asignaciones() {
                     ref={origenInputRef}
                     placeholder="Ciudad de origen"
                     value={origen}
-                    onChange={(e) => { setOrigen(e.target.value); buscarCiudades(e.target.value, "origen"); }}
-                    onFocus={() => { if (origen.length >= 2) buscarCiudades(origen, "origen"); }}
+                    onChange={(e) => {
+                      const v = e.target.value.toUpperCase();
+                      setOrigen(v);
+                      buscarCiudades(v, "origen");
+                    }}
+                    onFocus={() => {
+                      if (origen.length >= 1) {
+                        buscarCiudades(origen, "origen");
+                      } else {
+                        setSugerenciasOrigen([...CIUDADES_PREDEFINIDAS]);
+                        setShowSugerenciasOrigen(true);
+                      }
+                    }}
                     autoComplete="off"
                   />
                   {showSugerenciasOrigen && sugerenciasOrigen.length > 0 && (
@@ -557,8 +568,19 @@ export default function Asignaciones() {
                     ref={destinoInputRef}
                     placeholder="Ciudad de destino"
                     value={destino}
-                    onChange={(e) => { setDestino(e.target.value); buscarCiudades(e.target.value, "destino"); }}
-                    onFocus={() => { if (destino.length >= 2) buscarCiudades(destino, "destino"); }}
+                    onChange={(e) => {
+                      const v = e.target.value.toUpperCase();
+                      setDestino(v);
+                      buscarCiudades(v, "destino");
+                    }}
+                    onFocus={() => {
+                      if (destino.length >= 1) {
+                        buscarCiudades(destino, "destino");
+                      } else {
+                        setSugerenciasDestino([...CIUDADES_PREDEFINIDAS]);
+                        setShowSugerenciasDestino(true);
+                      }
+                    }}
                     autoComplete="off"
                   />
                   {showSugerenciasDestino && sugerenciasDestino.length > 0 && (
