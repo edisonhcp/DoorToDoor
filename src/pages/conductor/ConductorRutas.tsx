@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Filter, Truck } from "lucide-react";
+import { Filter, Truck, Printer } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { fetchConductorViajes } from "@/services/egresosService";
 import { fetchEmpresaInfo } from "@/services/dashboardService";
 import { ViajesTable } from "@/components/ViajesTable";
+import { PrintHeader } from "@/components/PrintHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -210,20 +211,35 @@ export default function ConductorRutas() {
       ? selectedMonths.map(k => { const [y, m] = k.split("-").map(Number); return `${MONTH_NAMES[m].substring(0, 3)} ${y}`; }).join(", ")
       : `${selectedMonths.length} meses`;
 
+  const periodoImpresion = selectedPeriodKey !== "__all__"
+    ? availablePeriods.find(p => p.key === selectedPeriodKey)?.label
+    : selectedMonthsLabel;
 
   return (
     <DashboardLayout>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <motion.div variants={item}>
-          <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
-          <p className="text-muted-foreground mt-1">
-            Historial de viajes — Corte {frecuenciaLabel[frecuencia] || frecuencia}
-          </p>
+        <motion.div variants={item} className="flex items-start justify-between gap-4 no-print">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground">Consolidado Rutas</h1>
+            <p className="text-muted-foreground mt-1">
+              Historial de viajes — Corte {frecuenciaLabel[frecuencia] || frecuencia}
+            </p>
+          </div>
+          <Button onClick={() => window.print()} variant="outline" className="gap-2">
+            <Printer className="w-4 h-4" />
+            Imprimir
+          </Button>
         </motion.div>
+
+        <PrintHeader
+          reportTitle="Consolidado de Rutas"
+          subtitle={`Corte ${frecuenciaLabel[frecuencia] || frecuencia}`}
+          periodInfo={periodoImpresion}
+        />
 
         {/* Filters card */}
         {!loading && (
-          <motion.div variants={item}>
+          <motion.div variants={item} className="no-print">
             <Card>
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-3">
