@@ -111,14 +111,14 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                 <TableHead className="text-xs">Total ($)</TableHead>
                 {showEgresos && (
                   <>
-                    <TableHead className="text-xs">Alim. ($)</TableHead>
-                    <TableHead className="text-xs">Peaje</TableHead>
-                    <TableHead className="text-xs">Hotel</TableHead>
-                    {showConductorColumn && <TableHead className="text-xs">Conductor</TableHead>}
-                    <TableHead className="text-xs">Combust.</TableHead>
-                    <TableHead className="text-xs">Varios</TableHead>
-                    <TableHead className="text-xs">Total Eg.</TableHead>
-                    {!showConductorColumn && <TableHead className="text-xs">Pag. Conductor</TableHead>}
+                    <TableHead className="text-xs bg-destructive/15">Alim. ($)</TableHead>
+                    <TableHead className="text-xs bg-destructive/15">Peaje</TableHead>
+                    <TableHead className="text-xs bg-destructive/15">Hotel</TableHead>
+                    {showConductorColumn && <TableHead className="text-xs bg-destructive/15">Conductor</TableHead>}
+                    <TableHead className="text-xs bg-destructive/15">Combust.</TableHead>
+                    <TableHead className="text-xs bg-destructive/15">Varios</TableHead>
+                    <TableHead className="text-xs bg-destructive/15">Total Eg.</TableHead>
+                    {!showConductorColumn && <TableHead className="text-xs bg-destructive/15">Pag. Conductor</TableHead>}
                     <TableHead className="text-xs">Estado</TableHead>
                   </>
                 )}
