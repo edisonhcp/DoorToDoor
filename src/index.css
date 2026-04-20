@@ -116,13 +116,18 @@
     print-color-adjust: exact !important;
   }
 
-  /* Force background colors to render in print (egresos column highlight, etc.) */
-  *,
-  *::before,
-  *::after {
+  /* Preserve egresos column colors when printing */
+  th, td, tr, thead, tbody, tfoot, table {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+  }
+
+  /* Force layout containers to white so no gray bleeds into the print page */
+  html, body, #root, main, .min-h-screen, .bg-background, .bg-card, .bg-muted\/30, .bg-muted\/50 {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
   }
 
   /* Hide sidebar, topbar, and non-print elements */
