@@ -239,7 +239,7 @@ export default function ConductorRutas() {
 
         {/* Filters card */}
         {!loading && (
-          <motion.div variants={item}>
+          <motion.div variants={item} className="no-print">
             <Card>
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-3">
