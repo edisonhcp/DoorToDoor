@@ -233,6 +233,7 @@ export function ViajesTable({ viajes: rawViajes, showEgresos = true, showConduct
                       <TableCell className="text-right">{totals.combustible.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{totals.varios.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{totals.totalEgreso.toFixed(2)}</TableCell>
+                      {!showConductorColumn && <TableCell className="text-right">{totals.conductor.toFixed(2)}</TableCell>}
                       <TableCell></TableCell>
                     </>
                   )}
