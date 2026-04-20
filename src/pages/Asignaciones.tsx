@@ -117,20 +117,34 @@ export default function Asignaciones() {
 
   // Search cities for autocomplete (from viajes table)
   const buscarCiudades = useCallback(async (query: string, field: "origen" | "destino") => {
-    if (!empresaId || query.length < 2) {
-      if (field === "origen") { setSugerenciasOrigen([]); setShowSugerenciasOrigen(false); }
-      else { setSugerenciasDestino([]); setShowSugerenciasDestino(false); }
+    const q = query.trim().toUpperCase();
+    // Filtrar ciudades predefinidas (búsqueda inmediata desde 1 letra)
+    const predef = q.length >= 1
+      ? CIUDADES_PREDEFINIDAS.filter((c) => c.includes(q))
+      : [...CIUDADES_PREDEFINIDAS];
+
+    if (!empresaId || q.length < 1) {
+      const sorted = [...CIUDADES_PREDEFINIDAS];
+      if (field === "origen") { setSugerenciasOrigen(sorted); setShowSugerenciasOrigen(false); }
+      else { setSugerenciasDestino(sorted); setShowSugerenciasDestino(false); }
       return;
     }
+    // También buscar en BD para incluir ciudades nuevas guardadas
     const { data } = await supabase
       .from("viajes")
       .select(field)
       .eq("empresa_id", empresaId)
       .ilike(field, `%${query}%`)
       .limit(50);
-    const unique = [...new Set((data || []).map((d: any) => d[field]).filter(Boolean))].slice(0, 8);
-    if (field === "origen") { setSugerenciasOrigen(unique); setShowSugerenciasOrigen(unique.length > 0); }
-    else { setSugerenciasDestino(unique); setShowSugerenciasDestino(unique.length > 0); }
+    const fromDb = (data || [])
+      .map((d: any) => (d[field] || "").toString().toUpperCase())
+      .filter(Boolean);
+    const merged = [...new Set<string>([...predef, ...fromDb])]
+      .filter((c) => c.includes(q))
+      .sort((a, b) => a.localeCompare(b))
+      .slice(0, 12);
+    if (field === "origen") { setSugerenciasOrigen(merged); setShowSugerenciasOrigen(merged.length > 0); }
+    else { setSugerenciasDestino(merged); setShowSugerenciasDestino(merged.length > 0); }
   }, [empresaId]);
 
   const seleccionarPasajero = (p: any) => {
