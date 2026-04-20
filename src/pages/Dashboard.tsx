@@ -195,9 +195,17 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
                               Placa: {conductorInfo.vehiculo.placa} · {conductorInfo.vehiculo.color} · {conductorInfo.vehiculo.tipo}
                             </p>
                             {conductorInfo.vehiculo.propietarios && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Propietario: {conductorInfo.vehiculo.propietarios.nombres} {conductorInfo.vehiculo.propietarios.apellidos}
-                              </p>
+                              <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                                <p>
+                                  Propietario: {conductorInfo.vehiculo.propietarios.apellidos} {conductorInfo.vehiculo.propietarios.nombres}
+                                </p>
+                                {conductorInfo.vehiculo.propietarios.email && (
+                                  <p>Correo: {conductorInfo.vehiculo.propietarios.email}</p>
+                                )}
+                                {conductorInfo.vehiculo.propietarios.celular && (
+                                  <p>Celular: {conductorInfo.vehiculo.propietarios.celular}</p>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
