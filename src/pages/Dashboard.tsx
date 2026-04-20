@@ -238,7 +238,14 @@ function ConductorDashboard({ profile, suspended }: { profile: any; suspended: a
 
         {/* Rutas asignadas - tabla informativa */}
         {(() => {
-          const activeRutas = rutasAsignadas.filter(r => r.estado !== "FINALIZADO");
+          const activeRutas = rutasAsignadas
+            .filter(r => r.estado !== "FINALIZADO")
+            .sort((a, b) => {
+              const da = a.fecha_salida ? new Date(a.fecha_salida).getTime() : 0;
+              const db = b.fecha_salida ? new Date(b.fecha_salida).getTime() : 0;
+              if (da !== db) return da - db;
+              return (a.hora_salida || "").localeCompare(b.hora_salida || "");
+            });
           if (activeRutas.length === 0) return null;
 
           // Group by vehicle + route + date + time
